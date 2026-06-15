@@ -234,7 +234,7 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <label>电话<input type="text" id="custPhone"></label>
-      <label>客户来源<select id="custSource"><option value="">请选择</option></select></label>
+      <label>客户来源<input type="text" id="custSource" list="sourceList" placeholder="选择或输入来源"><datalist id="sourceList"><option value="口碑推荐"><option value="Walkin"><option value="在读二宝"><option value="群内添加"><option value="扫码添加"><option value="大众点评"><option value="地推"><option value="转介绍"><option value="其他"></datalist></label>
       <label>客户级别<select id="custLevel"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></label>
     </div>
     <div class="form-row">
@@ -433,14 +433,17 @@ function fillFilters() {
   const sources = [...new Set(_customers.map(c => c.source).filter(Boolean))];
   const owners = [...new Set(_customers.map(c => c.owner).filter(Boolean))];
   const soSel = document.getElementById('custFilterSource');
+  soSel.innerHTML = '<option value="all">全部来源</option>';
   sources.forEach(s => { soSel.innerHTML += '<option>'+s+'</option>'; });
   const owSel = document.getElementById('custFilterOwner');
+  owSel.innerHTML = '<option value="all">全部跟进人</option>';
   owners.forEach(o => { owSel.innerHTML += '<option>'+o+'</option>'; });
-  // 客户编辑弹窗的 source
-  const srcSel = document.getElementById('custSource');
-  ['口碑推荐','Walkin','在读二宝','群内添加','扫码添加','大众点评','地推','转介绍','其他'].forEach(s => {
-    srcSel.innerHTML += '<option>'+s+'</option>';
-  });
+  // 动态更新来源 datalist
+  const dl = document.getElementById('sourceList');
+  if (dl) {
+    dl.innerHTML = '';
+    sources.forEach(s => { dl.innerHTML += '<option value="' + s + '">'; });
+  }
 }
 
 function updateCounts() {
