@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DK·邻里少儿英语 销售业务系统</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f4f8;color:#1e293b;font-size:14px;min-height:100vh}
+.nav{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:12px 28px;display:flex;gap:24px;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.nav h1{font-size:18px;font-weight:700;white-space:nowrap}
+.nav .tabs{display:flex;gap:4px;flex-wrap:wrap}
+.nav .tabs button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 18px;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s;white-space:nowrap}
+.nav .tabs button:hover,.nav .tabs button.active{background:rgba(255,255,255,.25);border-color:#fff}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin:16px 24px;padding:20px 24px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{padding:7px 16px;border-radius:8px;border:none;font-size:13px;cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap}
+.btn-primary{background:#7c3aed;color:#fff}.btn-primary:hover{background:#6d28d9}
+.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-gray{background:#e2e8f0;color:#475569}.btn-gray:hover{background:#cbd5e1}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px}
+.btn-xs{padding:2px 8px;font-size:10px;border-radius:4px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{background:#f8fafc;padding:10px 8px;font-size:12px;color:#475569;font-weight:600;text-align:center;border-bottom:2px solid #e2e8f0;white-space:nowrap;position:sticky;top:0}
+tbody td{padding:8px 8px;font-size:13px;text-align:center;border-bottom:1px solid #f1f5f9}
+tbody tr:hover{background:#f8fafc}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:600;z-index:300;opacity:0;transform:translateX(20px);transition:.3s;max-width:400px}
+.toast.show{opacity:1;transform:translateX(0)}
+.toast-ok{background:#10b981}.toast-err{background:#ef4444}
+.section{display:none}.section.active{display:block}
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar select,.toolbar input[type=text],.toolbar input[type=number],.toolbar input[type=date]{padding:7px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;background:#fff}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:28px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:18px}
+.modal .form-group{margin-bottom:14px}
+.modal .form-group label{display:block;font-size:13px;color:#475569;font-weight:600;margin-bottom:5px}
+.modal .form-group input,.modal .form-group select,.modal .form-group textarea{width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px}
+.modal .form-group textarea{min-height:80px;resize:vertical}
+.modal .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#4f46e5;z-index:999;display:flex;justify-content:center;align-items:center;flex-direction:column}
+.login-box{background:#fff;border-radius:20px;padding:40px 36px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-box h2{font-size:22px;color:#4f46e5;margin-bottom:6px}
+.login-box .sub{font-size:13px;color:#94a3b8;margin-bottom:24px}
+.login-box input{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:16px;text-align:center;outline:none;transition:.2s}
+.login-box input:focus{border-color:#7c3aed}
+.login-box .err-msg{color:#ef4444;font-size:12px;margin-top:8px;display:none}
+.login-box .btn-login{width:100%;padding:12px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s}
+.login-box .btn-login:hover{background:#6d28d9}
+.sync-bar{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 28px;display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap}
+.sync-bar b{font-size:13px}
+
+/* 漏斗 */
+.funnel{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.funnel-step{flex:1;min-width:120px;text-align:center;background:#f8fafc;border-radius:12px;padding:16px 12px;border:2px solid #e2e8f0;position:relative}
+.funnel-step .step-num{font-size:32px;font-weight:800;line-height:1.2}
+.funnel-step .step-label{font-size:12px;color:#64748b;margin-top:2px}
+.funnel-step .step-rate{font-size:11px;margin-top:4px}
+.funnel-step::after{content:'';position:absolute;right:-16px;top:50%;border-left:8px solid #cbd5e1;border-top:8px solid transparent;border-bottom:8px solid transparent;transform:translateY(-50%)}
+.funnel-step:last-child::after{display:none}
+.fs-lead .step-num{color:#94a3b8}.fs-contact .step-num{color:#f59e0b}.fs-trial .step-num{color:#3b82f6}
+.fs-visit .step-num{color:#8b5cf6}.fs-deal .step-num{color:#10b981}.fs-lost .step-num{color:#ef4444}
+
+/* 状态标签 */
+.tag{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600}
+.tag-lead{background:#e2e8f0;color:#64748b}
+.tag-contact{background:#fef3c7;color:#b45309}
+.tag-invite{background:#dbeafe;color:#1e40af}
+.tag-trial{background:#ede9fe;color:#6d28d9}
+.tag-deal{background:#d1fae5;color:#065f46}
+.tag-lost{background:#fee2e2;color:#991b1b}
+
+/* 周视图 */
+.week-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.week-col{background:#f8fafc;border-radius:10px;padding:10px;min-height:120px;border:1px solid #e2e8f0}
+.week-col .day-header{font-weight:700;font-size:13px;margin-bottom:8px;text-align:center;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+.week-col:nth-child(1) .day-header{color:#f59e0b}.week-col:nth-child(2) .day-header{color:#10b981}
+.week-col:nth-child(3) .day-header{color:#3b82f6}.week-col:nth-child(4) .day-header{color:#8b5cf6}
+.week-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;margin-bottom:6px;font-size:11px;cursor:pointer;transition:.15s}
+.week-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.week-item .wi-time{font-weight:700;color:#7c3aed;font-size:10px}
+.week-item .wi-name{font-weight:600;margin-top:2px}
+.week-item .wi-info{color:#64748b;font-size:10px}
+.week-item.wi-done{opacity:0.5}
+
+/* 跟进提醒 */
+.reminder-overdue{background:#fff5f5!important;border-left:3px solid #ef4444}
+.reminder-today{background:#fffbeb!important;border-left:3px solid #f59e0b}
+.reminder-upcoming{background:#f0fdf4!important;border-left:3px solid #10b981}
+
+/* 语音输入 */
+textarea.voice-input{background:#faf5ff;border-color:#c4b5fd}
+
+.summary-bar{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.summary-item{flex:1;min-width:100px;background:#f8fafc;border-radius:10px;padding:14px 18px;text-align:center;border:1px solid #e2e8f0}
+.summary-item .num{font-size:24px;font-weight:800;line-height:1.2}
+.summary-item .lbl{font-size:11px;color:#64748b;margin-top:2px}
+
+@media(max-width:768px){.funnel{flex-direction:column}.funnel-step::after{display:none}.week-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- 登录 -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>📊 DK·邻里少儿英语</h2>
+    <div class="sub">销售业务系统</div>
+    <input type="password" id="loginPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')doLogin()" autofocus>
+    <div class="err-msg" id="loginErr">密码错误</div>
+    <button class="btn-login" onclick="doLogin()">登 录</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+<div class="toast" id="toast"></div>
+<div class="sync-bar">
+  <span>☁️ <b>云同步</b> — DK·邻里销售数据实时同步</span>
+  <span style="margin-left:auto;font-size:11px;opacity:0.8" id="syncStatus">连接中...</span>
+</div>
+
+<div class="nav">
+  <h1>DK·邻里 销售系统</h1>
+  <div class="tabs">
+    <button class="active" onclick="switchTab('customers')">客户管理</button>
+    <button onclick="switchTab('funnel')">销售漏斗</button>
+    <button onclick="switchTab('trial')">试听周报</button>
+    <button onclick="switchTab('reminders')">跟进提醒</button>
+  </div>
+</div>
+
+<!-- Tab 1: 客户管理 -->
+<div class="section active" id="sec-customers">
+  <div class="card">
+    <h2>客户列表
+      <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
+      <button class="btn btn-gray btn-sm" onclick="exportCustomers()" style="margin-left:auto">📥 导出</button>
+    </h2>
+    <div class="toolbar">
+      <select id="filterStatus" onchange="renderCustomers()">
+        <option value="all">全部状态</option>
+        <option value="新线索">新线索</option><option value="已联系">已联系</option>
+        <option value="已邀约">已邀约</option><option value="已试听">已试听</option>
+        <option value="已成交">已成交</option><option value="已流失">已流失</option>
+      </select>
+      <select id="filterSource" onchange="renderCustomers()">
+        <option value="all">全部来源</option>
+      </select>
+      <select id="filterOwner" onchange="renderCustomers()">
+        <option value="all">全部跟进人</option>
+        <option value="Kyle">Kyle</option><option value="Dora">Dora</option>
+      </select>
+      <input type="text" id="filterSearch" placeholder="搜索姓名/电话…" oninput="renderCustomers()" style="width:160px">
+    </div>
+    <div class="tbl"><table>
+      <thead><tr>
+        <th style="text-align:left;width:80px">姓名</th><th style="width:60px">年龄</th>
+        <th style="width:90px">电话</th><th style="width:80px">来源</th>
+        <th style="width:80px">状态</th><th style="width:80px">试听时间</th>
+        <th style="width:60px">跟进人</th><th style="width:120px">操作</th>
+      </tr></thead>
+      <tbody id="custTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Tab 2: 销售漏斗 -->
+<div class="section" id="sec-funnel">
+  <div class="card">
+    <h2>销售漏斗</h2>
+    <div class="funnel" id="funnelChart"></div>
+    <div class="tbl" style="margin-top:16px"><table>
+      <thead><tr><th>状态</th><th>人数</th><th>占比</th><th>转化率（相对上一阶段）</th></tr></thead>
+      <tbody id="funnelTbody"></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <h2>按来源分析</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>来源</th><th>总线索</th><th>已成交</th><th>成交率</th></tr></thead>
+      <tbody id="sourceTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Tab 3: 试听周报 -->
+<div class="section" id="sec-trial">
+  <div class="card">
+    <h2>试听周报
+      <span style="margin-left:12px;font-size:13px;font-weight:400">
+        周：<input type="date" id="weekStart" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px" onchange="renderTrialWeek()">
+      </span>
+      <button class="btn btn-primary btn-sm" onclick="openTrialModal()" style="margin-left:12px">＋ 添加试听</button>
+    </h2>
+    <div class="summary-bar" id="trialSummary"></div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+</div>
+
+<!-- Tab 4: 跟进提醒 -->
+<div class="section" id="sec-reminders">
+  <div class="card">
+    <h2>跟进提醒
+      <button class="btn btn-primary btn-sm" onclick="openFollowupModal()" style="margin-left:12px">＋ 新增跟进</button>
+    </h2>
+    <div class="toolbar">
+      <select id="remOwnerFilter" onchange="renderReminders()">
+        <option value="all">全部跟进人</option>
+        <option value="Kyle">Kyle</option><option value="Dora">Dora</option>
+      </select>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr>
+        <th style="width:60px">状态</th><th style="text-align:left">客户</th>
+        <th style="text-align:left">跟进内容</th>
+        <th style="width:90px">提醒日期</th><th style="width:60px">跟进人</th>
+        <th style="width:90px">操作</th>
+      </tr></thead>
+      <tbody id="remTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- 弹窗：客户新增/编辑 -->
+<div class="modal-overlay" id="custModal">
+  <div class="modal">
+    <h3 id="custModalTitle">新增客户</h3>
+    <input type="hidden" id="custEditId">
+    <div class="form-group"><label>学员姓名 *</label><input id="custName"></div>
+    <div class="form-group"><label>年龄</label><input id="custAge" placeholder="如 5岁"></div>
+    <div class="form-group"><label>年级</label><input id="custGrade" placeholder="如 大班"></div>
+    <div class="form-group"><label>所在学校</label><input id="custSchool"></div>
+    <div class="form-group"><label>家长</label><input id="custParent" placeholder="如 妈妈"></div>
+    <div class="form-group"><label>联系电话</label><input id="custPhone" type="tel"></div>
+    <div class="form-group"><label>客户来源</label><select id="custSource"><option value="">请选择</option><option>口碑推荐</option><option>Walkin</option><option>在读二宝</option><option>群内添加</option><option>扫码添加</option><option>大众点评</option><option>门口海报</option><option>微信添加</option><option>邻居</option><option>朋友带上</option><option>小红书</option><option>非在读推荐</option></select></div>
+    <div class="form-group"><label>客户状态</label><select id="custStatus"><option>新线索</option><option>已联系</option><option>已邀约</option><option>已试听</option><option>已成交</option><option>已流失</option></select></div>
+    <div class="form-group"><label>试听时间</label><input id="custTrialDate" placeholder="如 3.15 周六10:00"></div>
+    <div class="form-group"><label>跟进人</label><select id="custOwner"><option>Kyle</option><option>Dora</option></select></div>
+    <div class="form-group"><label>咨询情况记录</label><textarea id="custNotes" class="voice-input" rows="4"></textarea></div>
+    <div class="form-group"><label>标签（逗号分隔）</label><input id="custTags" placeholder="如 价格问题,时间问题"></div>
+    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('custModal')">取消</button><button class="btn btn-primary" onclick="saveCustomer()">保存</button></div>
+  </div>
+</div>
+
+<!-- 弹窗：跟进记录 -->
+<div class="modal-overlay" id="fuModal">
+  <div class="modal">
+    <h3>新增跟进记录</h3>
+    <div class="form-group"><label>客户</label><select id="fuCustomer"></select></div>
+    <div class="form-group"><label>跟进内容</label><textarea id="fuContent" class="voice-input" rows="3"></textarea></div>
+    <div class="form-group"><label>下一步计划</label><input id="fuNextStep"></div>
+    <div class="form-group"><label>提醒日期</label><input type="date" id="fuReminderDate"></div>
+    <div class="form-group"><label>跟进人</label><select id="fuOwner"><option>Kyle</option><option>Dora</option></select></div>
+    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('fuModal')">取消</button><button class="btn btn-primary" onclick="saveFollowup()">保存</button></div>
+  </div>
+</div>
+
+<!-- 弹窗：添加试听 -->
+<div class="modal-overlay" id="trialModal">
+  <div class="modal">
+    <h3>添加试听排期</h3>
+    <div class="form-group"><label>客户</label><select id="trialCustomer"></select></div>
+    <div class="form-group"><label>周起始日期</label><input type="date" id="trialWeekStart"></div>
+    <div class="form-group"><label>星期</label><select id="trialDay"><option value="3">周三</option><option value="4">周四</option><option value="6">周六</option><option value="7">周日</option></select></div>
+    <div class="form-group"><label>时间段</label><input id="trialTimeSlot" placeholder="如 16:00"></div>
+    <div class="form-group"><label>试听类型</label><select id="trialClassType"><option>试听课专场</option><option>K1001 进班</option><option>K1002 进班</option><option>K1003 进班</option><option>K1004 进班</option><option>K2001 进班</option><option>S1001 进班</option><option>S3001 进班</option></select></div>
+    <div class="form-group"><label>状态</label><select id="trialStatus"><option>已预约</option><option>已到场</option><option>已取消</option></select></div>
+    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('trialModal')">取消</button><button class="btn btn-primary" onclick="saveTrial()">保存</button></div>
+  </div>
+</div>
+
+<!-- 弹窗：客户详情 -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <h3 id="detailTitle">客户详情</h3>
+    <div id="detailContent"></div>
+    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('detailModal')">关闭</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDI1NzIsImV4cCI6MjA5NzA3ODU3Mn0.E0xlNCX_jFn8X9LheAR3jFHokzWSkZlXkBDReqTvL6c';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+let _customers = [], _followups = [], _trials = [];
+
+async function syncStatus(msg) { document.getElementById('syncStatus').textContent = msg; }
+
+async function loadAll() {
+  syncStatus('加载中...');
+  const [cr, fr, tr] = await Promise.all([
+    sb.from('customers').select('*').order('created_at', {ascending: false}),
+    sb.from('followups').select('*').order('created_at', {ascending: false}),
+    sb.from('trial_schedule').select('*').order('week_start', {ascending: false})
+  ]);
+  _customers = cr.data || []; _followups = fr.data || []; _trials = tr.data || [];
+  if (cr.error) console.warn('customers:', cr.error.message);
+  syncStatus('已同步 ' + _customers.length + ' 名客户');
+  initApp();
+}
+
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + (ok?'toast-ok':'toast-err') + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  const map = {customers:'sec-customers',funnel:'sec-funnel',trial:'sec-trial',reminders:'sec-reminders'};
+  const idx = {customers:0,funnel:1,trial:2,reminders:3};
+  document.getElementById(map[tab]).classList.add('active');
+  document.querySelectorAll('.tabs button')[idx[tab]].classList.add('active');
+  if (tab==='customers') { fillSourceFilter(); renderCustomers(); }
+  if (tab==='funnel') renderFunnel();
+  if (tab==='trial') { setDefaultWeek(); renderTrialWeek(); }
+  if (tab==='reminders') renderReminders();
+}
+
+// ═══════════════ 客户管理 ═══════════════
+const STATUS_MAP = {新线索:'tag-lead',已联系:'tag-contact',已邀约:'tag-invite',已试听:'tag-trial',已成交:'tag-deal',已流失:'tag-lost'};
+
+function fillSourceFilter() {
+  const sources = [...new Set(_customers.map(c => c.source).filter(Boolean))];
+  const sel = document.getElementById('filterSource');
+  sel.innerHTML = '<option value="all">全部来源</option>';
+  sources.forEach(s => { sel.innerHTML += '<option value="' + s + '">' + s + '</option>'; });
+}
+
+function renderCustomers() {
+  let list = [..._customers];
+  const fStatus = document.getElementById('filterStatus').value;
+  const fSource = document.getElementById('filterSource').value;
+  const fOwner = document.getElementById('filterOwner').value;
+  const fSearch = document.getElementById('filterSearch').value.toLowerCase();
+  if (fStatus !== 'all') list = list.filter(c => c.status === fStatus);
+  if (fSource !== 'all') list = list.filter(c => c.source === fSource);
+  if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
+  if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch));
+
+  let html = '';
+  list.forEach(c => {
+    const sc = STATUS_MAP[c.status] || 'tag-lead';
+    html += '<tr>' +
+      '<td style="text-align:left;font-weight:600;cursor:pointer" onclick="showCustomerDetail(' + c.id + ')">' + (c.name||'') + '</td>' +
+      '<td>' + (c.age||'') + '</td>' +
+      '<td>' + (c.phone||'') + '</td>' +
+      '<td>' + (c.source||'') + '</td>' +
+      '<td><span class="tag ' + sc + '">' + (c.status||'新线索') + '</span></td>' +
+      '<td>' + (c.trial_date||'') + '</td>' +
+      '<td>' + (c.owner||'') + '</td>' +
+      '<td><button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')">✏️</button> ' +
+      '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')">📝</button> ' +
+      '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')">🗑</button></td></tr>';
+  });
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="8" style="color:#94a3b8;padding:30px">暂无客户</td></tr>';
+}
+
+function openCustomerModal(cid) {
+  document.getElementById('custEditId').value = cid || '';
+  document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : '新增客户';
+  if (cid) {
+    const c = _customers.find(x => x.id === cid);
+    if (c) {
+      document.getElementById('custName').value = c.name||'';
+      document.getElementById('custAge').value = c.age||'';
+      document.getElementById('custGrade').value = c.grade||'';
+      document.getElementById('custSchool').value = c.school||'';
+      document.getElementById('custParent').value = c.parent||'';
+      document.getElementById('custPhone').value = c.phone||'';
+      document.getElementById('custSource').value = c.source||'';
+      document.getElementById('custStatus').value = c.status||'新线索';
+      document.getElementById('custTrialDate').value = c.trial_date||'';
+      document.getElementById('custOwner').value = c.owner||'Kyle';
+      document.getElementById('custNotes').value = c.notes||'';
+      document.getElementById('custTags').value = c.tags||'';
+    }
+  } else {
+    ['custName','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custNotes','custTags'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('custSource').value = '';
+    document.getElementById('custStatus').value = '新线索';
+    document.getElementById('custOwner').value = 'Kyle';
+  }
+  document.getElementById('custModal').classList.add('show');
+}
+
+async function saveCustomer() {
+  const name = document.getElementById('custName').value.trim();
+  if (!name) { showToast('请输入学员姓名', false); return; }
+  const editId = document.getElementById('custEditId').value;
+  const data = {
+    name, age: document.getElementById('custAge').value,
+    grade: document.getElementById('custGrade').value,
+    school: document.getElementById('custSchool').value,
+    parent: document.getElementById('custParent').value,
+    phone: document.getElementById('custPhone').value,
+    source: document.getElementById('custSource').value,
+    status: document.getElementById('custStatus').value,
+    trial_date: document.getElementById('custTrialDate').value,
+    owner: document.getElementById('custOwner').value,
+    notes: document.getElementById('custNotes').value,
+    tags: document.getElementById('custTags').value,
+    updated_at: new Date().toISOString()
+  };
+  let err;
+  if (editId) {
+    ({ error: err } = await sb.from('customers').update(data).eq('id', parseInt(editId)));
+  } else {
+    ({ error: err } = await sb.from('customers').insert(data));
+  }
+  if (err) { showToast('保存失败: '+err.message, false); return; }
+  showToast(editId ? '客户已更新' : '客户已新增');
+  closeModal('custModal');
+  await loadAll();
+  renderCustomers();
+}
+
+async function deleteCustomer(cid) {
+  const c = _customers.find(x => x.id === cid);
+  if (!confirm('确定删除客户 "' + (c?.name||'') + '"？\n其跟进记录和试听排期也将一并删除。')) return;
+  await sb.from('followups').delete().eq('customer_id', cid);
+  await sb.from('trial_schedule').delete().eq('customer_id', cid);
+  const { error } = await sb.from('customers').delete().eq('id', cid);
+  if (error) { showToast('删除失败: '+error.message, false); return; }
+  showToast('客户已删除');
+  await loadAll();
+  renderCustomers();
+}
+
+function showCustomerDetail(cid) {
+  const c = _customers.find(x => x.id === cid);
+  if (!c) return;
+  const fus = _followups.filter(f => f.customer_id === cid).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  let html = '<div style="font-size:13px;line-height:1.8">' +
+    '<b>学员:</b> ' + (c.name||'') + ' | <b>年龄:</b> ' + (c.age||'') + ' | <b>年级:</b> ' + (c.grade||'') + '<br>' +
+    '<b>学校:</b> ' + (c.school||'') + ' | <b>家长:</b> ' + (c.parent||'') + ' | <b>电话:</b> ' + (c.phone||'') + '<br>' +
+    '<b>来源:</b> ' + (c.source||'') + ' | <b>状态:</b> ' + (c.status||'') + ' | <b>跟进人:</b> ' + (c.owner||'') + '<br>' +
+    '<b>试听:</b> ' + (c.trial_date||'') + ' | <b>标签:</b> ' + (c.tags||'') + '<br>' +
+    '<b>咨询记录:</b><br><span style="color:#475569">' + (c.notes||'无') + '</span></div>';
+  if (fus.length > 0) {
+    html += '<hr style="margin:12px 0"><b>跟进记录 (' + fus.length + '条):</b>';
+    fus.forEach(f => {
+      html += '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:12px">' +
+        '<span style="color:#94a3b8">' + new Date(f.created_at).toLocaleString('zh-CN') + '</span> ' +
+        (f.owner ? '(' + f.owner + ')' : '') + '<br>' + (f.content||'') +
+        (f.next_step ? '<br><span style="color:#7c3aed">→ 下一步: ' + f.next_step + '</span>' : '') +
+        (f.reminder_date ? '<br><span style="color:#f59e0b">⏰ 提醒: ' + f.reminder_date + '</span>' : '') +
+        '</div>';
+    });
+  }
+  document.getElementById('detailTitle').textContent = c.name + ' - 客户详情';
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+// ═══════════════ 销售漏斗 ═══════════════
+function renderFunnel() {
+  const stages = ['新线索','已联系','已邀约','已试听','已成交','已流失'];
+  const colors = ['#94a3b8','#f59e0b','#3b82f6','#8b5cf6','#10b981','#ef4444'];
+  const counts = stages.map(s => _customers.filter(c => c.status === s).length);
+  const total = _customers.length || 1;
+  const conversions = [];
+  for (let i = 1; i < stages.length - 1; i++) {
+    conversions.push(counts[i-1] > 0 ? Math.round(counts[i]/counts[i-1]*100) : 0);
+  }
+
+  let funnelHtml = '';
+  stages.forEach((s, i) => {
+    const cls = ['fs-lead','fs-contact','fs-trial','fs-visit','fs-deal','fs-lost'][i];
+    const pct = total > 0 ? Math.round(counts[i]/total*100) : 0;
+    funnelHtml += '<div class="funnel-step ' + cls + '"><div class="step-num" style="color:' + colors[i] + '">' + counts[i] + '</div>' +
+      '<div class="step-label">' + s + '</div><div class="step-rate" style="color:' + colors[i] + '">' + pct + '%</div></div>';
+  });
+  document.getElementById('funnelChart').innerHTML = funnelHtml;
+
+  let tbody = '';
+  stages.forEach((s, i) => {
+    const convText = i === 0 ? '—' : (i === stages.length-1 ? '—' : conversions[i-1] + '%');
+    tbody += '<tr><td><b>' + s + '</b></td><td>' + counts[i] + '</td><td>' + Math.round(counts[i]/total*100) + '%</td><td>' + convText + '</td></tr>';
+  });
+  document.getElementById('funnelTbody').innerHTML = tbody;
+
+  // 按来源分析
+  const sourceStats = {};
+  _customers.forEach(c => {
+    const src = c.source || '未知';
+    if (!sourceStats[src]) sourceStats[src] = {total:0,deal:0};
+    sourceStats[src].total++;
+    if (c.status === '已成交') sourceStats[src].deal++;
+  });
+  let shtml = '';
+  Object.entries(sourceStats).sort((a,b) => b[1].total - a[1].total).forEach(([src, st]) => {
+    const rate = st.total > 0 ? Math.round(st.deal/st.total*100) : 0;
+    shtml += '<tr><td><b>' + src + '</b></td><td>' + st.total + '</td><td>' + st.deal + '</td><td style="color:' + (rate >= 50 ? '#10b981' : rate >= 30 ? '#f59e0b' : '#ef4444') + ';font-weight:700">' + rate + '%</td></tr>';
+  });
+  document.getElementById('sourceTbody').innerHTML = shtml;
+}
+
+// ═══════════════ 试听周报 ═══════════════
+function setDefaultWeek() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
+}
+
+function getWeekDates() {
+  const ws = document.getElementById('weekStart').value;
+  if (!ws) return [];
+  const d = new Date(ws + 'T00:00:00');
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const nd = new Date(d);
+    nd.setDate(d.getDate() + i);
+    dates.push(nd.toISOString().split('T')[0]);
+  }
+  return dates;
+}
+
+function renderTrialWeek() {
+  const weekDates = getWeekDates();
+  if (!weekDates.length) return;
+  const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
+  // 只显示周三(2)、周四(3)、周六(5)、周日(6)
+  const showDays = [2,3,5,6]; // 0-indexed from Monday
+  const colors_day = ['#f59e0b','#10b981','#3b82f6','#8b5cf6'];
+
+  // 汇总
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[6];
+  const weekTrials = _trials.filter(t => t.week_start === weekStart);
+  const booked = weekTrials.filter(t => t.status === '已预约').length;
+  const visited = weekTrials.filter(t => t.status === '已到场').length;
+  const cancelled = weekTrials.filter(t => t.status === '已取消').length;
+  document.getElementById('trialSummary').innerHTML =
+    '<div class="summary-item"><div class="num" style="color:#7c3aed">' + weekTrials.length + '</div><div class="lbl">本周试听</div></div>' +
+    '<div class="summary-item"><div class="num" style="color:#3b82f6">' + booked + '</div><div class="lbl">已预约</div></div>' +
+    '<div class="summary-item"><div class="num" style="color:#10b981">' + visited + '</div><div class="lbl">已到场</div></div>' +
+    '<div class="summary-item"><div class="num" style="color:#ef4444">' + cancelled + '</div><div class="lbl">已取消</div></div>';
+
+  let gridHtml = '';
+  showDays.forEach((di, idx) => {
+    const dateStr = weekDates[di];
+    const dayName = dayNames[di];
+    const dayTrials = weekTrials.filter(t => t.day_of_week === di + 1);
+
+    gridHtml += '<div class="week-col"><div class="day-header" style="color:' + colors_day[idx] + '">' + dayName + '<br><span style="font-size:10px;font-weight:400">' + dateStr + '</span></div>';
+    if (dayTrials.length === 0) {
+      gridHtml += '<div style="color:#cbd5e1;font-size:11px;text-align:center;padding:20px 0">暂无试听</div>';
+    } else {
+      dayTrials.forEach(t => {
+        const c = _customers.find(x => x.id === t.customer_id);
+        gridHtml += '<div class="week-item' + (t.status === '已到场' ? ' wi-done' : t.status === '已取消' ? ' wi-done' : '') + '" onclick="showCustomerDetail(' + t.customer_id + ')" title="点击查看客户详情">' +
+          '<div class="wi-time">' + (t.time_slot||'') + ' · ' + (t.class_type||'') + '</div>' +
+          '<div class="wi-name">' + (c?.name||'未知') + '</div>' +
+          '<div class="wi-info">' + (c?.age||'') + ' · ' + (c?.grade||'') + ' · ' + (t.status||'') + '</div></div>';
+      });
+    }
+    gridHtml += '</div>';
+  });
+  document.getElementById('weekGrid').innerHTML = gridHtml;
+}
+
+function openTrialModal(cid) {
+  document.getElementById('trialWeekStart').value = document.getElementById('weekStart').value;
+  const sel = document.getElementById('trialCustomer');
+  sel.innerHTML = '';
+  _customers.filter(c => c.status !== '已流失').forEach(c => {
+    sel.innerHTML += '<option value="' + c.id + '"' + (cid === c.id ? ' selected' : '') + '>' + c.name + '</option>';
+  });
+  document.getElementById('trialDay').value = '6';
+  document.getElementById('trialTimeSlot').value = '';
+  document.getElementById('trialClassType').value = '试听课专场';
+  document.getElementById('trialStatus').value = '已预约';
+  document.getElementById('trialModal').classList.add('show');
+}
+
+async function saveTrial() {
+  const data = {
+    customer_id: parseInt(document.getElementById('trialCustomer').value),
+    week_start: document.getElementById('trialWeekStart').value,
+    day_of_week: parseInt(document.getElementById('trialDay').value),
+    time_slot: document.getElementById('trialTimeSlot').value,
+    class_type: document.getElementById('trialClassType').value,
+    status: document.getElementById('trialStatus').value
+  };
+  const { error } = await sb.from('trial_schedule').insert(data);
+  if (error) { showToast('添加失败: '+error.message, false); return; }
+  showToast('试听已添加');
+  closeModal('trialModal');
+  await loadAll();
+  renderTrialWeek();
+}
+
+// ═══════════════ 跟进提醒 ═══════════════
+function renderReminders() {
+  const fOwner = document.getElementById('remOwnerFilter').value;
+  let list = [..._followups].filter(f => f.reminder_date);
+  if (fOwner !== 'all') list = list.filter(f => f.owner === fOwner);
+
+  const today = new Date().toISOString().split('T')[0];
+  list.sort((a,b) => (a.reminder_date||'').localeCompare(b.reminder_date||''));
+
+  let html = '';
+  list.forEach(f => {
+    const c = _customers.find(x => x.id === f.customer_id);
+    const isOverdue = f.reminder_date < today;
+    const isToday = f.reminder_date === today;
+    const rowClass = isOverdue ? 'reminder-overdue' : (isToday ? 'reminder-today' : 'reminder-upcoming');
+    const statusIcon = isOverdue ? '🔴' : (isToday ? '🟡' : '🟢');
+    html += '<tr class="' + rowClass + '">' +
+      '<td>' + statusIcon + '</td>' +
+      '<td style="text-align:left;font-weight:600;cursor:pointer" onclick="showCustomerDetail(' + f.customer_id + ')">' + (c?.name||'未知') + '</td>' +
+      '<td style="text-align:left;font-size:12px">' + (f.content||'').substring(0,60) + '</td>' +
+      '<td><b style="color:' + (isOverdue?'#ef4444':isToday?'#f59e0b':'#10b981') + '">' + f.reminder_date + '</b></td>' +
+      '<td>' + (f.owner||'') + '</td>' +
+      '<td><button class="btn btn-success btn-xs" onclick="markFollowupDone(' + f.id + ')">完成</button> ' +
+      '<button class="btn btn-danger btn-xs" onclick="deleteFollowup(' + f.id + ')">×</button></td></tr>';
+  });
+  document.getElementById('remTbody').innerHTML = html || '<tr><td colspan="6" style="color:#94a3b8;padding:30px">暂无待跟进记录</td></tr>';
+}
+
+function openFollowupModal(cid) {
+  document.getElementById('fuReminderDate').value = '';
+  document.getElementById('fuContent').value = '';
+  document.getElementById('fuNextStep').value = '';
+  document.getElementById('fuOwner').value = 'Kyle';
+  const sel = document.getElementById('fuCustomer');
+  sel.innerHTML = '';
+  _customers.forEach(c => {
+    sel.innerHTML += '<option value="' + c.id + '"' + (cid === c.id ? ' selected' : '') + '>' + c.name + '</option>';
+  });
+  document.getElementById('fuModal').classList.add('show');
+}
+
+async function saveFollowup() {
+  const data = {
+    customer_id: parseInt(document.getElementById('fuCustomer').value),
+    content: document.getElementById('fuContent').value,
+    next_step: document.getElementById('fuNextStep').value,
+    reminder_date: document.getElementById('fuReminderDate').value || null,
+    owner: document.getElementById('fuOwner').value
+  };
+  const { error } = await sb.from('followups').insert(data);
+  if (error) { showToast('保存失败: '+error.message, false); return; }
+  showToast('跟进记录已保存');
+  closeModal('fuModal');
+  await loadAll();
+  renderReminders();
+}
+
+async function markFollowupDone(fid) {
+  await sb.from('followups').update({reminder_date: null}).eq('id', fid);
+  await loadAll();
+  renderReminders();
+  showToast('已标记完成');
+}
+
+async function deleteFollowup(fid) {
+  if (!confirm('删除这条跟进记录？')) return;
+  await sb.from('followups').delete().eq('id', fid);
+  await loadAll();
+  renderReminders();
+}
+
+// ═══════════════ 导出 ═══════════════
+function csvEscape(v) { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')?'"'+s.replace(/"/g,'""')+'"':s; }
+function exportCSV(headers, rows, fn) {
+  const BOM = '\uFEFF';
+  let csv = BOM + headers.map(csvEscape).join(',') + '\n';
+  rows.forEach(r => { csv += r.map(csvEscape).join(',') + '\n'; });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = fn; a.click();
+  URL.revokeObjectURL(url);
+  showToast('已导出: ' + fn);
+}
+
+function exportCustomers() {
+  const headers = ['学员姓名','年龄','年级','学校','家长','电话','来源','状态','试听时间','跟进人','咨询记录','标签'];
+  const rows = _customers.map(c => [c.name,c.age,c.grade,c.school,c.parent,c.phone,c.source,c.status,c.trial_date,c.owner,c.notes,c.tags]);
+  exportCSV(headers, rows, 'DK邻里_客户列表.csv');
+}
+
+// ═══════════════ 初始化 ═══════════════
+function initApp() {
+  fillSourceFilter();
+  renderCustomers();
+  renderFunnel();
+  setDefaultWeek();
+  renderTrialWeek();
+  renderReminders();
+}
+
+// ═══════════════ 登录 ═══════════════
+const LOGIN_PWD = 'DK0308';
+function doLogin() {
+  if (document.getElementById('loginPwd').value === LOGIN_PWD) {
+    sessionStorage.setItem('sales_logged_in','1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginPwd').value = '';
+    document.getElementById('loginPwd').focus();
+  }
+}
+if (sessionStorage.getItem('sales_logged_in') === '1') {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+}
+</script>
+</body>
+</html>
