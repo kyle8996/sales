@@ -151,19 +151,7 @@ header .user-info{font-size:13px;color:#64748b}
         </div>
       </h2>
       <div class="tbl"><table>
-        <thead><tr>
-          <th style="text-align:left;width:70px">姓名</th>
-          <th style="width:40px">年龄</th>
-          <th style="width:110px">电话</th>
-          <th style="width:50px">家长</th>
-          <th style="width:70px">来源</th>
-          <th style="width:40px">级别</th>
-          <th style="width:80px">学校</th>
-          <th style="width:85px">状态</th>
-          <th style="width:90px">试听时间</th>
-          <th style="width:55px">跟进人</th>
-          <th style="width:115px">操作</th>
-        </tr></thead>
+        <thead id="custThead"><tr></tr></thead>
         <tbody id="custTbody"></tbody>
       </table></div>
     </div>
@@ -236,22 +224,27 @@ header .user-info{font-size:13px;color:#64748b}
     <input type="hidden" id="custEditId">
     <div class="form-row">
       <label>学员姓名*<input type="text" id="custName"></label>
-      <label>年龄<input type="text" id="custAge"></label>
-      <label>年级<input type="text" id="custGrade"></label>
+      <label>出生日期<input type="date" id="custBirthDate" onchange="onBirthDateChange()"></label>
+      <label>年龄<input type="text" id="custAge" readonly style="background:#f1f5f9"></label>
     </div>
     <div class="form-row">
+      <label>年级<input type="text" id="custGrade"></label>
       <label>学校<input type="text" id="custSchool"></label>
       <label>家长<input type="text" id="custParent"></label>
-      <label>电话<input type="text" id="custPhone"></label>
     </div>
     <div class="form-row">
+      <label>电话<input type="text" id="custPhone"></label>
       <label>客户来源<select id="custSource"><option value="">请选择</option></select></label>
       <label>客户级别<select id="custLevel"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></label>
+    </div>
+    <div class="form-row">
       <label>状态<select id="custStatus">
         <option value="未上门">未上门</option>
         <option value="已上门未报名">已上门未报名</option>
         <option value="已报名">已报名</option>
       </select></label>
+      <label>报名日期<input type="date" id="custEnrollDate"></label>
+      <label>报名班级<input type="text" id="custEnrollClass" placeholder="如:K1001"></label>
     </div>
     <div class="form-row">
       <label>试听时间<input type="datetime-local" id="custTrialDate"></label>
@@ -459,6 +452,18 @@ function updateCounts() {
 // ═══════════════════════════════════════
 // 客户管理
 // ═══════════════════════════════════════
+function calcAge(birthDateStr) {
+  if (!birthDateStr) return '';
+  try {
+    const birth = new Date(birthDateStr);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const mDiff = now.getMonth() - birth.getMonth();
+    if (mDiff < 0 || (mDiff === 0 && now.getDate() < birth.getDate())) age--;
+    return age;
+  } catch(e) { return ''; }
+}
+
 function renderCustomers() {
   updateCounts();
   
@@ -475,30 +480,110 @@ function renderCustomers() {
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch));
 
+  // 已报名按报名日期倒序
+  if (_currentSubTab === 'signed') {
+    list.sort((a, b) => {
+      const da = a.enrollment_date || '';
+      const db = b.enrollment_date || '';
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db.localeCompare(da); // 新的在前
+    });
+  }
+
+  // 已报名表头
+  if (_currentSubTab === 'signed') {
+    document.getElementById('custThead').innerHTML = '<tr>' +
+      '<th style="width:80px">报名日期</th>' +
+      '<th style="text-align:left;width:70px">姓名</th>' +
+      '<th style="width:80px">出生日期</th>' +
+      '<th style="width:40px">年龄</th>' +
+      '<th style="width:110px">电话</th>' +
+      '<th style="width:50px">家长</th>' +
+      '<th style="width:70px">来源</th>' +
+      '<th style="width:40px">级别</th>' +
+      '<th style="width:80px">学校</th>' +
+      '<th style="width:85px">状态</th>' +
+      '<th style="width:90px">试听时间</th>' +
+      '<th style="width:80px">报名班级</th>' +
+      '<th style="width:55px">跟进人</th>' +
+      '<th style="width:115px">操作</th>' +
+    '</tr>';
+  } else {
+    document.getElementById('custThead').innerHTML = '<tr>' +
+      '<th style="text-align:left;width:70px">姓名</th>' +
+      '<th style="width:40px">年龄</th>' +
+      '<th style="width:110px">电话</th>' +
+      '<th style="width:50px">家长</th>' +
+      '<th style="width:70px">来源</th>' +
+      '<th style="width:40px">级别</th>' +
+      '<th style="width:80px">学校</th>' +
+      '<th style="width:85px">状态</th>' +
+      '<th style="width:90px">试听时间</th>' +
+      '<th style="width:55px">跟进人</th>' +
+      '<th style="width:115px">操作</th>' +
+    '</tr>';
+  }
+
   let html = '';
   list.forEach(c => {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
-    const stTag = c.status === '已报名' ? 'tag tag-signed' : (c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead');
+    const stTag = 'tag tag-signed';
     const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
-    html += '<tr>' +
-      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
-      '<td>' + (c.age||'') + '</td>' +
-      '<td>' + (c.phone||'') + '</td>' +
-      '<td>' + (c.parent||'') + '</td>' +
-      '<td>' + (c.source||'') + '</td>' +
-      '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
-      '<td>' + (c.school||'') + '</td>' +
-      '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
-      '<td>' + trialDate + '</td>' +
-      '<td>' + (c.owner||'') + '</td>' +
-      '<td>' +
-        '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
-        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
-        (c.status === '已报名' ? '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button>' : '') +
-      '</td></tr>';
+    const displayAge = calcAge(c.birth_date) || (c.age||'');
+    const enrollDate = c.enrollment_date || '';
+
+    if (_currentSubTab === 'signed') {
+      html += '<tr>' +
+        '<td>' + enrollDate + '</td>' +
+        '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+        '<td>' + (c.birth_date||'') + '</td>' +
+        '<td>' + displayAge + '</td>' +
+        '<td>' + (c.phone||'') + '</td>' +
+        '<td>' + (c.parent||'') + '</td>' +
+        '<td>' + (c.source||'') + '</td>' +
+        '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
+        '<td>' + (c.school||'') + '</td>' +
+        '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
+        '<td>' + trialDate + '</td>' +
+        '<td>' + (c.enrolled_class||'') + '</td>' +
+        '<td>' + (c.owner||'') + '</td>' +
+        '<td>' +
+          '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
+          '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
+          '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button>' +
+        '</td></tr>';
+    } else {
+      const stTag2 = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
+      html += '<tr>' +
+        '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+        '<td>' + (c.age||'') + '</td>' +
+        '<td>' + (c.phone||'') + '</td>' +
+        '<td>' + (c.parent||'') + '</td>' +
+        '<td>' + (c.source||'') + '</td>' +
+        '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
+        '<td>' + (c.school||'') + '</td>' +
+        '<td><span class="' + stTag2 + '">' + (c.status||'未上门') + '</span></td>' +
+        '<td>' + trialDate + '</td>' +
+        '<td>' + (c.owner||'') + '</td>' +
+        '<td>' +
+          '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
+          '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
+          (c.status === '已报名' ? '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button>' : '') +
+        '</td></tr>';
+    }
   });
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无客户</td></tr>';
+  const colSpan = _currentSubTab === 'signed' ? 14 : 11;
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colSpan + '" class="empty-state">暂无客户</td></tr>';
+}
+
+function onBirthDateChange() {
+  const bd = document.getElementById('custBirthDate').value;
+  if (bd) {
+    document.getElementById('custAge').value = calcAge(bd);
+  }
 }
 
 function openCustomerModal(cid) {
@@ -508,7 +593,8 @@ function openCustomerModal(cid) {
     const c = _customers.find(x => x.id === cid);
     if (c) {
       document.getElementById('custName').value = c.name||'';
-      document.getElementById('custAge').value = c.age||'';
+      document.getElementById('custBirthDate').value = c.birth_date||'';
+      document.getElementById('custAge').value = calcAge(c.birth_date) || (c.age||'');
       document.getElementById('custGrade').value = c.grade||'';
       document.getElementById('custSchool').value = c.school||'';
       document.getElementById('custParent').value = c.parent||'';
@@ -516,12 +602,14 @@ function openCustomerModal(cid) {
       document.getElementById('custSource').value = c.source||'';
       document.getElementById('custLevel').value = c.level||'B';
       document.getElementById('custStatus').value = c.status||'未上门';
+      document.getElementById('custEnrollDate').value = c.enrollment_date||'';
+      document.getElementById('custEnrollClass').value = c.enrolled_class||'';
       document.getElementById('custTrialDate').value = c.trial_date ? c.trial_date.substring(0,16) : '';
       document.getElementById('custOwner').value = c.owner||'Kyle';
       document.getElementById('custTags').value = c.tags||'';
     }
   } else {
-    ['custName','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags'].forEach(id => document.getElementById(id).value='');
+    ['custName','custBirthDate','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custSource').value = '';
     document.getElementById('custLevel').value = 'B';
     document.getElementById('custStatus').value = '未上门';
@@ -535,7 +623,8 @@ async function saveCustomer() {
   if (!name) { showToast('请输入学员姓名', false); return; }
   const editId = document.getElementById('custEditId').value;
   const data = {
-    name, age: document.getElementById('custAge').value,
+    name, birth_date: document.getElementById('custBirthDate').value || null,
+    age: document.getElementById('custAge').value,
     grade: document.getElementById('custGrade').value,
     school: document.getElementById('custSchool').value,
     parent: document.getElementById('custParent').value,
@@ -543,6 +632,8 @@ async function saveCustomer() {
     source: document.getElementById('custSource').value,
     level: document.getElementById('custLevel').value,
     status: document.getElementById('custStatus').value,
+    enrollment_date: document.getElementById('custEnrollDate').value || null,
+    enrolled_class: document.getElementById('custEnrollClass').value || null,
     trial_date: document.getElementById('custTrialDate').value || null,
     owner: document.getElementById('custOwner').value,
     tags: document.getElementById('custTags').value,
@@ -573,12 +664,19 @@ function openFollowupModal(cid) {
   document.getElementById('fuPayment').checked = false;
   document.getElementById('fuNeedReminder').checked = false;
   
-  // 加载历史跟进
+  // 加载历史跟进（followups 表 + 客户 notes 字段）
   const fus = _followups.filter(f => f.customer_id === cid);
   let tl = '';
-  if (fus.length === 0) {
+  if (fus.length === 0 && !(c?.notes)) {
     tl = '<div class="empty-state">暂无跟进记录</div>';
   } else {
+    // 先展示客户 notes 中的历史记录
+    if (c?.notes) {
+      tl += '<div class="followup-item" style="border-left-color:#93c5fd">' +
+        '<div class="fu-time">📋 历史记录（初次登记）</div>' +
+        '<div class="fu-content">' + (c.notes||'') + '</div>' +
+      '</div>';
+    }
     fus.forEach(f => {
       const dt = f.created_at ? new Date(f.created_at).toLocaleString('zh-CN', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
       tl += '<div class="followup-item">' +
@@ -594,9 +692,9 @@ function openFollowupModal(cid) {
   }
   document.getElementById('followupTimeline').innerHTML = tl;
   
-  // 填充试听场次下拉
+  // 填充试听场次下拉（空着表示不预约）
   const sel = document.getElementById('fuTrialSession');
-  sel.innerHTML = '<option value="">暂不邀约</option>';
+  sel.innerHTML = '<option value="">-- 可选试听场次 --</option>';
   const now = new Date();
   _trialSessions.filter(s => new Date(s.session_date) >= now).forEach(s => {
     sel.innerHTML += '<option value="' + s.id + '">' + s.session_date + ' ' + (s.start_time||'') + ' - ' + (s.title||'') + '</option>';
@@ -929,10 +1027,10 @@ async function clearReminder(cid) {
 // 导出
 // ═══════════════════════════════════════
 function exportTab() {
-  const headers = ['姓名','年龄','年级','学校','家长','电话','来源','级别','状态','试听时间','跟进人','标签'];
+  const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','来源','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
   const rows = _customers.map(c => [
-    c.name||'', c.age||'', c.grade||'', c.school||'', c.parent||'', c.phone||'',
-    c.source||'', c.level||'', c.status||'', c.trial_date||'', c.owner||'', c.tags||''
+    c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
+    c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
   ]);
   exportCSV(headers, rows, 'DK邻里客户管理_' + new Date().toISOString().substring(0,10) + '.csv');
 }
