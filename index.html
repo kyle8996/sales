@@ -146,7 +146,7 @@ header .user-info{font-size:13px;color:#64748b}
         <div class="toolbar" style="margin-left:auto">
           <select id="custFilterSource" onchange="renderCustomers()"><option value="all">全部来源</option></select>
           <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
-          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话..." oninput="renderCustomers()" style="width:140px">
+          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
         </div>
       </h2>
@@ -481,7 +481,7 @@ function renderCustomers() {
   const fSearch = document.getElementById('custFilterSearch').value.toLowerCase();
   if (fSource !== 'all') list = list.filter(c => c.source === fSource);
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
-  if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch));
+  if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
   // 已报名按报名日期倒序
   if (_currentSubTab === 'signed') {
