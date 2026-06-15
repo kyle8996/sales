@@ -2,365 +2,503 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DK·邻里少儿英语 销售业务系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DK邻里少儿英语 · 销售业务系统</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Microsoft YaHei','PingFang SC',sans-serif;background:#f0f4f8;color:#1e293b;font-size:14px;min-height:100vh}
-.nav{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:12px 28px;display:flex;gap:24px;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-.nav h1{font-size:18px;font-weight:700;white-space:nowrap}
-.nav .tabs{display:flex;gap:4px;flex-wrap:wrap}
-.nav .tabs button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 18px;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s;white-space:nowrap}
-.nav .tabs button:hover,.nav .tabs button.active{background:rgba(255,255,255,.25);border-color:#fff}
-.card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin:16px 24px;padding:20px 24px}
-.card h2{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.btn{padding:7px 16px;border-radius:8px;border:none;font-size:13px;cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap}
-.btn-primary{background:#7c3aed;color:#fff}.btn-primary:hover{background:#6d28d9}
-.btn-success{background:#10b981;color:#fff}.btn-success:hover{background:#059669}
-.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
-.btn-gray{background:#e2e8f0;color:#475569}.btn-gray:hover{background:#cbd5e1}
-.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px}
-.btn-xs{padding:2px 8px;font-size:10px;border-radius:4px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+.auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:flex;align-items:center;justify-content:center;z-index:9999}
+.auth-box{background:#fff;padding:32px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:360px;text-align:center}
+.auth-box h1{font-size:20px;margin-bottom:8px;color:#1e40af}
+.auth-box p{font-size:13px;color:#64748b;margin-bottom:20px}
+.auth-box input{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;text-align:center;letter-spacing:4px;outline:none}
+.auth-box input:focus{border-color:#2563eb}
+.auth-box button{margin-top:16px;width:100%;padding:11px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.auth-box button:hover{background:#1d4ed8}
+.auth-err{color:#dc2626;font-size:12px;margin-top:8px;display:none}
+header{background:#fff;padding:12px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+header h1{font-size:17px;color:#1e40af;white-space:nowrap}
+header .tabs{display:flex;gap:4px;flex:1}
+header .tabs button{padding:8px 18px;border:none;background:transparent;border-radius:8px;font-size:14px;cursor:pointer;color:#64748b;transition:all .2s}
+header .tabs button:hover{background:#f1f5f9}
+header .tabs button.active{background:#2563eb;color:#fff;font-weight:600}
+header .user-info{font-size:13px;color:#64748b}
+.container{max-width:1400px;margin:0 auto;padding:16px 24px}
+.section{display:none}
+.section.active{display:block}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:16px}
+.card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.subtabs{display:flex;gap:4px;margin-left:8px}
+.subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
+.subtabs button.active{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:600}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
+.toolbar label{font-size:12px;color:#64748b}
+.btn{padding:7px 14px;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-gray{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.btn-gray:hover{background:#e2e8f0}
+.btn-danger{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.btn-danger:hover{background:#fecaca}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn-sm{padding:5px 12px;font-size:12px}
 .tbl{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:700px}
-thead th{background:#f8fafc;padding:10px 8px;font-size:12px;color:#475569;font-weight:600;text-align:center;border-bottom:2px solid #e2e8f0;white-space:nowrap;position:sticky;top:0}
-tbody td{padding:8px 8px;font-size:13px;text-align:center;border-bottom:1px solid #f1f5f9}
-tbody tr:hover{background:#f8fafc}
-.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:600;z-index:300;opacity:0;transform:translateX(20px);transition:.3s;max-width:400px}
-.toast.show{opacity:1;transform:translateX(0)}
-.toast-ok{background:#10b981}.toast-err{background:#ef4444}
-.section{display:none}.section.active{display:block}
-.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.toolbar select,.toolbar input[type=text],.toolbar input[type=number],.toolbar input[type=date]{padding:7px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;background:#fff}
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;justify-content:center;align-items:center}
+.tbl table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:#f8fafc;padding:10px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:12px}
+.tbl td{padding:9px 8px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
+.tbl tr:hover td{background:#f8fafc}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.tag-signed{background:#dcfce7;color:#166534}
+.tag-trial{background:#fef3c7;color:#92400e}
+.tag-lead{background:#e0e7ff;color:#3730a3}
+.tag-a{background:#fce7f3;color:#9d174d}
+.tag-b{background:#e0e7ff;color:#3730a3}
+.tag-c{background:#f1f5f9;color:#64748b}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
 .modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:16px;padding:28px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.modal h3{font-size:17px;font-weight:700;margin-bottom:18px}
-.modal .form-group{margin-bottom:14px}
-.modal .form-group label{display:block;font-size:13px;color:#475569;font-weight:600;margin-bottom:5px}
-.modal .form-group input,.modal .form-group select,.modal .form-group textarea{width:100%;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px}
-.modal .form-group textarea{min-height:80px;resize:vertical}
-.modal .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:#4f46e5;z-index:999;display:flex;justify-content:center;align-items:center;flex-direction:column}
-.login-box{background:#fff;border-radius:20px;padding:40px 36px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.login-box h2{font-size:22px;color:#4f46e5;margin-bottom:6px}
-.login-box .sub{font-size:13px;color:#94a3b8;margin-bottom:24px}
-.login-box input{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:12px;font-size:16px;text-align:center;outline:none;transition:.2s}
-.login-box input:focus{border-color:#7c3aed}
-.login-box .err-msg{color:#ef4444;font-size:12px;margin-top:8px;display:none}
-.login-box .btn-login{width:100%;padding:12px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s}
-.login-box .btn-login:hover{background:#6d28d9}
-.sync-bar{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 28px;display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap}
-.sync-bar b{font-size:13px}
-
-/* 漏斗 */
-.funnel{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.funnel-step{flex:1;min-width:120px;text-align:center;background:#f8fafc;border-radius:12px;padding:16px 12px;border:2px solid #e2e8f0;position:relative}
-.funnel-step .step-num{font-size:32px;font-weight:800;line-height:1.2}
-.funnel-step .step-label{font-size:12px;color:#64748b;margin-top:2px}
-.funnel-step .step-rate{font-size:11px;margin-top:4px}
-.funnel-step::after{content:'';position:absolute;right:-16px;top:50%;border-left:8px solid #cbd5e1;border-top:8px solid transparent;border-bottom:8px solid transparent;transform:translateY(-50%)}
-.funnel-step:last-child::after{display:none}
-.fs-lead .step-num{color:#94a3b8}.fs-contact .step-num{color:#f59e0b}.fs-trial .step-num{color:#3b82f6}
-.fs-visit .step-num{color:#8b5cf6}.fs-deal .step-num{color:#10b981}.fs-lost .step-num{color:#ef4444}
-
-/* 状态标签 */
-.tag{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600}
-.tag-lead{background:#e2e8f0;color:#64748b}
-.tag-contact{background:#fef3c7;color:#b45309}
-.tag-invite{background:#dbeafe;color:#1e40af}
-.tag-trial{background:#ede9fe;color:#6d28d9}
-.tag-deal{background:#d1fae5;color:#065f46}
-.tag-lost{background:#fee2e2;color:#991b1b}
-
-/* 周视图 */
-.week-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.week-col{background:#f8fafc;border-radius:10px;padding:10px;min-height:120px;border:1px solid #e2e8f0}
-.week-col .day-header{font-weight:700;font-size:13px;margin-bottom:8px;text-align:center;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
-.week-col:nth-child(1) .day-header{color:#f59e0b}.week-col:nth-child(2) .day-header{color:#10b981}
-.week-col:nth-child(3) .day-header{color:#3b82f6}.week-col:nth-child(4) .day-header{color:#8b5cf6}
-.week-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:6px 8px;margin-bottom:6px;font-size:11px;cursor:pointer;transition:.15s}
-.week-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.week-item .wi-time{font-weight:700;color:#7c3aed;font-size:10px}
-.week-item .wi-name{font-weight:600;margin-top:2px}
-.week-item .wi-info{color:#64748b;font-size:10px}
-.week-item.wi-done{opacity:0.5}
-
-/* 跟进提醒 */
-.reminder-overdue{background:#fff5f5!important;border-left:3px solid #ef4444}
-.reminder-today{background:#fffbeb!important;border-left:3px solid #f59e0b}
-.reminder-upcoming{background:#f0fdf4!important;border-left:3px solid #10b981}
-
-/* 语音输入 */
-textarea.voice-input{background:#faf5ff;border-color:#c4b5fd}
-
-.summary-bar{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
-.summary-item{flex:1;min-width:100px;background:#f8fafc;border-radius:10px;padding:14px 18px;text-align:center;border:1px solid #e2e8f0}
-.summary-item .num{font-size:24px;font-weight:800;line-height:1.2}
-.summary-item .lbl{font-size:11px;color:#64748b;margin-top:2px}
-
-@media(max-width:768px){.funnel{flex-direction:column}.funnel-step::after{display:none}.week-grid{grid-template-columns:repeat(2,1fr)}}
+.modal-box{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:600px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal-box h3{font-size:16px;margin-bottom:16px;color:#1e40af}
+.modal-box .form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.modal-box .form-row label{font-size:12px;color:#64748b;display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}
+.modal-box .form-row input,.modal-box .form-row select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none}
+.modal-box .form-row input:focus,.modal-box .form-row select:focus{border-color:#2563eb}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9}
+.toast{position:fixed;top:20px;right:20px;padding:10px 20px;border-radius:10px;color:#fff;font-size:13px;z-index:9999;animation:slideIn .3s;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.toast-success{background:#16a34a}
+.toast-error{background:#dc2626}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.week-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
+.week-day{border:1px solid #e2e8f0;border-radius:10px;min-height:180px;padding:8px;background:#fafbfc}
+.week-day.today{border-color:#2563eb;background:#f0f7ff}
+.week-day h4{font-size:12px;color:#64748b;margin-bottom:4px}
+.week-day h4 span{color:#2563eb;font-weight:700}
+.day-session{background:#e0f0ff;border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;border-left:3px solid #2563eb}
+.day-session .sess-title{font-weight:600;color:#1e40af;font-size:11px}
+.day-customer{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 6px;margin-bottom:2px;font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer}
+.day-customer:hover{background:#f0f7ff}
+.day-customer .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.day-customer .dot.attended{background:#16a34a}
+.day-customer .dot.booked{background:#f59e0b}
+.followup-timeline{max-height:300px;overflow-y:auto;margin-bottom:12px}
+.followup-item{padding:10px 12px;border-left:3px solid #e2e8f0;margin-bottom:8px;border-radius:0 8px 8px 0;background:#fafbfc}
+.followup-item:hover{background:#f0f7ff}
+.followup-item .fu-time{font-size:11px;color:#94a3b8}
+.followup-item .fu-content{font-size:13px;color:#334155;margin-top:2px}
+.followup-item .fu-meta{font-size:11px;color:#64748b;margin-top:3px;display:flex;gap:12px}
+.empty-state{text-align:center;padding:40px;color:#94a3b8;font-size:14px}
+.check-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.check-row input[type=checkbox]{width:16px;height:16px}
+.check-row span{font-size:12px;color:#64748b}
+.reminder-highlight{background:#fef2f2!important}
+.reminder-warn{background:#fffbeb!important}
+.count-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;font-weight:600}
+.badge-signed{background:#dcfce7;color:#166534}
+.badge-trial{background:#fef3c7;color:#92400e}
+.badge-lead{background:#e0e7ff;color:#3730a3}
+.session-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;background:#fff}
+.session-card .sess-info{flex:1}
+.session-card .sess-date{font-size:13px;font-weight:600;color:#1e40af}
+.session-card .sess-detail{font-size:12px;color:#64748b}
 </style>
 </head>
 <body>
 
-<!-- 登录 -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
-    <h2>📊 DK·邻里少儿英语</h2>
-    <div class="sub">销售业务系统</div>
-    <input type="password" id="loginPwd" placeholder="输入密码" onkeydown="if(event.key==='Enter')doLogin()" autofocus>
-    <div class="err-msg" id="loginErr">密码错误</div>
-    <button class="btn-login" onclick="doLogin()">登 录</button>
+<!-- Auth -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <h1>DK邻里少儿英语</h1>
+    <p>销售业务系统</p>
+    <input type="password" id="authInput" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')doAuth()">
+    <button onclick="doAuth()">进入系统</button>
+    <div class="auth-err" id="authErr">密码错误</div>
   </div>
 </div>
 
-<div id="app" style="display:none">
-<div class="toast" id="toast"></div>
-<div class="sync-bar">
-  <span>☁️ <b>云同步</b> — DK·邻里销售数据实时同步</span>
-  <span style="margin-left:auto;font-size:11px;opacity:0.8" id="syncStatus">连接中...</span>
-</div>
-
-<div class="nav">
-  <h1>DK·邻里 销售系统</h1>
+<!-- Header -->
+<header style="display:none" id="appHeader">
+  <h1>📊 销售业务系统</h1>
   <div class="tabs">
     <button class="active" onclick="switchTab('customers')">客户管理</button>
-    <button onclick="switchTab('funnel')">销售漏斗</button>
-    <button onclick="switchTab('trial')">试听周报</button>
+    <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒</button>
   </div>
-</div>
+  <span class="user-info" style="margin-left:auto">
+    <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
+    <button class="btn btn-gray btn-xs" onclick="localStorage.removeItem('sales_auth');location.reload()">🔒 退出</button>
+  </span>
+</header>
 
+<!-- ================================================================= -->
 <!-- Tab 1: 客户管理 -->
+<!-- ================================================================= -->
 <div class="section active" id="sec-customers">
-  <div class="card">
-    <h2>客户列表
-      <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
-      <button class="btn btn-gray btn-sm" onclick="exportCustomers()" style="margin-left:auto">📥 导出</button>
-    </h2>
-    <div class="toolbar">
-      <select id="filterStatus" onchange="renderCustomers()">
-        <option value="all">全部状态</option>
-        <option value="新线索">新线索</option><option value="已联系">已联系</option>
-        <option value="已邀约">已邀约</option><option value="已试听">已试听</option>
-        <option value="已成交">已成交</option><option value="已流失">已流失</option>
-      </select>
-      <select id="filterSource" onchange="renderCustomers()">
-        <option value="all">全部来源</option>
-      </select>
-      <select id="filterOwner" onchange="renderCustomers()">
-        <option value="all">全部跟进人</option>
-        <option value="Kyle">Kyle</option><option value="Dora">Dora</option>
-      </select>
-      <input type="text" id="filterSearch" placeholder="搜索姓名/电话…" oninput="renderCustomers()" style="width:160px">
+  <div class="container">
+    <div class="card">
+      <h2>客户列表
+        <div class="subtabs">
+          <button class="active" onclick="switchSubTab('signed')" id="subtab-signed">已报名<span class="count-badge badge-signed" id="cnt-signed">0</span></button>
+          <button onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
+          <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
+        </div>
+        <div class="toolbar" style="margin-left:auto">
+          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">全部来源</option></select>
+          <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
+          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话..." oninput="renderCustomers()" style="width:140px">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
+        </div>
+      </h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th style="text-align:left;width:70px">姓名</th>
+          <th style="width:40px">年龄</th>
+          <th style="width:110px">电话</th>
+          <th style="width:50px">家长</th>
+          <th style="width:70px">来源</th>
+          <th style="width:40px">级别</th>
+          <th style="width:80px">学校</th>
+          <th style="width:85px">状态</th>
+          <th style="width:90px">试听时间</th>
+          <th style="width:55px">跟进人</th>
+          <th style="width:115px">操作</th>
+        </tr></thead>
+        <tbody id="custTbody"></tbody>
+      </table></div>
     </div>
-    <div class="tbl"><table>
-      <thead><tr>
-        <th style="text-align:left;width:80px">姓名</th><th style="width:60px">年龄</th>
-        <th style="width:90px">电话</th><th style="width:80px">来源</th>
-        <th style="width:80px">状态</th><th style="width:80px">试听时间</th>
-        <th style="width:60px">跟进人</th><th style="width:120px">操作</th>
-      </tr></thead>
-      <tbody id="custTbody"></tbody>
-    </table></div>
   </div>
 </div>
 
-<!-- Tab 2: 销售漏斗 -->
-<div class="section" id="sec-funnel">
-  <div class="card">
-    <h2>销售漏斗</h2>
-    <div class="funnel" id="funnelChart"></div>
-    <div class="tbl" style="margin-top:16px"><table>
-      <thead><tr><th>状态</th><th>人数</th><th>占比</th><th>转化率（相对上一阶段）</th></tr></thead>
-      <tbody id="funnelTbody"></tbody>
-    </table></div>
-  </div>
-  <div class="card">
-    <h2>按来源分析</h2>
-    <div class="tbl"><table>
-      <thead><tr><th>来源</th><th>总线索</th><th>已成交</th><th>成交率</th></tr></thead>
-      <tbody id="sourceTbody"></tbody>
-    </table></div>
+<!-- ================================================================= -->
+<!-- Tab 2: 试听邀约 -->
+<!-- ================================================================= -->
+<div class="section" id="sec-trials">
+  <div class="container">
+    <!-- 周历视图 -->
+    <div class="card">
+      <h2>试听周历
+        <div class="toolbar">
+          <label>起：<input type="date" id="trialStart" onchange="renderTrialCalendar()"></label>
+          <label>止：<input type="date" id="trialEnd" onchange="renderTrialCalendar()"></label>
+          <button class="btn btn-primary btn-sm" onclick="renderTrialCalendar()">🔍 查看</button>
+          <button class="btn btn-gray btn-sm" onclick="setThisWeek()" style="margin-left:4px">本周</button>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="switchTrialView('sessions')" style="margin-left:auto">📋 排课管理</button>
+      </h2>
+      <div id="trialCalendar"></div>
+    </div>
+    <!-- 排课管理 -->
+    <div class="card" id="sessionsCard" style="display:none">
+      <h2>体验课排课
+        <button class="btn btn-gray btn-sm" onclick="switchTrialView('calendar')" style="margin-left:4px">📅 返回周历</button>
+        <button class="btn btn-primary btn-sm" onclick="openSessionModal()" style="margin-left:auto">＋ 新增场次</button>
+      </h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th>场次名称</th><th>日期</th><th>时间</th><th>类型</th><th>容量</th><th>已约</th><th>操作</th>
+        </tr></thead>
+        <tbody id="sessionsTbody"></tbody>
+      </table></div>
+    </div>
   </div>
 </div>
 
-<!-- Tab 3: 试听周报 -->
-<div class="section" id="sec-trial">
-  <div class="card">
-    <h2>试听周报
-      <span style="margin-left:12px;font-size:13px;font-weight:400">
-        周：<input type="date" id="weekStart" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px" onchange="renderTrialWeek()">
-      </span>
-      <button class="btn btn-primary btn-sm" onclick="openTrialModal()" style="margin-left:12px">＋ 添加试听</button>
-    </h2>
-    <div class="summary-bar" id="trialSummary"></div>
-    <div class="week-grid" id="weekGrid"></div>
-  </div>
-</div>
-
-<!-- Tab 4: 跟进提醒 -->
+<!-- ================================================================= -->
+<!-- Tab 3: 跟进提醒 -->
+<!-- ================================================================= -->
 <div class="section" id="sec-reminders">
-  <div class="card">
-    <h2>跟进提醒
-      <button class="btn btn-primary btn-sm" onclick="openFollowupModal()" style="margin-left:12px">＋ 新增跟进</button>
-    </h2>
-    <div class="toolbar">
-      <select id="remOwnerFilter" onchange="renderReminders()">
-        <option value="all">全部跟进人</option>
-        <option value="Kyle">Kyle</option><option value="Dora">Dora</option>
-      </select>
+  <div class="container">
+    <div class="card">
+      <h2>跟进提醒 <span style="font-size:12px;color:#94a3b8;font-weight:400">仅显示需要提醒跟进的客户</span></h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th style="text-align:left">学员姓名</th>
+          <th>上次跟进</th>
+          <th>跟进人</th>
+          <th>提醒状态</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody id="reminderTbody"></tbody>
+      </table></div>
     </div>
-    <div class="tbl"><table>
-      <thead><tr>
-        <th style="width:60px">状态</th><th style="text-align:left">客户</th>
-        <th style="text-align:left">跟进内容</th>
-        <th style="width:90px">提醒日期</th><th style="width:60px">跟进人</th>
-        <th style="width:90px">操作</th>
-      </tr></thead>
-      <tbody id="remTbody"></tbody>
-    </table></div>
   </div>
 </div>
 
-<!-- 弹窗：客户新增/编辑 -->
+<!-- ================================================================= -->
+<!-- Modals -->
+<!-- ================================================================= -->
+
+<!-- 客户编辑 Modal -->
 <div class="modal-overlay" id="custModal">
-  <div class="modal">
+  <div class="modal-box">
     <h3 id="custModalTitle">新增客户</h3>
     <input type="hidden" id="custEditId">
-    <div class="form-group"><label>学员姓名 *</label><input id="custName"></div>
-    <div class="form-group"><label>年龄</label><input id="custAge" placeholder="如 5岁"></div>
-    <div class="form-group"><label>年级</label><input id="custGrade" placeholder="如 大班"></div>
-    <div class="form-group"><label>所在学校</label><input id="custSchool"></div>
-    <div class="form-group"><label>家长</label><input id="custParent" placeholder="如 妈妈"></div>
-    <div class="form-group"><label>联系电话</label><input id="custPhone" type="tel"></div>
-    <div class="form-group"><label>客户来源</label><select id="custSource"><option value="">请选择</option><option>口碑推荐</option><option>Walkin</option><option>在读二宝</option><option>群内添加</option><option>扫码添加</option><option>大众点评</option><option>门口海报</option><option>微信添加</option><option>邻居</option><option>朋友带上</option><option>小红书</option><option>非在读推荐</option></select></div>
-    <div class="form-group"><label>客户状态</label><select id="custStatus"><option>新线索</option><option>已联系</option><option>已邀约</option><option>已试听</option><option>已成交</option><option>已流失</option></select></div>
-    <div class="form-group"><label>试听时间</label><input id="custTrialDate" placeholder="如 3.15 周六10:00"></div>
-    <div class="form-group"><label>跟进人</label><select id="custOwner"><option>Kyle</option><option>Dora</option></select></div>
-    <div class="form-group"><label>咨询情况记录</label><textarea id="custNotes" class="voice-input" rows="4"></textarea></div>
-    <div class="form-group"><label>标签（逗号分隔）</label><input id="custTags" placeholder="如 价格问题,时间问题"></div>
-    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('custModal')">取消</button><button class="btn btn-primary" onclick="saveCustomer()">保存</button></div>
+    <div class="form-row">
+      <label>学员姓名*<input type="text" id="custName"></label>
+      <label>年龄<input type="text" id="custAge"></label>
+      <label>年级<input type="text" id="custGrade"></label>
+    </div>
+    <div class="form-row">
+      <label>学校<input type="text" id="custSchool"></label>
+      <label>家长<input type="text" id="custParent"></label>
+      <label>电话<input type="text" id="custPhone"></label>
+    </div>
+    <div class="form-row">
+      <label>客户来源<select id="custSource"><option value="">请选择</option></select></label>
+      <label>客户级别<select id="custLevel"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></label>
+      <label>状态<select id="custStatus">
+        <option value="未上门">未上门</option>
+        <option value="已上门未报名">已上门未报名</option>
+        <option value="已报名">已报名</option>
+      </select></label>
+    </div>
+    <div class="form-row">
+      <label>试听时间<input type="datetime-local" id="custTrialDate"></label>
+      <label>跟进人<select id="custOwner"><option value="Kyle">Kyle</option><option value="Dora">Dora</option></select></label>
+      <label>标签<input type="text" id="custTags" placeholder="备注标签"></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('custModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">保存</button>
+    </div>
   </div>
 </div>
 
-<!-- 弹窗：跟进记录 -->
-<div class="modal-overlay" id="fuModal">
-  <div class="modal">
-    <h3>新增跟进记录</h3>
-    <div class="form-group"><label>客户</label><select id="fuCustomer"></select></div>
-    <div class="form-group"><label>跟进内容</label><textarea id="fuContent" class="voice-input" rows="3"></textarea></div>
-    <div class="form-group"><label>下一步计划</label><input id="fuNextStep"></div>
-    <div class="form-group"><label>提醒日期</label><input type="date" id="fuReminderDate"></div>
-    <div class="form-group"><label>跟进人</label><select id="fuOwner"><option>Kyle</option><option>Dora</option></select></div>
-    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('fuModal')">取消</button><button class="btn btn-primary" onclick="saveFollowup()">保存</button></div>
+<!-- 跟进记录 Modal -->
+<div class="modal-overlay" id="followupModal">
+  <div class="modal-box">
+    <h3 id="fuModalTitle">跟进记录</h3>
+    <div id="followupTimeline" class="followup-timeline"><div class="empty-state">暂无跟进记录</div></div>
+    <div class="form-row">
+      <label style="flex:3">跟进内容<textarea id="fuContent" rows="3" style="padding:8px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;resize:vertical"></textarea></label>
+    </div>
+    <div class="form-row">
+      <label>邀约试听场次<select id="fuTrialSession"><option value="">暂不邀约</option></select></label>
+    </div>
+    <div class="form-row">
+      <div class="check-row">
+        <input type="checkbox" id="fuTrialAttended">
+        <span>客户已到试听（自动流转到"已上门未报名"）</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="check-row">
+        <input type="checkbox" id="fuPayment">
+        <span>客户已缴费（自动流转到"已报名"）</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="check-row">
+        <input type="checkbox" id="fuNeedReminder">
+        <span>需要提醒跟进（出现在跟进提醒列表）</span>
+      </div>
+    </div>
+    <input type="hidden" id="fuCustomerId">
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('followupModal')">关闭</button>
+      <button class="btn btn-primary" onclick="saveFollowup()">保存跟进</button>
+    </div>
   </div>
 </div>
 
-<!-- 弹窗：添加试听 -->
-<div class="modal-overlay" id="trialModal">
-  <div class="modal">
-    <h3>添加试听排期</h3>
-    <div class="form-group"><label>客户</label><select id="trialCustomer"></select></div>
-    <div class="form-group"><label>周起始日期</label><input type="date" id="trialWeekStart"></div>
-    <div class="form-group"><label>星期</label><select id="trialDay"><option value="3">周三</option><option value="4">周四</option><option value="6">周六</option><option value="7">周日</option></select></div>
-    <div class="form-group"><label>时间段</label><input id="trialTimeSlot" placeholder="如 16:00"></div>
-    <div class="form-group"><label>试听类型</label><select id="trialClassType"><option>试听课专场</option><option>K1001 进班</option><option>K1002 进班</option><option>K1003 进班</option><option>K1004 进班</option><option>K2001 进班</option><option>S1001 进班</option><option>S3001 进班</option></select></div>
-    <div class="form-group"><label>状态</label><select id="trialStatus"><option>已预约</option><option>已到场</option><option>已取消</option></select></div>
-    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('trialModal')">取消</button><button class="btn btn-primary" onclick="saveTrial()">保存</button></div>
+<!-- 转为学员 Modal -->
+<div class="modal-overlay" id="convertModal">
+  <div class="modal-box" style="max-width:400px">
+    <h3>🎓 转为正式学员</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px" id="convertInfo"></p>
+    <div class="form-row">
+      <label>选择班级<select id="convertClass"></select></label>
+      <label>缴费课时<input type="number" id="convertHours" value="64" min="1" style="width:100px"></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('convertModal')">取消</button>
+      <button class="btn btn-primary" onclick="convertToStudent()">确认转为学员</button>
+    </div>
   </div>
 </div>
 
-<!-- 弹窗：客户详情 -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal">
-    <h3 id="detailTitle">客户详情</h3>
-    <div id="detailContent"></div>
-    <div class="form-actions"><button class="btn btn-gray" onclick="closeModal('detailModal')">关闭</button></div>
+<!-- 试听场次编辑 Modal -->
+<div class="modal-overlay" id="sessionModal">
+  <div class="modal-box" style="max-width:420px">
+    <h3 id="sessionModalTitle">新增试听场次</h3>
+    <input type="hidden" id="sessionEditId">
+    <div class="form-row">
+      <label>场次名称*<input type="text" id="sessionTitle" placeholder="如：周六少儿试听专场"></label>
+    </div>
+    <div class="form-row">
+      <label>日期*<input type="date" id="sessionDate"></label>
+      <label>开始时间<input type="time" id="sessionStart" value="19:00"></label>
+      <label>结束时间<input type="time" id="sessionEnd" value="20:00"></label>
+    </div>
+    <div class="form-row">
+      <label>类型<input type="text" id="sessionType" placeholder="少儿/幼儿试听"></label>
+      <label>最大容量<input type="number" id="sessionCapacity" value="8" min="1"></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('sessionModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSession()">保存</button>
+    </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ═══════════════════════════════════════
+// 初始化
+// ═══════════════════════════════════════
 const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDI1NzIsImV4cCI6MjA5NzA3ODU3Mn0.E0xlNCX_jFn8X9LheAR3jFHokzWSkZlXkBDReqTvL6c';
-const sb = window.supabase.createClient(SB_URL, SB_KEY);
-let _customers = [], _followups = [], _trials = [];
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-async function syncStatus(msg) { document.getElementById('syncStatus').textContent = msg; }
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [];
+let _currentSubTab = 'signed';
 
-async function loadAll() {
-  syncStatus('加载中...');
-  const [cr, fr, tr] = await Promise.all([
-    sb.from('customers').select('*').order('created_at', {ascending: false}),
-    sb.from('followups').select('*').order('created_at', {ascending: false}),
-    sb.from('trial_schedule').select('*').order('week_start', {ascending: false})
-  ]);
-  _customers = cr.data || []; _followups = fr.data || []; _trials = tr.data || [];
-  if (cr.error) console.warn('customers:', cr.error.message);
-  syncStatus('已同步 ' + _customers.length + ' 名客户');
+// Auth
+function doAuth() {
+  const v = document.getElementById('authInput').value;
+  if (v === 'DK0308') {
+    document.getElementById('authOverlay').style.display = 'none';
+    document.getElementById('appHeader').style.display = 'flex';
+    localStorage.setItem('sales_auth', '1');
+    initApp();
+  } else {
+    document.getElementById('authErr').style.display = 'block';
+  }
+}
+if (localStorage.getItem('sales_auth') === '1') {
+  document.getElementById('authOverlay').style.display = 'none';
+  document.getElementById('appHeader').style.display = 'flex';
   initApp();
 }
 
-function showToast(msg, ok=true) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + (ok?'toast-ok':'toast-err') + ' show';
-  setTimeout(() => t.classList.remove('show'), 3000);
+// ═══════════════════════════════════════
+// 数据加载
+// ═══════════════════════════════════════
+async function loadAll() {
+  const [cr, fr, tr, sr, clr] = await Promise.all([
+    sb.from('customers').select('*').order('created_at', {ascending: false}),
+    sb.from('followups').select('*').order('created_at', {ascending: false}),
+    sb.from('trial_schedule').select('*'),
+    sb.from('trial_sessions').select('*').order('session_date', {ascending: true}),
+    sb.from('classes').select('*').order('id', {ascending: true})
+  ]);
+  _customers = cr.data || [];
+  _followups = fr.data || [];
+  _trialSchedule = tr.data || [];
+  _trialSessions = sr.data || [];
+  _classes = clr.data || [];
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+async function initApp() {
+  await loadAll();
+  renderCustomers();
+  updateCounts();
+  fillFilters();
+  setThisWeek();
+}
 
+// ═══════════════════════════════════════
+// Tab 切换
+// ═══════════════════════════════════════
 function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-  const map = {customers:'sec-customers',funnel:'sec-funnel',trial:'sec-trial',reminders:'sec-reminders'};
-  const idx = {customers:0,funnel:1,trial:2,reminders:3};
+  document.querySelectorAll('header .tabs button').forEach((b,i) => b.classList.remove('active'));
+  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders'};
+  const idx = {customers:0, trials:1, reminders:2};
   document.getElementById(map[tab]).classList.add('active');
-  document.querySelectorAll('.tabs button')[idx[tab]].classList.add('active');
-  if (tab==='customers') { fillSourceFilter(); renderCustomers(); }
-  if (tab==='funnel') renderFunnel();
-  if (tab==='trial') { setDefaultWeek(); renderTrialWeek(); }
-  if (tab==='reminders') renderReminders();
+  document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
+  if (tab === 'customers') { renderCustomers(); updateCounts(); }
+  if (tab === 'trials') renderTrialCalendar();
+  if (tab === 'reminders') renderReminders();
 }
 
-// ═══════════════ 客户管理 ═══════════════
-const STATUS_MAP = {新线索:'tag-lead',已联系:'tag-contact',已邀约:'tag-invite',已试听:'tag-trial',已成交:'tag-deal',已流失:'tag-lost'};
+function switchSubTab(sub) {
+  _currentSubTab = sub;
+  document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('subtab-'+sub).classList.add('active');
+  renderCustomers();
+}
 
-function fillSourceFilter() {
+function switchTrialView(view) {
+  document.getElementById('trialCalendar').style.display = view === 'calendar' ? '' : 'none';
+  document.getElementById('sessionsCard').style.display = view === 'sessions' ? '' : 'none';
+  if (view === 'sessions') renderSessions();
+}
+
+function setThisWeek() {
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now); monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  document.getElementById('trialStart').value = toDateStr(monday);
+  document.getElementById('trialEnd').value = toDateStr(sunday);
+  renderTrialCalendar();
+}
+
+function fillFilters() {
   const sources = [...new Set(_customers.map(c => c.source).filter(Boolean))];
-  const sel = document.getElementById('filterSource');
-  sel.innerHTML = '<option value="all">全部来源</option>';
-  sources.forEach(s => { sel.innerHTML += '<option value="' + s + '">' + s + '</option>'; });
+  const owners = [...new Set(_customers.map(c => c.owner).filter(Boolean))];
+  const soSel = document.getElementById('custFilterSource');
+  sources.forEach(s => { soSel.innerHTML += '<option>'+s+'</option>'; });
+  const owSel = document.getElementById('custFilterOwner');
+  owners.forEach(o => { owSel.innerHTML += '<option>'+o+'</option>'; });
+  // 客户编辑弹窗的 source
+  const srcSel = document.getElementById('custSource');
+  ['口碑推荐','Walkin','在读二宝','群内添加','扫码添加','大众点评','地推','转介绍','其他'].forEach(s => {
+    srcSel.innerHTML += '<option>'+s+'</option>';
+  });
 }
 
+function updateCounts() {
+  document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
+  document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
+  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门').length;
+}
+
+// ═══════════════════════════════════════
+// 客户管理
+// ═══════════════════════════════════════
 function renderCustomers() {
-  let list = [..._customers];
-  const fStatus = document.getElementById('filterStatus').value;
-  const fSource = document.getElementById('filterSource').value;
-  const fOwner = document.getElementById('filterOwner').value;
-  const fSearch = document.getElementById('filterSearch').value.toLowerCase();
-  if (fStatus !== 'all') list = list.filter(c => c.status === fStatus);
+  updateCounts();
+  
+  let list;
+  if (_currentSubTab === 'signed') list = _customers.filter(c => c.status === '已报名');
+  else if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
+  else list = _customers.filter(c => c.status === '未上门' || !c.status || c.status === '新线索');
+
+  // Filters
+  const fSource = document.getElementById('custFilterSource').value;
+  const fOwner = document.getElementById('custFilterOwner').value;
+  const fSearch = document.getElementById('custFilterSearch').value.toLowerCase();
   if (fSource !== 'all') list = list.filter(c => c.source === fSource);
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch));
 
   let html = '';
   list.forEach(c => {
-    const sc = STATUS_MAP[c.status] || 'tag-lead';
+    const lvl = c.level || 'B';
+    const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
+    const stTag = c.status === '已报名' ? 'tag tag-signed' : (c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead');
+    const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
     html += '<tr>' +
-      '<td style="text-align:left;font-weight:600;cursor:pointer" onclick="showCustomerDetail(' + c.id + ')">' + (c.name||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (c.age||'') + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
+      '<td>' + (c.parent||'') + '</td>' +
       '<td>' + (c.source||'') + '</td>' +
-      '<td><span class="tag ' + sc + '">' + (c.status||'新线索') + '</span></td>' +
-      '<td>' + (c.trial_date||'') + '</td>' +
+      '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
+      '<td>' + (c.school||'') + '</td>' +
+      '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
+      '<td>' + trialDate + '</td>' +
       '<td>' + (c.owner||'') + '</td>' +
-      '<td><button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')">✏️</button> ' +
-      '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')">📝</button> ' +
-      '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')">🗑</button></td></tr>';
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
+        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
+        (c.status === '已报名' ? '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button>' : '') +
+      '</td></tr>';
   });
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="8" style="color:#94a3b8;padding:30px">暂无客户</td></tr>';
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无客户</td></tr>';
 }
 
 function openCustomerModal(cid) {
@@ -376,16 +514,17 @@ function openCustomerModal(cid) {
       document.getElementById('custParent').value = c.parent||'';
       document.getElementById('custPhone').value = c.phone||'';
       document.getElementById('custSource').value = c.source||'';
-      document.getElementById('custStatus').value = c.status||'新线索';
-      document.getElementById('custTrialDate').value = c.trial_date||'';
+      document.getElementById('custLevel').value = c.level||'B';
+      document.getElementById('custStatus').value = c.status||'未上门';
+      document.getElementById('custTrialDate').value = c.trial_date ? c.trial_date.substring(0,16) : '';
       document.getElementById('custOwner').value = c.owner||'Kyle';
-      document.getElementById('custNotes').value = c.notes||'';
       document.getElementById('custTags').value = c.tags||'';
     }
   } else {
-    ['custName','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custNotes','custTags'].forEach(id => document.getElementById(id).value='');
+    ['custName','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custSource').value = '';
-    document.getElementById('custStatus').value = '新线索';
+    document.getElementById('custLevel').value = 'B';
+    document.getElementById('custStatus').value = '未上门';
     document.getElementById('custOwner').value = 'Kyle';
   }
   document.getElementById('custModal').classList.add('show');
@@ -402,322 +541,444 @@ async function saveCustomer() {
     parent: document.getElementById('custParent').value,
     phone: document.getElementById('custPhone').value,
     source: document.getElementById('custSource').value,
+    level: document.getElementById('custLevel').value,
     status: document.getElementById('custStatus').value,
-    trial_date: document.getElementById('custTrialDate').value,
+    trial_date: document.getElementById('custTrialDate').value || null,
     owner: document.getElementById('custOwner').value,
-    notes: document.getElementById('custNotes').value,
     tags: document.getElementById('custTags').value,
     updated_at: new Date().toISOString()
   };
   let err;
   if (editId) {
-    ({ error: err } = await sb.from('customers').update(data).eq('id', parseInt(editId)));
+    ({error: err} = await sb.from('customers').update(data).eq('id', parseInt(editId)));
   } else {
-    ({ error: err } = await sb.from('customers').insert(data));
+    ({error: err} = await sb.from('customers').insert(data));
   }
   if (err) { showToast('保存失败: '+err.message, false); return; }
-  showToast(editId ? '客户已更新' : '客户已新增');
+  showToast(editId ? '已更新' : '已新增');
   closeModal('custModal');
   await loadAll();
   renderCustomers();
 }
 
-async function deleteCustomer(cid) {
+// ═══════════════════════════════════════
+// 跟进记录
+// ═══════════════════════════════════════
+function openFollowupModal(cid) {
+  document.getElementById('fuCustomerId').value = cid;
   const c = _customers.find(x => x.id === cid);
-  if (!confirm('确定删除客户 "' + (c?.name||'') + '"？\n其跟进记录和试听排期也将一并删除。')) return;
-  await sb.from('followups').delete().eq('customer_id', cid);
-  await sb.from('trial_schedule').delete().eq('customer_id', cid);
-  const { error } = await sb.from('customers').delete().eq('id', cid);
-  if (error) { showToast('删除失败: '+error.message, false); return; }
-  showToast('客户已删除');
-  await loadAll();
-  renderCustomers();
-}
-
-function showCustomerDetail(cid) {
-  const c = _customers.find(x => x.id === cid);
-  if (!c) return;
-  const fus = _followups.filter(f => f.customer_id === cid).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-  let html = '<div style="font-size:13px;line-height:1.8">' +
-    '<b>学员:</b> ' + (c.name||'') + ' | <b>年龄:</b> ' + (c.age||'') + ' | <b>年级:</b> ' + (c.grade||'') + '<br>' +
-    '<b>学校:</b> ' + (c.school||'') + ' | <b>家长:</b> ' + (c.parent||'') + ' | <b>电话:</b> ' + (c.phone||'') + '<br>' +
-    '<b>来源:</b> ' + (c.source||'') + ' | <b>状态:</b> ' + (c.status||'') + ' | <b>跟进人:</b> ' + (c.owner||'') + '<br>' +
-    '<b>试听:</b> ' + (c.trial_date||'') + ' | <b>标签:</b> ' + (c.tags||'') + '<br>' +
-    '<b>咨询记录:</b><br><span style="color:#475569">' + (c.notes||'无') + '</span></div>';
-  if (fus.length > 0) {
-    html += '<hr style="margin:12px 0"><b>跟进记录 (' + fus.length + '条):</b>';
+  document.getElementById('fuModalTitle').textContent = '跟进记录 - ' + (c?.name||'');
+  document.getElementById('fuContent').value = '';
+  document.getElementById('fuTrialAttended').checked = false;
+  document.getElementById('fuPayment').checked = false;
+  document.getElementById('fuNeedReminder').checked = false;
+  
+  // 加载历史跟进
+  const fus = _followups.filter(f => f.customer_id === cid);
+  let tl = '';
+  if (fus.length === 0) {
+    tl = '<div class="empty-state">暂无跟进记录</div>';
+  } else {
     fus.forEach(f => {
-      html += '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px;margin:6px 0;font-size:12px">' +
-        '<span style="color:#94a3b8">' + new Date(f.created_at).toLocaleString('zh-CN') + '</span> ' +
-        (f.owner ? '(' + f.owner + ')' : '') + '<br>' + (f.content||'') +
-        (f.next_step ? '<br><span style="color:#7c3aed">→ 下一步: ' + f.next_step + '</span>' : '') +
-        (f.reminder_date ? '<br><span style="color:#f59e0b">⏰ 提醒: ' + f.reminder_date + '</span>' : '') +
-        '</div>';
+      const dt = f.created_at ? new Date(f.created_at).toLocaleString('zh-CN', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+      tl += '<div class="followup-item">' +
+        '<div class="fu-time">' + dt + '</div>' +
+        '<div class="fu-content">' + (f.content||'') + '</div>' +
+        '<div class="fu-meta">' +
+          (f.trial_invited ? '📅 已约试听' : '') +
+          (f.owner ? ' · ' + f.owner : '') +
+          (f.need_reminder ? ' · 🔔 需跟进' : '') +
+        '</div>' +
+      '</div>';
     });
   }
-  document.getElementById('detailTitle').textContent = c.name + ' - 客户详情';
-  document.getElementById('detailContent').innerHTML = html;
-  document.getElementById('detailModal').classList.add('show');
-}
-
-// ═══════════════ 销售漏斗 ═══════════════
-function renderFunnel() {
-  const stages = ['新线索','已联系','已邀约','已试听','已成交','已流失'];
-  const colors = ['#94a3b8','#f59e0b','#3b82f6','#8b5cf6','#10b981','#ef4444'];
-  const counts = stages.map(s => _customers.filter(c => c.status === s).length);
-  const total = _customers.length || 1;
-  const conversions = [];
-  for (let i = 1; i < stages.length - 1; i++) {
-    conversions.push(counts[i-1] > 0 ? Math.round(counts[i]/counts[i-1]*100) : 0);
-  }
-
-  let funnelHtml = '';
-  stages.forEach((s, i) => {
-    const cls = ['fs-lead','fs-contact','fs-trial','fs-visit','fs-deal','fs-lost'][i];
-    const pct = total > 0 ? Math.round(counts[i]/total*100) : 0;
-    funnelHtml += '<div class="funnel-step ' + cls + '"><div class="step-num" style="color:' + colors[i] + '">' + counts[i] + '</div>' +
-      '<div class="step-label">' + s + '</div><div class="step-rate" style="color:' + colors[i] + '">' + pct + '%</div></div>';
-  });
-  document.getElementById('funnelChart').innerHTML = funnelHtml;
-
-  let tbody = '';
-  stages.forEach((s, i) => {
-    const convText = i === 0 ? '—' : (i === stages.length-1 ? '—' : conversions[i-1] + '%');
-    tbody += '<tr><td><b>' + s + '</b></td><td>' + counts[i] + '</td><td>' + Math.round(counts[i]/total*100) + '%</td><td>' + convText + '</td></tr>';
-  });
-  document.getElementById('funnelTbody').innerHTML = tbody;
-
-  // 按来源分析
-  const sourceStats = {};
-  _customers.forEach(c => {
-    const src = c.source || '未知';
-    if (!sourceStats[src]) sourceStats[src] = {total:0,deal:0};
-    sourceStats[src].total++;
-    if (c.status === '已成交') sourceStats[src].deal++;
-  });
-  let shtml = '';
-  Object.entries(sourceStats).sort((a,b) => b[1].total - a[1].total).forEach(([src, st]) => {
-    const rate = st.total > 0 ? Math.round(st.deal/st.total*100) : 0;
-    shtml += '<tr><td><b>' + src + '</b></td><td>' + st.total + '</td><td>' + st.deal + '</td><td style="color:' + (rate >= 50 ? '#10b981' : rate >= 30 ? '#f59e0b' : '#ef4444') + ';font-weight:700">' + rate + '%</td></tr>';
-  });
-  document.getElementById('sourceTbody').innerHTML = shtml;
-}
-
-// ═══════════════ 试听周报 ═══════════════
-function setDefaultWeek() {
+  document.getElementById('followupTimeline').innerHTML = tl;
+  
+  // 填充试听场次下拉
+  const sel = document.getElementById('fuTrialSession');
+  sel.innerHTML = '<option value="">暂不邀约</option>';
   const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
-}
-
-function getWeekDates() {
-  const ws = document.getElementById('weekStart').value;
-  if (!ws) return [];
-  const d = new Date(ws + 'T00:00:00');
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    const nd = new Date(d);
-    nd.setDate(d.getDate() + i);
-    dates.push(nd.toISOString().split('T')[0]);
-  }
-  return dates;
-}
-
-function renderTrialWeek() {
-  const weekDates = getWeekDates();
-  if (!weekDates.length) return;
-  const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
-  // 只显示周三(2)、周四(3)、周六(5)、周日(6)
-  const showDays = [2,3,5,6]; // 0-indexed from Monday
-  const colors_day = ['#f59e0b','#10b981','#3b82f6','#8b5cf6'];
-
-  // 汇总
-  const weekStart = weekDates[0];
-  const weekEnd = weekDates[6];
-  const weekTrials = _trials.filter(t => t.week_start === weekStart);
-  const booked = weekTrials.filter(t => t.status === '已预约').length;
-  const visited = weekTrials.filter(t => t.status === '已到场').length;
-  const cancelled = weekTrials.filter(t => t.status === '已取消').length;
-  document.getElementById('trialSummary').innerHTML =
-    '<div class="summary-item"><div class="num" style="color:#7c3aed">' + weekTrials.length + '</div><div class="lbl">本周试听</div></div>' +
-    '<div class="summary-item"><div class="num" style="color:#3b82f6">' + booked + '</div><div class="lbl">已预约</div></div>' +
-    '<div class="summary-item"><div class="num" style="color:#10b981">' + visited + '</div><div class="lbl">已到场</div></div>' +
-    '<div class="summary-item"><div class="num" style="color:#ef4444">' + cancelled + '</div><div class="lbl">已取消</div></div>';
-
-  let gridHtml = '';
-  showDays.forEach((di, idx) => {
-    const dateStr = weekDates[di];
-    const dayName = dayNames[di];
-    const dayTrials = weekTrials.filter(t => t.day_of_week === di + 1);
-
-    gridHtml += '<div class="week-col"><div class="day-header" style="color:' + colors_day[idx] + '">' + dayName + '<br><span style="font-size:10px;font-weight:400">' + dateStr + '</span></div>';
-    if (dayTrials.length === 0) {
-      gridHtml += '<div style="color:#cbd5e1;font-size:11px;text-align:center;padding:20px 0">暂无试听</div>';
-    } else {
-      dayTrials.forEach(t => {
-        const c = _customers.find(x => x.id === t.customer_id);
-        gridHtml += '<div class="week-item' + (t.status === '已到场' ? ' wi-done' : t.status === '已取消' ? ' wi-done' : '') + '" onclick="showCustomerDetail(' + t.customer_id + ')" title="点击查看客户详情">' +
-          '<div class="wi-time">' + (t.time_slot||'') + ' · ' + (t.class_type||'') + '</div>' +
-          '<div class="wi-name">' + (c?.name||'未知') + '</div>' +
-          '<div class="wi-info">' + (c?.age||'') + ' · ' + (c?.grade||'') + ' · ' + (t.status||'') + '</div></div>';
-      });
-    }
-    gridHtml += '</div>';
+  _trialSessions.filter(s => new Date(s.session_date) >= now).forEach(s => {
+    sel.innerHTML += '<option value="' + s.id + '">' + s.session_date + ' ' + (s.start_time||'') + ' - ' + (s.title||'') + '</option>';
   });
-  document.getElementById('weekGrid').innerHTML = gridHtml;
-}
-
-function openTrialModal(cid) {
-  document.getElementById('trialWeekStart').value = document.getElementById('weekStart').value;
-  const sel = document.getElementById('trialCustomer');
-  sel.innerHTML = '';
-  _customers.filter(c => c.status !== '已流失').forEach(c => {
-    sel.innerHTML += '<option value="' + c.id + '"' + (cid === c.id ? ' selected' : '') + '>' + c.name + '</option>';
-  });
-  document.getElementById('trialDay').value = '6';
-  document.getElementById('trialTimeSlot').value = '';
-  document.getElementById('trialClassType').value = '试听课专场';
-  document.getElementById('trialStatus').value = '已预约';
-  document.getElementById('trialModal').classList.add('show');
-}
-
-async function saveTrial() {
-  const data = {
-    customer_id: parseInt(document.getElementById('trialCustomer').value),
-    week_start: document.getElementById('trialWeekStart').value,
-    day_of_week: parseInt(document.getElementById('trialDay').value),
-    time_slot: document.getElementById('trialTimeSlot').value,
-    class_type: document.getElementById('trialClassType').value,
-    status: document.getElementById('trialStatus').value
-  };
-  const { error } = await sb.from('trial_schedule').insert(data);
-  if (error) { showToast('添加失败: '+error.message, false); return; }
-  showToast('试听已添加');
-  closeModal('trialModal');
-  await loadAll();
-  renderTrialWeek();
-}
-
-// ═══════════════ 跟进提醒 ═══════════════
-function renderReminders() {
-  const fOwner = document.getElementById('remOwnerFilter').value;
-  let list = [..._followups].filter(f => f.reminder_date);
-  if (fOwner !== 'all') list = list.filter(f => f.owner === fOwner);
-
-  const today = new Date().toISOString().split('T')[0];
-  list.sort((a,b) => (a.reminder_date||'').localeCompare(b.reminder_date||''));
-
-  let html = '';
-  list.forEach(f => {
-    const c = _customers.find(x => x.id === f.customer_id);
-    const isOverdue = f.reminder_date < today;
-    const isToday = f.reminder_date === today;
-    const rowClass = isOverdue ? 'reminder-overdue' : (isToday ? 'reminder-today' : 'reminder-upcoming');
-    const statusIcon = isOverdue ? '🔴' : (isToday ? '🟡' : '🟢');
-    html += '<tr class="' + rowClass + '">' +
-      '<td>' + statusIcon + '</td>' +
-      '<td style="text-align:left;font-weight:600;cursor:pointer" onclick="showCustomerDetail(' + f.customer_id + ')">' + (c?.name||'未知') + '</td>' +
-      '<td style="text-align:left;font-size:12px">' + (f.content||'').substring(0,60) + '</td>' +
-      '<td><b style="color:' + (isOverdue?'#ef4444':isToday?'#f59e0b':'#10b981') + '">' + f.reminder_date + '</b></td>' +
-      '<td>' + (f.owner||'') + '</td>' +
-      '<td><button class="btn btn-success btn-xs" onclick="markFollowupDone(' + f.id + ')">完成</button> ' +
-      '<button class="btn btn-danger btn-xs" onclick="deleteFollowup(' + f.id + ')">×</button></td></tr>';
-  });
-  document.getElementById('remTbody').innerHTML = html || '<tr><td colspan="6" style="color:#94a3b8;padding:30px">暂无待跟进记录</td></tr>';
-}
-
-function openFollowupModal(cid) {
-  document.getElementById('fuReminderDate').value = '';
-  document.getElementById('fuContent').value = '';
-  document.getElementById('fuNextStep').value = '';
-  document.getElementById('fuOwner').value = 'Kyle';
-  const sel = document.getElementById('fuCustomer');
-  sel.innerHTML = '';
-  _customers.forEach(c => {
-    sel.innerHTML += '<option value="' + c.id + '"' + (cid === c.id ? ' selected' : '') + '>' + c.name + '</option>';
-  });
-  document.getElementById('fuModal').classList.add('show');
+  
+  document.getElementById('followupModal').classList.add('show');
 }
 
 async function saveFollowup() {
-  const data = {
-    customer_id: parseInt(document.getElementById('fuCustomer').value),
-    content: document.getElementById('fuContent').value,
-    next_step: document.getElementById('fuNextStep').value,
-    reminder_date: document.getElementById('fuReminderDate').value || null,
-    owner: document.getElementById('fuOwner').value
-  };
-  const { error } = await sb.from('followups').insert(data);
-  if (error) { showToast('保存失败: '+error.message, false); return; }
-  showToast('跟进记录已保存');
-  closeModal('fuModal');
-  await loadAll();
-  renderReminders();
-}
-
-async function markFollowupDone(fid) {
-  await sb.from('followups').update({reminder_date: null}).eq('id', fid);
-  await loadAll();
-  renderReminders();
-  showToast('已标记完成');
-}
-
-async function deleteFollowup(fid) {
-  if (!confirm('删除这条跟进记录？')) return;
-  await sb.from('followups').delete().eq('id', fid);
-  await loadAll();
-  renderReminders();
-}
-
-// ═══════════════ 导出 ═══════════════
-function csvEscape(v) { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')?'"'+s.replace(/"/g,'""')+'"':s; }
-function exportCSV(headers, rows, fn) {
-  const BOM = '\uFEFF';
-  let csv = BOM + headers.map(csvEscape).join(',') + '\n';
-  rows.forEach(r => { csv += r.map(csvEscape).join(',') + '\n'; });
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = fn; a.click();
-  URL.revokeObjectURL(url);
-  showToast('已导出: ' + fn);
-}
-
-function exportCustomers() {
-  const headers = ['学员姓名','年龄','年级','学校','家长','电话','来源','状态','试听时间','跟进人','咨询记录','标签'];
-  const rows = _customers.map(c => [c.name,c.age,c.grade,c.school,c.parent,c.phone,c.source,c.status,c.trial_date,c.owner,c.notes,c.tags]);
-  exportCSV(headers, rows, 'DK邻里_客户列表.csv');
-}
-
-// ═══════════════ 初始化 ═══════════════
-function initApp() {
-  fillSourceFilter();
-  renderCustomers();
-  renderFunnel();
-  setDefaultWeek();
-  renderTrialWeek();
-  renderReminders();
-}
-
-// ═══════════════ 登录 ═══════════════
-const LOGIN_PWD = 'DK0308';
-function doLogin() {
-  if (document.getElementById('loginPwd').value === LOGIN_PWD) {
-    sessionStorage.setItem('sales_logged_in','1');
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    loadAll();
-  } else {
-    document.getElementById('loginErr').style.display = 'block';
-    document.getElementById('loginPwd').value = '';
-    document.getElementById('loginPwd').focus();
+  const cid = parseInt(document.getElementById('fuCustomerId').value);
+  const content = document.getElementById('fuContent').value.trim();
+  const trialSessionId = document.getElementById('fuTrialSession').value;
+  const trialAttended = document.getElementById('fuTrialAttended').checked;
+  const payment = document.getElementById('fuPayment').checked;
+  const needReminder = document.getElementById('fuNeedReminder').checked;
+  
+  if (!content && !trialSessionId && !trialAttended && !payment && !needReminder) {
+    showToast('请至少填写跟进内容或选择一个操作', false); return;
   }
+  
+  // 如果有试听场次，更新顾客的试听时间
+  const trialInvited = !!trialSessionId;
+  let trialDate = null;
+  if (trialSessionId) {
+    const sess = _trialSessions.find(s => s.id === parseInt(trialSessionId));
+    if (sess) {
+      trialDate = sess.session_date + 'T' + (sess.start_time||'19:00');
+      // 同时记录到 trial_schedule
+      await sb.from('trial_schedule').insert({
+        customer_id: cid,
+        trial_session_id: parseInt(trialSessionId),
+        week_start: getWeekStart(sess.session_date),
+        status: '已预约'
+      });
+    }
+  }
+  
+  // 保存跟进记录
+  const fuData = {
+    customer_id: cid,
+    content: content || null,
+    need_reminder: needReminder,
+    trial_invited: trialInvited,
+    trial_session_id: trialSessionId ? parseInt(trialSessionId) : null,
+    owner: document.getElementById('custOwner')?.value || 'Kyle',
+    created_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('followups').insert(fuData);
+  if (error) { showToast('保存失败: '+error.message, false); return; }
+  
+  // 状态流转
+  let newStatus = null;
+  if (payment) {
+    newStatus = '已报名';
+  } else if (trialAttended) {
+    newStatus = '已上门未报名';
+  }
+  if (newStatus) {
+    await sb.from('customers').update({
+      status: newStatus,
+      trial_date: trialDate || undefined,
+      updated_at: new Date().toISOString()
+    }).eq('id', cid);
+  } else if (trialSessionId) {
+    await sb.from('customers').update({
+      trial_date: trialDate,
+      updated_at: new Date().toISOString()
+    }).eq('id', cid);
+  }
+  
+  showToast('跟进已保存' + (newStatus ? '，状态已更新为"' + newStatus + '"' : ''));
+  closeModal('followupModal');
+  await loadAll();
+  renderCustomers();
 }
-if (sessionStorage.getItem('sales_logged_in') === '1') {
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadAll();
+
+// ═══════════════════════════════════════
+// 转为学员
+// ═══════════════════════════════════════
+function openConvertModal(cid) {
+  const c = _customers.find(x => x.id === cid);
+  if (!c) return;
+  document.getElementById('convertInfo').innerHTML = 
+    '<b>' + (c.name||'') + '</b> | ' + (c.age||'') + ' | ' + (c.school||'');
+  document.getElementById('fuCustomerId').value = cid;
+  
+  const sel = document.getElementById('convertClass');
+  sel.innerHTML = '<option value="">请选择班级</option>';
+  _classes.forEach(cl => {
+    sel.innerHTML += '<option value="' + cl.id + '">' + (cl.name||'') + '</option>';
+  });
+  document.getElementById('convertHours').value = '64';
+  document.getElementById('convertModal').classList.add('show');
+}
+
+async function convertToStudent() {
+  const cid = parseInt(document.getElementById('fuCustomerId').value);
+  const classId = document.getElementById('convertClass').value;
+  const paidHours = parseFloat(document.getElementById('convertHours').value) || 64;
+  if (!classId) { showToast('请选择班级', false); return; }
+  
+  const c = _customers.find(x => x.id === cid);
+  if (!c) return;
+  
+  // 检查是否已存在同名学员
+  const { data: existing } = await sb.from('students').select('id').eq('name', c.name).eq('class_id', parseInt(classId));
+  if (existing && existing.length > 0) {
+    showToast('该班级已存在同名学员', false); return;
+  }
+  
+  // 创建学员记录
+  const { error } = await sb.from('students').insert({
+    name: c.name,
+    age: c.age,
+    grade: c.grade,
+    school: c.school,
+    parent: c.parent,
+    phone: c.phone,
+    class_id: parseInt(classId),
+    paid_hours: paidHours,
+    remaining_hours: paidHours,
+    status: '在读',
+    owner: c.owner || 'Kyle'
+  });
+  
+  if (error) { showToast('转入失败: '+error.message, false); return; }
+  
+  // 更新客户标签
+  await sb.from('customers').update({
+    tags: ((c.tags||'') + ' 已转学员').trim(),
+    updated_at: new Date().toISOString()
+  }).eq('id', cid);
+  
+  showToast('🎉 ' + c.name + ' 已转为正式学员！');
+  closeModal('convertModal');
+  await loadAll();
+  renderCustomers();
+}
+
+// ═══════════════════════════════════════
+// 试听邀约
+// ═══════════════════════════════════════
+function renderTrialCalendar() {
+  const start = document.getElementById('trialStart').value;
+  const end = document.getElementById('trialEnd').value;
+  if (!start || !end) { setThisWeek(); return; }
+  
+  const sDate = new Date(start);
+  const eDate = new Date(end);
+  if (eDate < sDate) { showToast('结束日期不能早于开始', false); return; }
+  
+  // Build 7-day grid starting from start
+  const days = [];
+  const d = new Date(sDate);
+  while (d <= eDate && days.length < 14) {
+    days.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+  
+  const today = toDateStr(new Date());
+  let html = '<div class="week-calendar">';
+  days.forEach(day => {
+    const ds = toDateStr(day);
+    const dayNames = ['日','一','二','三','四','五','六'];
+    const dn = dayNames[day.getDay()];
+    const isToday = ds === today;
+    
+    // Find sessions on this day
+    const sessions = _trialSessions.filter(s => s.session_date === ds);
+    
+    // Find customers invited to this day
+    const scheduled = _trialSchedule.filter(ts => {
+      return ts.status === '已预约';
+    });
+    const dayCustomers = [];
+    scheduled.forEach(ts => {
+      const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
+      if (sess && sess.session_date === ds) {
+        const cust = _customers.find(c => c.id === ts.customer_id);
+        if (cust) dayCustomers.push({...cust, attended: ts.attended});
+      }
+    });
+    
+    html += '<div class="week-day' + (isToday ? ' today' : '') + '">';
+    html += '<h4>' + dn + ' <span>' + (day.getMonth()+1) + '/' + day.getDate() + '</span></h4>';
+    
+    // Sessions
+    sessions.forEach(s => {
+      html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + '</div></div>';
+    });
+    
+    // Customers
+    dayCustomers.forEach(c => {
+      html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
+        '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
+        (c.name||'') + ' ' + (c.age||'') +
+      '</div>';
+    });
+    
+    if (sessions.length === 0 && dayCustomers.length === 0) {
+      html += '<div style="font-size:11px;color:#cbd5e1;text-align:center;padding:20px 0">暂无安排</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('trialCalendar').innerHTML = html;
+}
+
+function renderSessions() {
+  let html = '';
+  _trialSessions.forEach(s => {
+    const booked = _trialSchedule.filter(ts => ts.trial_session_id === s.id && ts.status === '已预约').length;
+    html += '<tr>' +
+      '<td style="font-weight:500">' + (s.title||'') + '</td>' +
+      '<td>' + (s.session_date||'') + '</td>' +
+      '<td>' + (s.start_time||'') + ' ~ ' + (s.end_time||'') + '</td>' +
+      '<td>' + (s.class_type||'') + '</td>' +
+      '<td>' + (s.max_capacity||'') + '</td>' +
+      '<td>' + booked + '</td>' +
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openSessionModal(' + s.id + ')">✏️</button> ' +
+        '<button class="btn btn-danger btn-xs" onclick="deleteSession(' + s.id + ')">🗑</button>' +
+      '</td></tr>';
+  });
+  document.getElementById('sessionsTbody').innerHTML = html || '<tr><td colspan="7" class="empty-state">暂无试听场次</td></tr>';
+}
+
+function openSessionModal(sid) {
+  document.getElementById('sessionEditId').value = sid || '';
+  document.getElementById('sessionModalTitle').textContent = sid ? '编辑试听场次' : '新增试听场次';
+  if (sid) {
+    const s = _trialSessions.find(x => x.id === sid);
+    if (s) {
+      document.getElementById('sessionTitle').value = s.title||'';
+      document.getElementById('sessionDate').value = s.session_date||'';
+      document.getElementById('sessionStart').value = s.start_time||'';
+      document.getElementById('sessionEnd').value = s.end_time||'';
+      document.getElementById('sessionType').value = s.class_type||'';
+      document.getElementById('sessionCapacity').value = s.max_capacity||8;
+    }
+  } else {
+    document.getElementById('sessionTitle').value = '';
+    document.getElementById('sessionDate').value = '';
+    document.getElementById('sessionStart').value = '19:00';
+    document.getElementById('sessionEnd').value = '20:00';
+    document.getElementById('sessionType').value = '';
+    document.getElementById('sessionCapacity').value = '8';
+  }
+  document.getElementById('sessionModal').classList.add('show');
+}
+
+async function saveSession() {
+  const title = document.getElementById('sessionTitle').value.trim();
+  const date = document.getElementById('sessionDate').value;
+  if (!title || !date) { showToast('请填写场次名称和日期', false); return; }
+  const editId = document.getElementById('sessionEditId').value;
+  const data = {
+    title, session_date: date,
+    start_time: document.getElementById('sessionStart').value,
+    end_time: document.getElementById('sessionEnd').value,
+    class_type: document.getElementById('sessionType').value,
+    max_capacity: parseInt(document.getElementById('sessionCapacity').value)||8
+  };
+  let err;
+  if (editId) {
+    ({error: err} = await sb.from('trial_sessions').update(data).eq('id', parseInt(editId)));
+  } else {
+    ({error: err} = await sb.from('trial_sessions').insert(data));
+  }
+  if (err) { showToast('保存失败: '+err.message, false); return; }
+  showToast(editId ? '场次已更新' : '场次已新增');
+  closeModal('sessionModal');
+  await loadAll();
+  renderSessions();
+}
+
+async function deleteSession(sid) {
+  const s = _trialSessions.find(x => x.id === sid);
+  if (!confirm('确定删除场次"' + (s?.title||'') + '"？')) return;
+  await sb.from('trial_sessions').delete().eq('id', sid);
+  await loadAll();
+  renderSessions();
+  showToast('场次已删除');
+}
+
+// ═══════════════════════════════════════
+// 跟进提醒
+// ═══════════════════════════════════════
+function renderReminders() {
+  // 找出最新跟进中 need_reminder=true 的客户
+  const reminderMap = {};
+  _followups.filter(f => f.need_reminder).forEach(f => {
+    if (!reminderMap[f.customer_id] || new Date(f.created_at) > new Date(reminderMap[f.customer_id].created_at)) {
+      reminderMap[f.customer_id] = f;
+    }
+  });
+  
+  const reminderCids = Object.keys(reminderMap).map(Number);
+  const list = _customers.filter(c => reminderCids.includes(c.id));
+  
+  const now = new Date();
+  let html = '';
+  list.forEach(c => {
+    const lastFu = reminderMap[c.id];
+    const fuDate = lastFu?.created_at ? new Date(lastFu.created_at) : null;
+    const daysAgo = fuDate ? Math.floor((now - fuDate) / 86400000) : 999;
+    const rowClass = daysAgo > 7 ? 'reminder-highlight' : (daysAgo > 3 ? 'reminder-warn' : '');
+    const statusText = daysAgo > 7 ? '🔴 逾期' + daysAgo + '天' : (daysAgo > 3 ? '🟡 ' + daysAgo + '天前' : '🟢 近期');
+    
+    html += '<tr class="' + rowClass + '">' +
+      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+      '<td>' + (fuDate ? fuDate.toLocaleDateString('zh-CN') : '') + '</td>' +
+      '<td>' + (c.owner||'') + '</td>' +
+      '<td>' + statusText + '</td>' +
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')">📝 跟进</button> ' +
+        '<button class="btn btn-danger btn-xs" onclick="clearReminder(' + c.id + ')">取消提醒</button>' +
+      '</td></tr>';
+  });
+  document.getElementById('reminderTbody').innerHTML = html || '<tr><td colspan="5" class="empty-state">🎉 暂无需要跟进提醒的客户</td></tr>';
+}
+
+async function clearReminder(cid) {
+  // 将该客户所有 followup 的 need_reminder 设为 false
+  await sb.from('followups').update({need_reminder: false}).eq('customer_id', cid);
+  await loadAll();
+  renderReminders();
+  showToast('已取消提醒');
+}
+
+// ═══════════════════════════════════════
+// 导出
+// ═══════════════════════════════════════
+function exportTab() {
+  const headers = ['姓名','年龄','年级','学校','家长','电话','来源','级别','状态','试听时间','跟进人','标签'];
+  const rows = _customers.map(c => [
+    c.name||'', c.age||'', c.grade||'', c.school||'', c.parent||'', c.phone||'',
+    c.source||'', c.level||'', c.status||'', c.trial_date||'', c.owner||'', c.tags||''
+  ]);
+  exportCSV(headers, rows, 'DK邻里客户管理_' + new Date().toISOString().substring(0,10) + '.csv');
+}
+
+function csvEscape(val) {
+  const s = String(val == null ? '' : val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+
+function exportCSV(headers, rows, filename) {
+  let csv = '\uFEFF' + headers.map(csvEscape).join(',') + '\n';
+  rows.forEach(r => { csv += r.map(csvEscape).join(',') + '\n'; });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  showToast('已导出: ' + filename);
+}
+
+// ═══════════════════════════════════════
+// 工具函数
+// ═══════════════════════════════════════
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function showToast(msg, success=true) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + (success ? 'toast-success' : 'toast-error');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function getWeekStart(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  return toDateStr(monday);
 }
 </script>
 </body>
