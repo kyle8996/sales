@@ -707,19 +707,17 @@ async function convertToStudent() {
     showToast('该班级已存在同名学员', false); return;
   }
   
-  // 创建学员记录
+  // 创建学员记录（仅用 students 表已有字段）
+  const { data: allStudents } = await sb.from('students').select('id').order('id', { ascending: false }).limit(1);
+  const maxId = (allStudents && allStudents.length > 0) ? allStudents[0].id : 0;
   const { error } = await sb.from('students').insert({
+    id: maxId + 1,
     name: c.name,
-    age: c.age,
-    grade: c.grade,
-    school: c.school,
-    parent: c.parent,
-    phone: c.phone,
     class_id: parseInt(classId),
     paid_hours: paidHours,
     remaining_hours: paidHours,
     status: '在读',
-    owner: c.owner || 'Kyle'
+    sort_order: 0
   });
   
   if (error) { showToast('转入失败: '+error.message, false); return; }
