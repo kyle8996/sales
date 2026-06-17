@@ -146,6 +146,7 @@ header .user-info{font-size:13px;color:#64748b}
           <select id="salesFilterSource" onchange="renderSales()"><option value="all">全部来源</option></select>
           <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
           <select id="salesFilterClass" onchange="renderSales()"><option value="all">全部班级</option></select>
+          <select id="salesFilterMonth" onchange="renderSales()"><option value="all">全部月份</option></select>
           <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderSales()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal(null,'sales')">＋ 新增学员</button>
           <button class="btn btn-gray btn-sm" onclick="exportSales()">📥 导出</button>
@@ -582,6 +583,20 @@ function fillSalesFilters() {
   const sCls = document.getElementById('salesFilterClass');
   sCls.innerHTML = '<option value="all">全部班级</option>';
   classes.forEach(c => { sCls.innerHTML += '<option>' + c + '</option>'; });
+
+  // 月份筛选（基于报名日期）
+  const months = [...new Set(signed.map(c => {
+    const d = c.enrollment_date;
+    return d ? d.substring(0, 7) : null;
+  }).filter(Boolean))].sort().reverse();
+  const sMon = document.getElementById('salesFilterMonth');
+  const curMon = sMon.value;
+  sMon.innerHTML = '<option value="all">全部月份</option>';
+  months.forEach(m => {
+    const [y, mo] = m.split('-');
+    sMon.innerHTML += '<option value="' + m + '">' + y + '年' + parseInt(mo) + '月</option>';
+  });
+  sMon.value = months.length > 0 ? (curMon || 'all') : 'all';
 }
 
 function renderSales() {
@@ -591,11 +606,13 @@ function renderSales() {
   const fSrc = document.getElementById('salesFilterSource').value;
   const fOwn = document.getElementById('salesFilterOwner').value;
   const fCls = document.getElementById('salesFilterClass').value;
+  const fMon = document.getElementById('salesFilterMonth').value;
   const fQ   = document.getElementById('salesFilterSearch').value.toLowerCase();
 
   if (fSrc !== 'all') list = list.filter(c => c.source === fSrc);
   if (fOwn !== 'all') list = list.filter(c => c.owner === fOwn);
   if (fCls !== 'all') list = list.filter(c => c.enrolled_class === fCls);
+  if (fMon !== 'all') list = list.filter(c => (c.enrollment_date||'').startsWith(fMon));
   if (fQ) list = list.filter(c => (c.name||'').toLowerCase().includes(fQ) || (c.phone||'').includes(fQ) || (c.school||'').toLowerCase().includes(fQ) || (c.enrolled_class||'').toLowerCase().includes(fQ));
 
   // 按报名日期倒序
