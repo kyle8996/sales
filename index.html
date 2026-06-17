@@ -1010,13 +1010,25 @@ function onBirthDateChange() {
 function openCustomerModal(cid, fromModule) {
   document.getElementById('custEditId').value = cid || '';
   document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : (fromModule === 'sales' ? '新增新招学员' : '新增客户');
+  // 默认：未上门允许手动填年龄，已上门/销售模块只读自动计算
+  let editableAge = fromModule !== 'sales' && _currentSubTab !== 'trial';
+  const ageEl = document.getElementById('custAge');
   if (cid) {
     const c = _customers.find(x => x.id === cid);
     if (c) {
       document.getElementById('custName').value = c.name||'';
       document.getElementById('custBirthDate').value = c.birth_date||'';
-      document.getElementById('custAge').value = calcAge(c.birth_date) || (c.age||'');
+      // 根据实际状态决定年龄是否可编辑
+      editableAge = fromModule !== 'sales' && c.status === '未上门';
+      document.getElementById('custAge').value = editableAge ? (c.age||'') : (calcAge(c.birth_date) || (c.age||''));
       document.getElementById('custGrade').value = c.grade||'';
+      document.getElementById('custSchool').value = c.school||'';
+      document.getElementById('custParent').value = c.parent||'';
+      document.getElementById('custPhone').value = c.phone||'';
+      document.getElementById('custSourcePrimary').value = c.source_primary||'';
+      document.getElementById('custSourceSecondary').value = c.source_secondary||c.source||'';
+      document.getElementById('custLevel').value = c.level||'B';
+      document.getElementById('custStatus').value = c.status||'未上门';
       document.getElementById('custSchool').value = c.school||'';
       document.getElementById('custParent').value = c.parent||'';
       document.getElementById('custPhone').value = c.phone||'';
@@ -1043,6 +1055,14 @@ function openCustomerModal(cid, fromModule) {
     document.getElementById('custBookFee').value = '0';
     document.getElementById('custTotalPayment').value = '0';
     document.getElementById('custUnitPrice').value = '';
+  }
+  // 设置年龄字段是否可编辑
+  if (editableAge) {
+    ageEl.removeAttribute('readonly');
+    ageEl.style.background = '';
+  } else {
+    ageEl.setAttribute('readonly', 'readonly');
+    ageEl.style.background = '#f1f5f9';
   }
   document.getElementById('custModal').classList.add('show');
 }
