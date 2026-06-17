@@ -198,7 +198,6 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:110px">电话</th>
           <th style="width:50px">家长</th>
           <th style="width:80px">所在班级</th>
-          <th style="width:90px">缴费课时包</th>
           <th style="width:60px">书费</th>
           <th style="width:70px">合计缴费</th>
           <th style="width:60px">课单价</th>
@@ -429,7 +428,6 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <label>缴费日期*<input type="date" id="renewalPayDate"></label>
-      <label>缴费课时包*<input type="text" id="renewalPackage" placeholder="如:48课时 6800元"></label>
       <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="1" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px"></label>
     </div>
     <div class="form-row">
@@ -788,7 +786,6 @@ function renderRenewals() {
       '<td>' + (r.phone||'') + '</td>' +
       '<td>' + (r.parent_name||'') + '</td>' +
       '<td>' + (r.current_class||'') + '</td>' +
-      '<td>' + (r.payment_package||'') + '</td>' +
       '<td>¥' + (r.book_fee != null ? Number(r.book_fee).toFixed(2) : '0.00') + '</td>' +
       '<td>¥' + (r.total_payment != null ? Number(r.total_payment).toFixed(2) : '0.00') + '</td>' +
       '<td>' + (r.unit_price != null ? '¥' + Number(r.unit_price).toFixed(2) : '') + '</td>' +
@@ -797,7 +794,7 @@ function renderRenewals() {
         '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="12" class="empty-state">暂无续费记录</td></tr>';
+  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无续费记录</td></tr>';
   fillRenewalFilters();
 }
 
@@ -838,7 +835,6 @@ function openRenewalModal(rid) {
       document.getElementById('renewalParent').value = r.parent_name||'';
       document.getElementById('renewalClass').value = r.current_class||'';
       document.getElementById('renewalPayDate').value = r.payment_date||'';
-      document.getElementById('renewalPackage').value = r.payment_package||'';
       document.getElementById('renewalHours').value = r.course_hours||'';
       document.getElementById('renewalBookFee').value = r.book_fee||'';
       document.getElementById('renewalTotal').value = r.total_payment||'';
@@ -846,7 +842,7 @@ function openRenewalModal(rid) {
     }
   } else {
     // 清空
-    ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalClass','renewalPayDate','renewalPackage'].forEach(id => {
+    ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalClass','renewalPayDate'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('renewalHours').value = '0';
@@ -888,7 +884,6 @@ async function saveRenewal() {
     phone: document.getElementById('renewalPhone').value.trim(),
     parent_name: document.getElementById('renewalParent').value.trim(),
     current_class: document.getElementById('renewalClass').value.trim(),
-    payment_package: document.getElementById('renewalPackage').value.trim(),
     book_fee: parseFloat(document.getElementById('renewalBookFee').value) || 0,
     total_payment: parseFloat(document.getElementById('renewalTotal').value) || 0
   };
@@ -925,12 +920,12 @@ async function deleteRenewal(rid) {
 }
 
 function exportRenewals() {
-  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在班级','缴费课时包','书费','合计缴费','课单价'];
+  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在班级','书费','合计缴费','课单价'];
   const list = [..._renewals];
   list.sort((a, b) => (b.payment_date||'').localeCompare(a.payment_date||''));
   const rows = list.map(r => [
     r.payment_date||'', r.student_name||'', r.birth_date||'', calcAge(r.birth_date)||'',
-    r.phone||'', r.parent_name||'', r.current_class||'', r.payment_package||'',
+    r.phone||'', r.parent_name||'', r.current_class||'',
     r.book_fee||'', r.total_payment||'', r.unit_price||''
   ]);
   exportCSV(headers, rows, 'DK邻里在读续费_' + new Date().toISOString().substring(0,10) + '.csv');
