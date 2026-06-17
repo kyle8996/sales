@@ -469,7 +469,7 @@ const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDI1NzIsImV4cCI6MjA5NzA3ODU3Mn0.E0xlNCX_jFn8X9LheAR3jFHokzWSkZlXkBDReqTvL6c';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [];
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [];
 let _currentSubTab = 'trial';
 let _salesSubTab = 'new';
 
@@ -495,13 +495,14 @@ if (localStorage.getItem('sales_auth') === '1') {
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
-  const [cr, fr, tr, sr, clr, rnr] = await Promise.all([
+  const [cr, fr, tr, sr, clr, rnr, str] = await Promise.all([
     sb.from('customers').select('*').order('created_at', {ascending: false}),
     sb.from('followups').select('*').order('created_at', {ascending: false}),
     sb.from('trial_schedule').select('*'),
     sb.from('trial_sessions').select('*').order('session_date', {ascending: true}),
     sb.from('classes').select('*').order('id', {ascending: true}),
-    sb.from('renewals').select('*').order('created_at', {ascending: false})
+    sb.from('renewals').select('*').order('created_at', {ascending: false}),
+    sb.from('students').select('name')
   ]);
   _customers = cr.data || [];
   _followups = fr.data || [];
@@ -509,6 +510,7 @@ async function loadAll() {
   _trialSessions = sr.data || [];
   _classes = clr.data || [];
   _renewals = rnr.data || [];
+  _students = str.data || [];
 }
 
 async function initApp() {
@@ -768,8 +770,12 @@ function renderSales() {
     return db.localeCompare(da);
   });
 
+  // 已在教务系统的学员姓名集合
+  const studentNames = new Set(_students.map(s => s.name));
+
   let html = '';
   list.forEach(c => {
+    const isConverted = (c.tags||'').includes('已转学员') || studentNames.has(c.name);
     html += '<tr>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
@@ -789,7 +795,7 @@ function renderSales() {
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
-        ((c.tags||'').includes('已转学员')
+        (isConverted
           ? '<button class="btn btn-gray btn-xs" onclick="showToast(\'学员已在班级\',false)" title="已转学员" style="opacity:0.5">✅ 已转</button> '
           : '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓 转为学员</button> ') +
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
