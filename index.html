@@ -98,6 +98,7 @@ header .user-info{font-size:13px;color:#64748b}
 .badge-signed{background:#dcfce7;color:#166534}
 .badge-trial{background:#fef3c7;color:#92400e}
 .badge-lead{background:#e0e7ff;color:#3730a3}
+.badge-renewal{background:#fce7f3;color:#9d174d}
 .session-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;background:#fff}
 .session-card .sess-info{flex:1}
 .session-card .sess-date{font-size:13px;font-weight:600;color:#1e40af}
@@ -135,13 +136,17 @@ header .user-info{font-size:13px;color:#64748b}
 <!-- ================================================================= -->
 <!-- Tab 1: 客户管理 -->
 <!-- ================================================================= -->
-<!-- ================================================================= -->
-<!-- Tab 1: 销售管理（已报名学员）-->
+<!-- Tab 1: 销售管理 -->
 <!-- ================================================================= -->
 <div class="section active" id="sec-sales">
   <div class="container">
-    <div class="card">
+    <!-- 子Tab：新招学员 / 在读续费 -->
+    <div class="card" id="sales-new-card">
       <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
+        <div class="subtabs">
+          <button class="active" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
+          <button onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
+        </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="salesFilterSource" onchange="renderSales()"><option value="all">全部来源</option></select>
           <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
@@ -167,6 +172,39 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:140px">操作</th>
         </tr></thead>
         <tbody id="salesTbody"></tbody>
+      </table></div>
+    </div>
+    <!-- 在读续费 -->
+    <div class="card" id="sales-renewal-card" style="display:none">
+      <h2>在读续费 <span class="count-badge badge-renewal" id="cnt-renewal">0</span>
+        <div class="subtabs">
+          <button onclick="switchSalesSubTab('new')" id="salestab2-new">新招学员</button>
+          <button class="active" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal">在读续费</button>
+        </div>
+        <div class="toolbar" style="margin-left:auto">
+          <select id="renewalFilterClass" onchange="renderRenewals()"><option value="all">全部班级</option></select>
+          <select id="renewalFilterMonth" onchange="renderRenewals()"><option value="all">全部月份</option></select>
+          <input type="text" id="renewalFilterSearch" placeholder="搜索姓名/电话/班级..." oninput="renderRenewals()" style="width:180px">
+          <button class="btn btn-primary btn-sm" onclick="openRenewalModal()">＋ 新增续费</button>
+          <button class="btn btn-gray btn-sm" onclick="exportRenewals()">📥 导出</button>
+        </div>
+      </h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th style="width:80px">缴费日期</th>
+          <th style="text-align:left;width:70px">姓名</th>
+          <th style="width:80px">出生日期</th>
+          <th style="width:40px">年龄</th>
+          <th style="width:110px">电话</th>
+          <th style="width:50px">家长</th>
+          <th style="width:80px">所在班级</th>
+          <th style="width:90px">缴费课时包</th>
+          <th style="width:60px">书费</th>
+          <th style="width:70px">合计缴费</th>
+          <th style="width:60px">课单价</th>
+          <th style="width:140px">操作</th>
+        </tr></thead>
+        <tbody id="renewalTbody"></tbody>
       </table></div>
     </div>
   </div>
@@ -374,6 +412,38 @@ header .user-info{font-size:13px;color:#64748b}
   </div>
 </div>
 
+<!-- 续费记录编辑 Modal -->
+<div class="modal-overlay" id="renewalModal">
+  <div class="modal-box" style="max-width:600px">
+    <h3 id="renewalModalTitle">新增续费记录</h3>
+    <input type="hidden" id="renewalEditId">
+    <div class="form-row">
+      <label>姓名*<input type="text" id="renewalName"></label>
+      <label>出生日期<input type="date" id="renewalBirthDate" onchange="onRenewalBirthChange()"></label>
+      <label>年龄<input type="text" id="renewalAge" readonly style="background:#f1f5f9;width:60px"></label>
+    </div>
+    <div class="form-row">
+      <label>电话<input type="text" id="renewalPhone"></label>
+      <label>家长姓名<input type="text" id="renewalParent"></label>
+      <label>所在班级*<input type="text" id="renewalClass" placeholder="如:K1001"></label>
+    </div>
+    <div class="form-row">
+      <label>缴费日期*<input type="date" id="renewalPayDate"></label>
+      <label>缴费课时包*<input type="text" id="renewalPackage" placeholder="如:48课时 6800元"></label>
+      <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="1" onchange="onRenewalCalcChange()" style="width:80px"></label>
+    </div>
+    <div class="form-row">
+      <label>书费(¥)<input type="number" id="renewalBookFee" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()"></label>
+      <label>合计缴费(¥)*<input type="number" id="renewalTotal" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()"></label>
+      <label>课单价(¥)<input type="text" id="renewalUnitPrice" readonly style="background:#f1f5f9"></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('renewalModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRenewal()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════
@@ -383,8 +453,9 @@ const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MDI1NzIsImV4cCI6MjA5NzA3ODU3Mn0.E0xlNCX_jFn8X9LheAR3jFHokzWSkZlXkBDReqTvL6c';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [];
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [];
 let _currentSubTab = 'trial';
+let _salesSubTab = 'new';
 
 // Auth
 function doAuth() {
@@ -408,22 +479,25 @@ if (localStorage.getItem('sales_auth') === '1') {
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
-  const [cr, fr, tr, sr, clr] = await Promise.all([
+  const [cr, fr, tr, sr, clr, rnr] = await Promise.all([
     sb.from('customers').select('*').order('created_at', {ascending: false}),
     sb.from('followups').select('*').order('created_at', {ascending: false}),
     sb.from('trial_schedule').select('*'),
     sb.from('trial_sessions').select('*').order('session_date', {ascending: true}),
-    sb.from('classes').select('*').order('id', {ascending: true})
+    sb.from('classes').select('*').order('id', {ascending: true}),
+    sb.from('renewals').select('*').order('created_at', {ascending: false})
   ]);
   _customers = cr.data || [];
   _followups = fr.data || [];
   _trialSchedule = tr.data || [];
   _trialSessions = sr.data || [];
   _classes = clr.data || [];
+  _renewals = rnr.data || [];
 }
 
 async function initApp() {
   await loadAll();
+  renderSales();
   renderCustomers();
   updateCounts();
   fillFilters();
@@ -444,7 +518,7 @@ function switchTab(tab) {
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
   if (tab === 'trials') renderTrialCalendar();
   if (tab === 'reminders') renderReminders();
-  if (tab === 'sales') { renderSales(); updateCounts(); }
+  if (tab === 'sales') { switchSalesSubTab(_salesSubTab); }
 }
 
 function switchSubTab(sub) {
@@ -454,10 +528,29 @@ function switchSubTab(sub) {
   renderCustomers();
 }
 
+function switchSalesSubTab(sub) {
+  _salesSubTab = sub;
+  // 更新两个卡片中的子tab按钮状态
+  document.querySelectorAll('#sales-new-card .subtabs button, #sales-renewal-card .subtabs button').forEach(b => b.classList.remove('active'));
+  if (sub === 'new') {
+    document.querySelectorAll('#sales-new-card .subtabs button')[0].classList.add('active');
+    document.querySelectorAll('#sales-renewal-card .subtabs button')[0].classList.add('active');
+  } else {
+    document.querySelectorAll('#sales-new-card .subtabs button')[1].classList.add('active');
+    document.querySelectorAll('#sales-renewal-card .subtabs button')[1].classList.add('active');
+  }
+  document.getElementById('sales-new-card').style.display = sub === 'new' ? '' : 'none';
+  document.getElementById('sales-renewal-card').style.display = sub === 'renewal' ? '' : 'none';
+  if (sub === 'new') { renderSales(); updateCounts(); }
+  if (sub === 'renewal') renderRenewals();
+}
+
 function updateCounts() {
   document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
   document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
   document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门').length;
+  const cntRenewal = document.getElementById('cnt-renewal');
+  if (cntRenewal) cntRenewal.textContent = _renewals.length;
 }
 
 function switchTrialView(view) {
@@ -657,6 +750,191 @@ function exportSales() {
     c.enrolled_class||'', c.owner||''
   ]);
   exportCSV(headers, rows, 'DK邻里新招学员_' + new Date().toISOString().substring(0,10) + '.csv');
+}
+
+// ═══════════════════════════════════════
+// 在读续费
+// ═══════════════════════════════════════
+function renderRenewals() {
+  updateCounts();
+  let list = [..._renewals];
+
+  const fCls = document.getElementById('renewalFilterClass').value;
+  const fMon = document.getElementById('renewalFilterMonth').value;
+  const fQ   = document.getElementById('renewalFilterSearch').value.toLowerCase();
+
+  if (fCls !== 'all') list = list.filter(r => r.current_class === fCls);
+  if (fMon !== 'all') list = list.filter(r => (r.payment_date||'').startsWith(fMon));
+  if (fQ) list = list.filter(r => (r.student_name||'').toLowerCase().includes(fQ) || (r.phone||'').includes(fQ) || (r.current_class||'').toLowerCase().includes(fQ));
+
+  // 按缴费日期倒序
+  list.sort((a, b) => {
+    const da = a.payment_date || '';
+    const db = b.payment_date || '';
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return db.localeCompare(da);
+  });
+
+  let html = '';
+  list.forEach(r => {
+    const age = calcAge(r.birth_date) || '';
+    const up = r.unit_price != null && r.unit_price !== 0 ? '¥' + Number(r.unit_price).toFixed(2) : '';
+    html += '<tr>' +
+      '<td>' + (r.payment_date||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + '</td>' +
+      '<td>' + (r.birth_date||'') + '</td>' +
+      '<td>' + age + '</td>' +
+      '<td>' + (r.phone||'') + '</td>' +
+      '<td>' + (r.parent_name||'') + '</td>' +
+      '<td>' + (r.current_class||'') + '</td>' +
+      '<td>' + (r.payment_package||'') + '</td>' +
+      '<td>' + (r.book_fee ? '¥' + Number(r.book_fee).toFixed(2) : '') + '</td>' +
+      '<td>' + (r.total_payment ? '¥' + Number(r.total_payment).toFixed(2) : '') + '</td>' +
+      '<td>' + up + '</td>' +
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openRenewalModal(' + r.id + ')" title="编辑">✏️</button> ' +
+        '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
+      '</td></tr>';
+  });
+  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="12" class="empty-state">暂无续费记录</td></tr>';
+  fillRenewalFilters();
+}
+
+function fillRenewalFilters() {
+  // 班级筛选
+  const classes = [...new Set(_renewals.map(r => r.current_class).filter(Boolean))].sort();
+  const sCls = document.getElementById('renewalFilterClass');
+  const curCls = sCls.value;
+  sCls.innerHTML = '<option value="all">全部班级</option>';
+  classes.forEach(c => { sCls.innerHTML += '<option>' + c + '</option>'; });
+  sCls.value = curCls || 'all';
+
+  // 月份筛选
+  const months = [...new Set(_renewals.map(r => {
+    const d = r.payment_date;
+    return d ? d.substring(0, 7) : null;
+  }).filter(Boolean))].sort().reverse();
+  const sMon = document.getElementById('renewalFilterMonth');
+  const curMon = sMon.value;
+  sMon.innerHTML = '<option value="all">全部月份</option>';
+  months.forEach(m => {
+    const [y, mo] = m.split('-');
+    sMon.innerHTML += '<option value="' + m + '">' + y + '年' + parseInt(mo) + '月</option>';
+  });
+  sMon.value = curMon || 'all';
+}
+
+function openRenewalModal(rid) {
+  document.getElementById('renewalEditId').value = rid || '';
+  document.getElementById('renewalModalTitle').textContent = rid ? '编辑续费记录' : '新增续费记录';
+  if (rid) {
+    const r = _renewals.find(x => x.id === rid);
+    if (r) {
+      document.getElementById('renewalName').value = r.student_name||'';
+      document.getElementById('renewalBirthDate').value = r.birth_date||'';
+      document.getElementById('renewalAge').value = calcAge(r.birth_date)||'';
+      document.getElementById('renewalPhone').value = r.phone||'';
+      document.getElementById('renewalParent').value = r.parent_name||'';
+      document.getElementById('renewalClass').value = r.current_class||'';
+      document.getElementById('renewalPayDate').value = r.payment_date||'';
+      document.getElementById('renewalPackage').value = r.payment_package||'';
+      document.getElementById('renewalHours').value = r.course_hours||'';
+      document.getElementById('renewalBookFee').value = r.book_fee||'';
+      document.getElementById('renewalTotal').value = r.total_payment||'';
+      document.getElementById('renewalUnitPrice').value = unitPriceDisplay(r.unit_price);
+    }
+  } else {
+    // 清空
+    ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalClass','renewalPayDate','renewalPackage'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('renewalHours').value = '0';
+    document.getElementById('renewalBookFee').value = '0';
+    document.getElementById('renewalTotal').value = '0';
+    document.getElementById('renewalUnitPrice').value = '';
+  }
+  document.getElementById('renewalModal').classList.add('show');
+}
+
+function unitPriceDisplay(v) {
+  if (v == null || v === 0) return '';
+  return '¥' + Number(v).toFixed(2);
+}
+
+function onRenewalBirthChange() {
+  const bd = document.getElementById('renewalBirthDate').value;
+  document.getElementById('renewalAge').value = bd ? (calcAge(bd)||'') : '';
+}
+
+function onRenewalCalcChange() {
+  const total = parseFloat(document.getElementById('renewalTotal').value) || 0;
+  const bookFee = parseFloat(document.getElementById('renewalBookFee').value) || 0;
+  const hours = parseFloat(document.getElementById('renewalHours').value) || 0;
+  const netPayment = total - bookFee;
+  if (hours > 0 && netPayment > 0) {
+    document.getElementById('renewalUnitPrice').value = '¥' + (netPayment / hours).toFixed(2);
+  } else {
+    document.getElementById('renewalUnitPrice').value = '';
+  }
+}
+
+async function saveRenewal() {
+  const rid = parseInt(document.getElementById('renewalEditId').value) || 0;
+  const data = {
+    payment_date: document.getElementById('renewalPayDate').value,
+    student_name: document.getElementById('renewalName').value.trim(),
+    birth_date: document.getElementById('renewalBirthDate').value,
+    phone: document.getElementById('renewalPhone').value.trim(),
+    parent_name: document.getElementById('renewalParent').value.trim(),
+    current_class: document.getElementById('renewalClass').value.trim(),
+    payment_package: document.getElementById('renewalPackage').value.trim(),
+    course_hours: parseFloat(document.getElementById('renewalHours').value) || 0,
+    book_fee: parseFloat(document.getElementById('renewalBookFee').value) || 0,
+    total_payment: parseFloat(document.getElementById('renewalTotal').value) || 0
+  };
+  // 计算课单价
+  const netPayment = data.total_payment - data.book_fee;
+  data.unit_price = (data.course_hours > 0 && netPayment > 0) ? (netPayment / data.course_hours) : 0;
+
+  if (!data.student_name || !data.payment_date) {
+    alert('请填写姓名和缴费日期');
+    return;
+  }
+
+  if (rid) {
+    const { error } = await sb.from('renewals').update(data).eq('id', rid);
+    if (error) { alert('更新失败: ' + error.message); return; }
+    const idx = _renewals.findIndex(r => r.id === rid);
+    if (idx >= 0) _renewals[idx] = { ..._renewals[idx], ...data };
+  } else {
+    const { data: inserted, error } = await sb.from('renewals').insert([data]).select();
+    if (error) { alert('新增失败: ' + error.message); return; }
+    if (inserted && inserted.length > 0) _renewals.unshift(inserted[0]);
+  }
+  closeModal('renewalModal');
+  renderRenewals();
+}
+
+async function deleteRenewal(rid) {
+  if (!confirm('确认删除这条续费记录？')) return;
+  const { error } = await sb.from('renewals').delete().eq('id', rid);
+  if (error) { alert('删除失败: ' + error.message); return; }
+  _renewals = _renewals.filter(r => r.id !== rid);
+  renderRenewals();
+}
+
+function exportRenewals() {
+  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在班级','缴费课时包','书费','合计缴费','课单价'];
+  const list = [..._renewals];
+  list.sort((a, b) => (b.payment_date||'').localeCompare(a.payment_date||''));
+  const rows = list.map(r => [
+    r.payment_date||'', r.student_name||'', r.birth_date||'', calcAge(r.birth_date)||'',
+    r.phone||'', r.parent_name||'', r.current_class||'', r.payment_package||'',
+    r.book_fee||'', r.total_payment||'', r.unit_price||''
+  ]);
+  exportCSV(headers, rows, 'DK邻里在读续费_' + new Date().toISOString().substring(0,10) + '.csv');
 }
 
 function onBirthDateChange() {
