@@ -124,6 +124,7 @@ header .user-info{font-size:13px;color:#64748b}
     <button class="active" onclick="switchTab('customers')">客户管理</button>
     <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒</button>
+    <button onclick="switchTab('sales')">销售管理</button>
   </div>
   <span class="user-info" style="margin-left:auto">
     <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
@@ -139,8 +140,7 @@ header .user-info{font-size:13px;color:#64748b}
     <div class="card">
       <h2>客户列表
         <div class="subtabs">
-          <button class="active" onclick="switchSubTab('signed')" id="subtab-signed">已报名<span class="count-badge badge-signed" id="cnt-signed">0</span></button>
-          <button onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
+          <button class="active" onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
           <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
         </div>
         <div class="toolbar" style="margin-left:auto">
@@ -159,8 +159,45 @@ header .user-info{font-size:13px;color:#64748b}
 </div>
 
 <!-- ================================================================= -->
-<!-- Tab 2: 试听邀约 -->
+<!-- Tab 4: 销售管理（已报名学员）-->
 <!-- ================================================================= -->
+<div class="section" id="sec-sales">
+  <div class="container">
+    <div class="card">
+      <h2>已报名学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
+        <div class="toolbar" style="margin-left:auto">
+          <select id="salesFilterSource" onchange="renderSales()"><option value="all">全部来源</option></select>
+          <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
+          <select id="salesFilterClass" onchange="renderSales()"><option value="all">全部班级</option></select>
+          <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderSales()" style="width:180px">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal(null,'sales')">＋ 新增学员</button>
+          <button class="btn btn-gray btn-sm" onclick="exportSales()">📥 导出</button>
+        </div>
+      </h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th style="width:80px">报名日期</th>
+          <th style="text-align:left;width:70px">姓名</th>
+          <th style="width:80px">出生日期</th>
+          <th style="width:40px">年龄</th>
+          <th style="width:110px">电话</th>
+          <th style="width:50px">家长</th>
+          <th style="width:70px">来源</th>
+          <th style="width:40px">级别</th>
+          <th style="width:80px">学校</th>
+          <th style="width:90px">试听时间</th>
+          <th style="width:80px">报名班级</th>
+          <th style="width:55px">跟进人</th>
+          <th style="width:140px">操作</th>
+        </tr></thead>
+        <tbody id="salesTbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- Tab 2: 试听邀约 -->
 <div class="section" id="sec-trials">
   <div class="container">
     <!-- 周历视图 -->
@@ -345,7 +382,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [];
-let _currentSubTab = 'signed';
+let _currentSubTab = 'trial';
 
 // Auth
 function doAuth() {
@@ -388,6 +425,7 @@ async function initApp() {
   renderCustomers();
   updateCounts();
   fillFilters();
+  fillSalesFilters();
   setThisWeek();
 }
 
@@ -396,14 +434,15 @@ async function initApp() {
 // ═══════════════════════════════════════
 function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('header .tabs button').forEach((b,i) => b.classList.remove('active'));
-  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders'};
-  const idx = {customers:0, trials:1, reminders:2};
+  document.querySelectorAll('header .tabs button').forEach(b => b.classList.remove('active'));
+  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales'};
+  const idx = {customers:0, trials:1, reminders:2, sales:3};
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
   if (tab === 'trials') renderTrialCalendar();
   if (tab === 'reminders') renderReminders();
+  if (tab === 'sales') { renderSales(); updateCounts(); }
 }
 
 function switchSubTab(sub) {
@@ -411,6 +450,12 @@ function switchSubTab(sub) {
   document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
   document.getElementById('subtab-'+sub).classList.add('active');
   renderCustomers();
+}
+
+function updateCounts() {
+  document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
+  document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
+  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门').length;
 }
 
 function switchTrialView(view) {
@@ -446,12 +491,6 @@ function fillFilters() {
   }
 }
 
-function updateCounts() {
-  document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
-  document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
-  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门').length;
-}
-
 // ═══════════════════════════════════════
 // 客户管理
 // ═══════════════════════════════════════
@@ -471,8 +510,7 @@ function renderCustomers() {
   updateCounts();
   
   let list;
-  if (_currentSubTab === 'signed') list = _customers.filter(c => c.status === '已报名');
-  else if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
+  if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
   else list = _customers.filter(c => c.status === '未上门' || !c.status || c.status === '新线索');
 
   // Filters
@@ -483,105 +521,129 @@ function renderCustomers() {
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
-  // 已报名按报名日期倒序
-  if (_currentSubTab === 'signed') {
-    list.sort((a, b) => {
-      const da = a.enrollment_date || '';
-      const db = b.enrollment_date || '';
-      if (!da && !db) return 0;
-      if (!da) return 1;
-      if (!db) return -1;
-      return db.localeCompare(da); // 新的在前
-    });
-  }
-
-  // 已报名表头
-  if (_currentSubTab === 'signed') {
-    document.getElementById('custThead').innerHTML = '<tr>' +
-      '<th style="width:80px">报名日期</th>' +
-      '<th style="text-align:left;width:70px">姓名</th>' +
-      '<th style="width:80px">出生日期</th>' +
-      '<th style="width:40px">年龄</th>' +
-      '<th style="width:110px">电话</th>' +
-      '<th style="width:50px">家长</th>' +
-      '<th style="width:70px">来源</th>' +
-      '<th style="width:40px">级别</th>' +
-      '<th style="width:80px">学校</th>' +
-      '<th style="width:85px">状态</th>' +
-      '<th style="width:90px">试听时间</th>' +
-      '<th style="width:80px">报名班级</th>' +
-      '<th style="width:55px">跟进人</th>' +
-      '<th style="width:140px">操作</th>' +
-    '</tr>';
-  } else {
-    document.getElementById('custThead').innerHTML = '<tr>' +
-      '<th style="text-align:left;width:70px">姓名</th>' +
-      '<th style="width:40px">年龄</th>' +
-      '<th style="width:110px">电话</th>' +
-      '<th style="width:50px">家长</th>' +
-      '<th style="width:70px">来源</th>' +
-      '<th style="width:40px">级别</th>' +
-      '<th style="width:80px">学校</th>' +
-      '<th style="width:85px">状态</th>' +
-      '<th style="width:90px">试听时间</th>' +
-      '<th style="width:55px">跟进人</th>' +
-      '<th style="width:140px">操作</th>' +
-    '</tr>';
-  }
+  document.getElementById('custThead').innerHTML = '<tr>' +
+    '<th style="text-align:left;width:70px">姓名</th>' +
+    '<th style="width:40px">年龄</th>' +
+    '<th style="width:110px">电话</th>' +
+    '<th style="width:50px">家长</th>' +
+    '<th style="width:70px">来源</th>' +
+    '<th style="width:40px">级别</th>' +
+    '<th style="width:80px">学校</th>' +
+    '<th style="width:85px">状态</th>' +
+    '<th style="width:90px">试听时间</th>' +
+    '<th style="width:55px">跟进人</th>' +
+    '<th style="width:140px">操作</th>' +
+  '</tr>';
 
   let html = '';
   list.forEach(c => {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
-    const stTag = 'tag tag-signed';
+    const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
     const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
-    const displayAge = calcAge(c.birth_date) || (c.age||'');
-    const enrollDate = c.enrollment_date || '';
-
-    if (_currentSubTab === 'signed') {
-      html += '<tr>' +
-        '<td>' + enrollDate + '</td>' +
-        '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
-        '<td>' + (c.birth_date||'') + '</td>' +
-        '<td>' + displayAge + '</td>' +
-        '<td>' + (c.phone||'') + '</td>' +
-        '<td>' + (c.parent||'') + '</td>' +
-        '<td>' + (c.source||'') + '</td>' +
-        '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
-        '<td>' + (c.school||'') + '</td>' +
-        '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
-        '<td>' + trialDate + '</td>' +
-        '<td>' + (c.enrolled_class||'') + '</td>' +
-        '<td>' + (c.owner||'') + '</td>' +
-        '<td>' +
-          '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
-          '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
-          '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button> ' +
-          '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
-        '</td></tr>';
-    } else {
-      const stTag2 = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
-      html += '<tr>' +
-        '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
-        '<td>' + (c.age||'') + '</td>' +
-        '<td>' + (c.phone||'') + '</td>' +
-        '<td>' + (c.parent||'') + '</td>' +
-        '<td>' + (c.source||'') + '</td>' +
-        '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
-        '<td>' + (c.school||'') + '</td>' +
-        '<td><span class="' + stTag2 + '">' + (c.status||'未上门') + '</span></td>' +
-        '<td>' + trialDate + '</td>' +
-        '<td>' + (c.owner||'') + '</td>' +
-        '<td>' +
-          '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
-          '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
-          (c.status === '已报名' ? '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button> ' : '') +
-          '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
-        '</td></tr>';
-    }
+    html += '<tr>' +
+      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+      '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
+      '<td>' + (c.phone||'') + '</td>' +
+      '<td>' + (c.parent||'') + '</td>' +
+      '<td>' + (c.source||'') + '</td>' +
+      '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
+      '<td>' + (c.school||'') + '</td>' +
+      '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
+      '<td>' + trialDate + '</td>' +
+      '<td>' + (c.owner||'') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
+        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
+        '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
+      '</td></tr>';
   });
-  const colSpan = _currentSubTab === 'signed' ? 14 : 11;
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colSpan + '" class="empty-state">暂无客户</td></tr>';
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无客户</td></tr>';
+}
+
+// ═══════════════════════════════════════
+// 销售管理（已报名学员）
+// ═══════════════════════════════════════
+function fillSalesFilters() {
+  const signed = _customers.filter(c => c.status === '已报名');
+  const sources = [...new Set(signed.map(c => c.source).filter(Boolean))];
+  const owners = [...new Set(signed.map(c => c.owner).filter(Boolean))];
+  const classes = [...new Set(signed.map(c => c.enrolled_class).filter(Boolean))].sort();
+
+  const sSrc = document.getElementById('salesFilterSource');
+  sSrc.innerHTML = '<option value="all">全部来源</option>';
+  sources.forEach(s => { sSrc.innerHTML += '<option>' + s + '</option>'; });
+
+  const sOwn = document.getElementById('salesFilterOwner');
+  sOwn.innerHTML = '<option value="all">全部跟进人</option>';
+  owners.forEach(o => { sOwn.innerHTML += '<option>' + o + '</option>'; });
+
+  const sCls = document.getElementById('salesFilterClass');
+  sCls.innerHTML = '<option value="all">全部班级</option>';
+  classes.forEach(c => { sCls.innerHTML += '<option>' + c + '</option>'; });
+}
+
+function renderSales() {
+  updateCounts();
+  let list = _customers.filter(c => c.status === '已报名');
+
+  const fSrc = document.getElementById('salesFilterSource').value;
+  const fOwn = document.getElementById('salesFilterOwner').value;
+  const fCls = document.getElementById('salesFilterClass').value;
+  const fQ   = document.getElementById('salesFilterSearch').value.toLowerCase();
+
+  if (fSrc !== 'all') list = list.filter(c => c.source === fSrc);
+  if (fOwn !== 'all') list = list.filter(c => c.owner === fOwn);
+  if (fCls !== 'all') list = list.filter(c => c.enrolled_class === fCls);
+  if (fQ) list = list.filter(c => (c.name||'').toLowerCase().includes(fQ) || (c.phone||'').includes(fQ) || (c.school||'').toLowerCase().includes(fQ) || (c.enrolled_class||'').toLowerCase().includes(fQ));
+
+  // 按报名日期倒序
+  list.sort((a, b) => {
+    const da = a.enrollment_date || '';
+    const db = b.enrollment_date || '';
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return db.localeCompare(da);
+  });
+
+  let html = '';
+  list.forEach(c => {
+    const lvl = c.level || 'B';
+    const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
+    const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
+    html += '<tr>' +
+      '<td>' + (c.enrollment_date||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+      '<td>' + (c.birth_date||'') + '</td>' +
+      '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
+      '<td>' + (c.phone||'') + '</td>' +
+      '<td>' + (c.parent||'') + '</td>' +
+      '<td>' + (c.source||'') + '</td>' +
+      '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
+      '<td>' + (c.school||'') + '</td>' +
+      '<td>' + trialDate + '</td>' +
+      '<td>' + (c.enrolled_class||'') + '</td>' +
+      '<td>' + (c.owner||'') + '</td>' +
+      '<td>' +
+        '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
+        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
+        '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button> ' +
+        '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
+      '</td></tr>';
+  });
+  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="13" class="empty-state">暂无已报名学员</td></tr>';
+}
+
+function exportSales() {
+  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','来源','级别','学校','试听时间','报名班级','跟进人'];
+  const list = _customers.filter(c => c.status === '已报名');
+  const rows = list.map(c => [
+    c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
+    c.phone||'', c.parent||'', c.source||'', c.level||'', c.school||'',
+    c.trial_date||'', c.enrolled_class||'', c.owner||''
+  ]);
+  exportCSV(headers, rows, 'DK邻里已报名学员_' + new Date().toISOString().substring(0,10) + '.csv');
 }
 
 function onBirthDateChange() {
@@ -591,9 +653,9 @@ function onBirthDateChange() {
   }
 }
 
-function openCustomerModal(cid) {
+function openCustomerModal(cid, fromModule) {
   document.getElementById('custEditId').value = cid || '';
-  document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : '新增客户';
+  document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : (fromModule === 'sales' ? '新增已报名学员' : '新增客户');
   if (cid) {
     const c = _customers.find(x => x.id === cid);
     if (c) {
@@ -616,8 +678,8 @@ function openCustomerModal(cid) {
   } else {
     ['custName','custBirthDate','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custSource').value = '';
-    document.getElementById('custLevel').value = 'B';
-    document.getElementById('custStatus').value = '未上门';
+    document.getElementById('custLevel').value = fromModule === 'sales' ? 'A' : 'B';
+    document.getElementById('custStatus').value = fromModule === 'sales' ? '已报名' : '未上门';
     document.getElementById('custOwner').value = 'Kyle';
   }
   document.getElementById('custModal').classList.add('show');
@@ -654,7 +716,11 @@ async function saveCustomer() {
   showToast(editId ? '已更新' : '已新增');
   closeModal('custModal');
   await loadAll();
+  fillFilters();
+  fillSalesFilters();
   renderCustomers();
+  renderSales();
+  updateCounts();
 }
 
 // ═══════════════════════════════════════
@@ -1051,7 +1117,9 @@ async function deleteCustomer(cid) {
   
   // 从本地列表移除
   _customers = _customers.filter(x => x.id !== cid);
+  updateCounts();
   renderCustomers();
+  renderSales();
 }
 
 // ═══════════════════════════════════════
