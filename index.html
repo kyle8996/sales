@@ -664,6 +664,10 @@ function renderCustomers() {
       if (!db) return -1;
       return db.localeCompare(da);
     });
+  } else {
+    // 未上门按客户级别排序：A > B > C
+    const order = { 'A': 0, 'B': 1, 'C': 2 };
+    list.sort((a, b) => (order[a.level] ?? 1) - (order[b.level] ?? 1));
   }
 
   let html = '';
