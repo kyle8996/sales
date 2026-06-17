@@ -229,6 +229,7 @@ header .user-info{font-size:13px;color:#64748b}
         </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="custFilterSource" onchange="renderCustomers()"><option value="all">一级渠道</option></select>
+          <select id="custFilterLevel" onchange="renderCustomers()"><option value="all">客户级别</option></select>
           <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
           <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
@@ -585,9 +586,13 @@ function setThisWeek() {
 function fillFilters() {
   const sources = [...new Set(_customers.map(c => c.source_primary).filter(Boolean))].sort();
   const owners = [...new Set(_customers.map(c => c.owner).filter(Boolean))];
+  const levels = [...new Set(_customers.map(c => c.level).filter(Boolean))].sort();
   const soSel = document.getElementById('custFilterSource');
   soSel.innerHTML = '<option value="all">一级渠道</option>';
   sources.forEach(s => { soSel.innerHTML += '<option>'+s+'</option>'; });
+  const lvSel = document.getElementById('custFilterLevel');
+  lvSel.innerHTML = '<option value="all">客户级别</option>';
+  levels.forEach(l => { lvSel.innerHTML += '<option>'+l+'</option>'; });
   const owSel = document.getElementById('custFilterOwner');
   owSel.innerHTML = '<option value="all">全部跟进人</option>';
   owners.forEach(o => { owSel.innerHTML += '<option>'+o+'</option>'; });
@@ -624,13 +629,17 @@ function renderCustomers() {
 
   // Filters
   const fSource = document.getElementById('custFilterSource').value;
+  const fLevel = document.getElementById('custFilterLevel').value;
   const fOwner = document.getElementById('custFilterOwner').value;
   const fSearch = document.getElementById('custFilterSearch').value.toLowerCase();
   if (fSource !== 'all') list = list.filter(c => (c.source_primary||'') === fSource);
+  if (fLevel !== 'all') list = list.filter(c => (c.level||'B') === fLevel);
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
+  const isTrial = _currentSubTab === 'trial';
   document.getElementById('custThead').innerHTML = '<tr>' +
+    (isTrial ? '<th style="width:90px">上门日期</th>' : '') +
     '<th style="text-align:left;width:70px">姓名</th>' +
     '<th style="width:40px">年龄</th>' +
     '<th style="width:110px">电话</th>' +
@@ -640,7 +649,7 @@ function renderCustomers() {
     '<th style="width:40px">级别</th>' +
     '<th style="width:80px">学校</th>' +
     '<th style="width:85px">状态</th>' +
-    '<th style="width:90px">试听时间</th>' +
+    (isTrial ? '' : '<th style="width:90px">试听时间</th>') +
     '<th style="width:55px">跟进人</th>' +
     '<th style="width:140px">操作</th>' +
   '</tr>';
@@ -652,6 +661,7 @@ function renderCustomers() {
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
     const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
     html += '<tr>' +
+      (isTrial ? '<td>' + trialDate + '</td>' : '') +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
@@ -661,7 +671,7 @@ function renderCustomers() {
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
-      '<td>' + trialDate + '</td>' +
+      (isTrial ? '' : '<td>' + trialDate + '</td>') +
       '<td>' + (c.owner||'') + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
