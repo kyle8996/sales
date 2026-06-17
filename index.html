@@ -1109,8 +1109,9 @@ function openFollowupModal(cid) {
   // 填充试听场次下拉（空着表示不预约）
   const sel = document.getElementById('fuTrialSession');
   sel.innerHTML = '<option value="">-- 可选试听场次 --</option>';
-  const now = new Date();
-  _trialSessions.filter(s => new Date(s.session_date) >= now).forEach(s => {
+  // 只按日期过滤，不比较时分秒，避免当天场次被误隐藏
+  const todayStr = new Date().toISOString().slice(0,10);
+  _trialSessions.filter(s => s.session_date >= todayStr).forEach(s => {
     sel.innerHTML += '<option value="' + s.id + '">' + s.session_date + ' ' + (s.start_time||'') + ' - ' + (s.title||'') + '</option>';
   });
   
