@@ -121,10 +121,10 @@ header .user-info{font-size:13px;color:#64748b}
 <header style="display:none" id="appHeader">
   <h1>📊 销售业务系统</h1>
   <div class="tabs">
-    <button class="active" onclick="switchTab('customers')">客户管理</button>
+    <button class="active" onclick="switchTab('sales')">销售管理</button>
+    <button onclick="switchTab('customers')">客户管理</button>
     <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒</button>
-    <button onclick="switchTab('sales')">销售管理</button>
   </div>
   <span class="user-info" style="margin-left:auto">
     <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
@@ -135,33 +135,10 @@ header .user-info{font-size:13px;color:#64748b}
 <!-- ================================================================= -->
 <!-- Tab 1: 客户管理 -->
 <!-- ================================================================= -->
-<div class="section active" id="sec-customers">
-  <div class="container">
-    <div class="card">
-      <h2>客户列表
-        <div class="subtabs">
-          <button class="active" onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
-          <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
-        </div>
-        <div class="toolbar" style="margin-left:auto">
-          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">全部来源</option></select>
-          <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
-          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
-        </div>
-      </h2>
-      <div class="tbl"><table>
-        <thead id="custThead"><tr></tr></thead>
-        <tbody id="custTbody"></tbody>
-      </table></div>
-    </div>
-  </div>
-</div>
-
 <!-- ================================================================= -->
-<!-- Tab 4: 销售管理（已报名学员）-->
+<!-- Tab 1: 销售管理（已报名学员）-->
 <!-- ================================================================= -->
-<div class="section" id="sec-sales">
+<div class="section active" id="sec-sales">
   <div class="container">
     <div class="card">
       <h2>已报名学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
@@ -197,7 +174,33 @@ header .user-info{font-size:13px;color:#64748b}
 </div>
 
 <!-- ================================================================= -->
-<!-- Tab 2: 试听邀约 -->
+<!-- Tab 2: 客户管理 -->
+<!-- ================================================================= -->
+<div class="section" id="sec-customers">
+  <div class="container">
+    <div class="card">
+      <h2>客户列表
+        <div class="subtabs">
+          <button class="active" onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
+          <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
+        </div>
+        <div class="toolbar" style="margin-left:auto">
+          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">全部来源</option></select>
+          <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
+          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
+        </div>
+      </h2>
+      <div class="tbl"><table>
+        <thead id="custThead"><tr></tr></thead>
+        <tbody id="custTbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- Tab 3: 试听邀约 -->
 <div class="section" id="sec-trials">
   <div class="container">
     <!-- 周历视图 -->
@@ -230,7 +233,7 @@ header .user-info{font-size:13px;color:#64748b}
 </div>
 
 <!-- ================================================================= -->
-<!-- Tab 3: 跟进提醒 -->
+<!-- Tab 4: 跟进提醒 -->
 <!-- ================================================================= -->
 <div class="section" id="sec-reminders">
   <div class="container">
@@ -436,7 +439,7 @@ function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('header .tabs button').forEach(b => b.classList.remove('active'));
   const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales'};
-  const idx = {customers:0, trials:1, reminders:2, sales:3};
+  const idx = {sales:0, customers:1, trials:2, reminders:3};
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
