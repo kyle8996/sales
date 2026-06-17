@@ -337,7 +337,7 @@ header .user-info{font-size:13px;color:#64748b}
       <label>课单价(¥)<input type="text" id="custUnitPrice" readonly style="background:#f1f5f9;width:80px"></label>
     </div>
     <div class="form-row">
-      <label>试听时间<input type="datetime-local" id="custTrialDate"></label>
+      <label>试听时间<input type="date" id="custTrialDate"></label>
       <label>跟进人<select id="custOwner"><option value="Kyle">Kyle</option><option value="Dora">Dora</option></select></label>
       <label>标签<input type="text" id="custTags" placeholder="备注标签"></label>
     </div>
@@ -1000,7 +1000,7 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custStatus').value = c.status||'未上门';
       document.getElementById('custEnrollDate').value = c.enrollment_date||'';
       document.getElementById('custEnrollClass').value = c.enrolled_class||'';
-      document.getElementById('custTrialDate').value = c.trial_date ? c.trial_date.substring(0,16) : '';
+      document.getElementById('custTrialDate').value = c.trial_date ? c.trial_date.substring(0,10) : '';
       document.getElementById('custOwner').value = c.owner||'Kyle';
       document.getElementById('custTags').value = c.tags||'';
       document.getElementById('custCourseHours').value = c.course_hours||'';
