@@ -148,7 +148,7 @@ header .user-info{font-size:13px;color:#64748b}
           <button onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
-          <select id="salesFilterSource" onchange="renderSales()"><option value="all">全部来源</option></select>
+          <select id="salesFilterSource" onchange="renderSales()"><option value="all">一级渠道</option></select>
           <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
           <select id="salesFilterClass" onchange="renderSales()"><option value="all">全部班级</option></select>
           <select id="salesFilterMonth" onchange="renderSales()"><option value="all">全部月份</option></select>
@@ -165,7 +165,8 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:40px">年龄</th>
           <th style="width:110px">电话</th>
           <th style="width:50px">家长</th>
-          <th style="width:70px">来源</th>
+          <th style="width:70px">一级渠道</th>
+          <th style="width:70px">二级渠道</th>
           <th style="width:80px">学校</th>
           <th style="width:80px">报名班级</th>
           <th style="width:55px">跟进人</th>
@@ -227,7 +228,7 @@ header .user-info{font-size:13px;color:#64748b}
           <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
         </div>
         <div class="toolbar" style="margin-left:auto">
-          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">全部来源</option></select>
+          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">一级渠道</option></select>
           <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
           <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
@@ -316,7 +317,8 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <label>电话<input type="text" id="custPhone"></label>
-      <label>客户来源<input type="text" id="custSource" list="sourceList" placeholder="选择或输入来源"><datalist id="sourceList"><option value="口碑推荐"><option value="Walkin"><option value="在读二宝"><option value="群内添加"><option value="扫码添加"><option value="大众点评"><option value="地推"><option value="转介绍"><option value="其他"></datalist></label>
+      <label>一级渠道<input type="text" id="custSourcePrimary" list="sourcePrimaryList" placeholder="如: 线上/线下/合作"><datalist id="sourcePrimaryList"><option value="线上"><option value="线下"><option value="合作渠道"><option value="转介绍"><option value="其他"></datalist></label>
+      <label>二级渠道<input type="text" id="custSourceSecondary" list="sourceSecondaryList" placeholder="如: 大众点评/地推/Walkin"><datalist id="sourceSecondaryList"><option value="口碑推荐"><option value="Walkin"><option value="在读二宝"><option value="群内添加"><option value="扫码添加"><option value="大众点评"><option value="地推"><option value="转介绍"><option value="在读推荐"><option value="其他"></datalist></label>
       <label>客户级别<select id="custLevel"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></label>
     </div>
     <div class="form-row">
@@ -581,19 +583,20 @@ function setThisWeek() {
 }
 
 function fillFilters() {
-  const sources = [...new Set(_customers.map(c => c.source).filter(Boolean))];
+  const sources = [...new Set(_customers.map(c => c.source_primary).filter(Boolean))].sort();
   const owners = [...new Set(_customers.map(c => c.owner).filter(Boolean))];
   const soSel = document.getElementById('custFilterSource');
-  soSel.innerHTML = '<option value="all">全部来源</option>';
+  soSel.innerHTML = '<option value="all">一级渠道</option>';
   sources.forEach(s => { soSel.innerHTML += '<option>'+s+'</option>'; });
   const owSel = document.getElementById('custFilterOwner');
   owSel.innerHTML = '<option value="all">全部跟进人</option>';
   owners.forEach(o => { owSel.innerHTML += '<option>'+o+'</option>'; });
-  // 动态更新来源 datalist
-  const dl = document.getElementById('sourceList');
+  // 动态更新一级/二级渠道 datalist
+  const allSecondaries = [...new Set(_customers.map(c => c.source_secondary||c.source).filter(Boolean))].sort();
+  const dl = document.getElementById('sourceSecondaryList');
   if (dl) {
     dl.innerHTML = '';
-    sources.forEach(s => { dl.innerHTML += '<option value="' + s + '">'; });
+    allSecondaries.forEach(s => { dl.innerHTML += '<option value="' + s + '">'; });
   }
 }
 
@@ -623,7 +626,7 @@ function renderCustomers() {
   const fSource = document.getElementById('custFilterSource').value;
   const fOwner = document.getElementById('custFilterOwner').value;
   const fSearch = document.getElementById('custFilterSearch').value.toLowerCase();
-  if (fSource !== 'all') list = list.filter(c => c.source === fSource);
+  if (fSource !== 'all') list = list.filter(c => (c.source_primary||'') === fSource);
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
@@ -632,7 +635,8 @@ function renderCustomers() {
     '<th style="width:40px">年龄</th>' +
     '<th style="width:110px">电话</th>' +
     '<th style="width:50px">家长</th>' +
-    '<th style="width:70px">来源</th>' +
+    '<th style="width:70px">一级渠道</th>' +
+    '<th style="width:75px">二级渠道</th>' +
     '<th style="width:40px">级别</th>' +
     '<th style="width:80px">学校</th>' +
     '<th style="width:85px">状态</th>' +
@@ -652,7 +656,8 @@ function renderCustomers() {
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
-      '<td>' + (c.source||'') + '</td>' +
+      '<td>' + (c.source_primary||'') + '</td>' +
+      '<td>' + (c.source_secondary||c.source||'') + '</td>' +
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
@@ -664,7 +669,7 @@ function renderCustomers() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无客户</td></tr>';
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="12" class="empty-state">暂无客户</td></tr>';
 }
 
 // ═══════════════════════════════════════
@@ -672,12 +677,12 @@ function renderCustomers() {
 // ═══════════════════════════════════════
 function fillSalesFilters() {
   const signed = _customers.filter(c => c.status === '已报名');
-  const sources = [...new Set(signed.map(c => c.source).filter(Boolean))];
+  const sources = [...new Set(signed.map(c => c.source_primary).filter(Boolean))].sort();
   const owners = [...new Set(signed.map(c => c.owner).filter(Boolean))];
   const classes = [...new Set(signed.map(c => c.enrolled_class).filter(Boolean))].sort();
 
   const sSrc = document.getElementById('salesFilterSource');
-  sSrc.innerHTML = '<option value="all">全部来源</option>';
+  sSrc.innerHTML = '<option value="all">一级渠道</option>';
   sources.forEach(s => { sSrc.innerHTML += '<option>' + s + '</option>'; });
 
   const sOwn = document.getElementById('salesFilterOwner');
@@ -713,7 +718,7 @@ function renderSales() {
   const fMon = document.getElementById('salesFilterMonth').value;
   const fQ   = document.getElementById('salesFilterSearch').value.toLowerCase();
 
-  if (fSrc !== 'all') list = list.filter(c => c.source === fSrc);
+  if (fSrc !== 'all') list = list.filter(c => (c.source_primary||'') === fSrc);
   if (fOwn !== 'all') list = list.filter(c => c.owner === fOwn);
   if (fCls !== 'all') list = list.filter(c => c.enrolled_class === fCls);
   if (fMon !== 'all') list = list.filter(c => (c.enrollment_date||'').startsWith(fMon));
@@ -738,7 +743,8 @@ function renderSales() {
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
-      '<td>' + (c.source||'') + '</td>' +
+      '<td>' + (c.source_primary||'') + '</td>' +
+      '<td>' + (c.source_secondary||c.source||'') + '</td>' +
       '<td>' + (c.school||'') + '</td>' +
       '<td>' + (c.enrolled_class||'') + '</td>' +
       '<td>' + (c.owner||'') + '</td>' +
@@ -755,15 +761,15 @@ function renderSales() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="15" class="empty-state">暂无新招学员</td></tr>';
+  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="16" class="empty-state">暂无新招学员</td></tr>';
 }
 
 function exportSales() {
-  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','来源','学校','报名班级','跟进人','课时数','书费','合计缴费','课单价'];
+  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','一级渠道','二级渠道','学校','报名班级','跟进人','课时数','书费','合计缴费','课单价'];
   const list = _customers.filter(c => c.status === '已报名');
   const rows = list.map(c => [
     c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
-    c.phone||'', c.parent||'', c.source||'', c.school||'',
+    c.phone||'', c.parent||'', c.source_primary||'', c.source_secondary||c.source||'', c.school||'',
     c.enrolled_class||'', c.owner||'',
     c.course_hours||'', c.book_fee||'', c.total_payment||'', c.unit_price||''
   ]);
@@ -988,7 +994,8 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custSchool').value = c.school||'';
       document.getElementById('custParent').value = c.parent||'';
       document.getElementById('custPhone').value = c.phone||'';
-      document.getElementById('custSource').value = c.source||'';
+      document.getElementById('custSourcePrimary').value = c.source_primary||'';
+      document.getElementById('custSourceSecondary').value = c.source_secondary||c.source||'';
       document.getElementById('custLevel').value = c.level||'B';
       document.getElementById('custStatus').value = c.status||'未上门';
       document.getElementById('custEnrollDate').value = c.enrollment_date||'';
@@ -1002,8 +1009,7 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custUnitPrice').value = unitPriceDisplay(c.unit_price);
     }
   } else {
-    ['custName','custBirthDate','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass'].forEach(id => document.getElementById(id).value='');
-    document.getElementById('custSource').value = '';
+    ['custName','custBirthDate','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass','custSourcePrimary','custSourceSecondary'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custLevel').value = fromModule === 'sales' ? 'A' : 'B';
     document.getElementById('custStatus').value = fromModule === 'sales' ? '已报名' : '未上门';
     document.getElementById('custOwner').value = 'Kyle';
@@ -1026,7 +1032,8 @@ async function saveCustomer() {
     school: document.getElementById('custSchool').value,
     parent: document.getElementById('custParent').value,
     phone: document.getElementById('custPhone').value,
-    source: document.getElementById('custSource').value,
+    source_primary: document.getElementById('custSourcePrimary').value,
+    source_secondary: document.getElementById('custSourceSecondary').value,
     level: document.getElementById('custLevel').value,
     status: document.getElementById('custStatus').value,
     enrollment_date: document.getElementById('custEnrollDate').value || null,
@@ -1478,10 +1485,10 @@ async function deleteCustomer(cid) {
 // 导出
 // ═══════════════════════════════════════
 function exportTab() {
-  const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','来源','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
+  const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
   const rows = _customers.map(c => [
     c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
-    c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
+    c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
   ]);
   exportCSV(headers, rows, 'DK邻里客户管理_' + new Date().toISOString().substring(0,10) + '.csv');
 }
