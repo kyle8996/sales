@@ -751,7 +751,7 @@ function renderSales() {
       '<td>' + (c.course_hours||'') + '</td>' +
       '<td>¥' + (c.book_fee != null ? Number(c.book_fee).toFixed(2) : '0.00') + '</td>' +
       '<td>¥' + (c.total_payment != null ? Number(c.total_payment).toFixed(2) : '0.00') + '</td>' +
-      '<td>' + (c.unit_price != null ? '¥' + Number(c.unit_price).toFixed(2) : '') + '</td>' +
+      '<td>' + (c.unit_price != null ? '¥' + Math.round(Number(c.unit_price)) : '') + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
@@ -816,7 +816,7 @@ function renderRenewals() {
       '<td>' + (r.course_hours||'') + '</td>' +
       '<td>¥' + (r.book_fee != null ? Number(r.book_fee).toFixed(2) : '0.00') + '</td>' +
       '<td>¥' + (r.total_payment != null ? Number(r.total_payment).toFixed(2) : '0.00') + '</td>' +
-      '<td>' + (r.unit_price != null ? '¥' + Number(r.unit_price).toFixed(2) : '') + '</td>' +
+      '<td>' + (r.unit_price != null ? '¥' + Math.round(Number(r.unit_price)) : '') + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openRenewalModal(' + r.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
@@ -884,7 +884,7 @@ function openRenewalModal(rid) {
 
 function unitPriceDisplay(v) {
   if (v == null) return '';
-  return '¥' + Number(v).toFixed(2);
+  return '¥' + Math.round(Number(v));
 }
 
 function onCustCalcChange() {
@@ -893,7 +893,7 @@ function onCustCalcChange() {
   const hours = parseInt(document.getElementById('custCourseHours').value) || 0;
   const netPayment = total - bookFee;
   if (hours > 0 && netPayment > 0) {
-    document.getElementById('custUnitPrice').value = '¥' + (netPayment / hours).toFixed(2);
+    document.getElementById('custUnitPrice').value = '¥' + Math.round(netPayment / hours);
   } else {
     document.getElementById('custUnitPrice').value = '';
   }
@@ -910,7 +910,7 @@ function onRenewalCalcChange() {
   const hours = parseInt(document.getElementById('renewalHours').value) || 0;
   const netPayment = total - bookFee;
   if (hours > 0 && netPayment > 0) {
-    document.getElementById('renewalUnitPrice').value = '¥' + (netPayment / hours).toFixed(2);
+    document.getElementById('renewalUnitPrice').value = '¥' + Math.round(netPayment / hours);
   } else {
     document.getElementById('renewalUnitPrice').value = '';
   }
@@ -933,7 +933,7 @@ async function saveRenewal() {
   const hours = parseInt(document.getElementById('renewalHours').value) || 0;
   data.course_hours = hours;
   const netPayment = data.total_payment - data.book_fee;
-  data.unit_price = (hours > 0 && netPayment > 0) ? (netPayment / hours) : 0;
+  data.unit_price = (hours > 0 && netPayment > 0) ? Math.round(netPayment / hours) : 0;
 
   if (!data.student_name || !data.payment_date) {
     alert('请填写姓名和缴费日期');
@@ -1048,7 +1048,7 @@ async function saveCustomer() {
   };
   // 计算课单价
   const netPayment = data.total_payment - data.book_fee;
-  data.unit_price = (data.course_hours > 0 && netPayment > 0) ? (netPayment / data.course_hours) : 0;
+  data.unit_price = (data.course_hours > 0 && netPayment > 0) ? Math.round(netPayment / data.course_hours) : 0;
   let err;
   if (editId) {
     ({error: err} = await sb.from('customers').update(data).eq('id', parseInt(editId)));
