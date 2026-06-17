@@ -429,7 +429,8 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <label>缴费日期*<input type="date" id="renewalPayDate"></label>
-      <label>缴费课时包*<input type="text" id="renewalPackage" placeholder="如:48课时 6800元" oninput="onRenewalCalcChange()"></label>
+      <label>缴费课时包*<input type="text" id="renewalPackage" placeholder="如:48课时 6800元"></label>
+      <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="1" onchange="onRenewalCalcChange()" style="width:80px"></label>
     </div>
     <div class="form-row">
       <label>书费(¥)<input type="number" id="renewalBookFee" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()"></label>
@@ -838,6 +839,7 @@ function openRenewalModal(rid) {
       document.getElementById('renewalClass').value = r.current_class||'';
       document.getElementById('renewalPayDate').value = r.payment_date||'';
       document.getElementById('renewalPackage').value = r.payment_package||'';
+      document.getElementById('renewalHours').value = r.course_hours||'';
       document.getElementById('renewalBookFee').value = r.book_fee||'';
       document.getElementById('renewalTotal').value = r.total_payment||'';
       document.getElementById('renewalUnitPrice').value = unitPriceDisplay(r.unit_price);
@@ -847,6 +849,7 @@ function openRenewalModal(rid) {
     ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalClass','renewalPayDate','renewalPackage'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    document.getElementById('renewalHours').value = '0';
     document.getElementById('renewalBookFee').value = '0';
     document.getElementById('renewalTotal').value = '0';
     document.getElementById('renewalUnitPrice').value = '';
@@ -867,9 +870,7 @@ function onRenewalBirthChange() {
 function onRenewalCalcChange() {
   const total = parseFloat(document.getElementById('renewalTotal').value) || 0;
   const bookFee = parseFloat(document.getElementById('renewalBookFee').value) || 0;
-  const pkg = document.getElementById('renewalPackage').value;
-  const m = pkg.match(/(\d+)\s*课时/);
-  const hours = m ? parseInt(m[1]) : 0;
+  const hours = parseInt(document.getElementById('renewalHours').value) || 0;
   const netPayment = total - bookFee;
   if (hours > 0 && netPayment > 0) {
     document.getElementById('renewalUnitPrice').value = '¥' + (netPayment / hours).toFixed(2);
@@ -891,9 +892,8 @@ async function saveRenewal() {
     book_fee: parseFloat(document.getElementById('renewalBookFee').value) || 0,
     total_payment: parseFloat(document.getElementById('renewalTotal').value) || 0
   };
-  // 从缴费课时包文本中提取课时数并计算课单价
-  const m = data.payment_package.match(/(\d+)\s*课时/);
-  const hours = m ? parseInt(m[1]) : 0;
+  // 计算课单价
+  const hours = parseInt(document.getElementById('renewalHours').value) || 0;
   const netPayment = data.total_payment - data.book_fee;
   data.unit_price = (hours > 0 && netPayment > 0) ? (netPayment / hours) : 0;
 
