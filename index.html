@@ -654,6 +654,18 @@ function renderCustomers() {
     '<th style="width:140px">操作</th>' +
   '</tr>';
 
+  // 已上门按上门日期倒序（最近在前）
+  if (isTrial) {
+    list.sort((a, b) => {
+      const da = a.trial_date || '';
+      const db = b.trial_date || '';
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db.localeCompare(da);
+    });
+  }
+
   let html = '';
   list.forEach(c => {
     const lvl = c.level || 'B';
