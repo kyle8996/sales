@@ -141,7 +141,7 @@ header .user-info{font-size:13px;color:#64748b}
 <div class="section active" id="sec-sales">
   <div class="container">
     <div class="card">
-      <h2>已报名学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
+      <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
         <div class="toolbar" style="margin-left:auto">
           <select id="salesFilterSource" onchange="renderSales()"><option value="all">全部来源</option></select>
           <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
@@ -160,9 +160,7 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:110px">电话</th>
           <th style="width:50px">家长</th>
           <th style="width:70px">来源</th>
-          <th style="width:40px">级别</th>
           <th style="width:80px">学校</th>
-          <th style="width:90px">试听时间</th>
           <th style="width:80px">报名班级</th>
           <th style="width:55px">跟进人</th>
           <th style="width:140px">操作</th>
@@ -612,9 +610,6 @@ function renderSales() {
 
   let html = '';
   list.forEach(c => {
-    const lvl = c.level || 'B';
-    const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
-    const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
     html += '<tr>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
@@ -623,9 +618,7 @@ function renderSales() {
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
       '<td>' + (c.source||'') + '</td>' +
-      '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
-      '<td>' + trialDate + '</td>' +
       '<td>' + (c.enrolled_class||'') + '</td>' +
       '<td>' + (c.owner||'') + '</td>' +
       '<td>' +
@@ -635,18 +628,18 @@ function renderSales() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="13" class="empty-state">暂无已报名学员</td></tr>';
+  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="11" class="empty-state">暂无新招学员</td></tr>';
 }
 
 function exportSales() {
-  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','来源','级别','学校','试听时间','报名班级','跟进人'];
+  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','来源','学校','报名班级','跟进人'];
   const list = _customers.filter(c => c.status === '已报名');
   const rows = list.map(c => [
     c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
-    c.phone||'', c.parent||'', c.source||'', c.level||'', c.school||'',
-    c.trial_date||'', c.enrolled_class||'', c.owner||''
+    c.phone||'', c.parent||'', c.source||'', c.school||'',
+    c.enrolled_class||'', c.owner||''
   ]);
-  exportCSV(headers, rows, 'DK邻里已报名学员_' + new Date().toISOString().substring(0,10) + '.csv');
+  exportCSV(headers, rows, 'DK邻里新招学员_' + new Date().toISOString().substring(0,10) + '.csv');
 }
 
 function onBirthDateChange() {
@@ -658,7 +651,7 @@ function onBirthDateChange() {
 
 function openCustomerModal(cid, fromModule) {
   document.getElementById('custEditId').value = cid || '';
-  document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : (fromModule === 'sales' ? '新增已报名学员' : '新增客户');
+  document.getElementById('custModalTitle').textContent = cid ? '编辑客户' : (fromModule === 'sales' ? '新增新招学员' : '新增客户');
   if (cid) {
     const c = _customers.find(x => x.id === cid);
     if (c) {
