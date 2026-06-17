@@ -97,6 +97,7 @@ header .user-info{font-size:13px;color:#64748b}
 .count-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;font-weight:600}
 .badge-signed{background:#dcfce7;color:#166534}
 .badge-trial{background:#fef3c7;color:#92400e}
+.badge-promised{background:#fff7ed;color:#c2410c}
 .badge-lead{background:#e0e7ff;color:#3730a3}
 .badge-renewal{background:#fce7f3;color:#9d174d}
 .session-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;background:#fff}
@@ -225,6 +226,7 @@ header .user-info{font-size:13px;color:#64748b}
       <h2>客户列表
         <div class="subtabs">
           <button class="active" onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
+          <button onclick="switchSubTab('promised')" id="subtab-promised">承诺上门<span class="count-badge badge-promised" id="cnt-promised">0</span></button>
           <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
         </div>
         <div class="toolbar" style="margin-left:auto">
@@ -562,7 +564,8 @@ function switchSalesSubTab(sub) {
 function updateCounts() {
   document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
   document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
-  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门').length;
+  document.getElementById('cnt-promised').textContent = _customers.filter(c => c.status === '未上门' && c.trial_date).length;
+  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门' && !c.trial_date).length;
   const cntRenewal = document.getElementById('cnt-renewal');
   if (cntRenewal) cntRenewal.textContent = _renewals.length;
 }
@@ -625,7 +628,8 @@ function renderCustomers() {
   
   let list;
   if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
-  else list = _customers.filter(c => c.status === '未上门' || !c.status || c.status === '新线索');
+  else if (_currentSubTab === 'promised') list = _customers.filter(c => c.status === '未上门' && c.trial_date);
+  else list = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date);
 
   // Filters
   const fSource = document.getElementById('custFilterSource').value;
@@ -664,6 +668,9 @@ function renderCustomers() {
       if (!db) return -1;
       return db.localeCompare(da);
     });
+  } else if (_currentSubTab === 'promised') {
+    // 承诺上门按试听时间正序（即将上门在前）
+    list.sort((a, b) => (a.trial_date||'').localeCompare(b.trial_date||''));
   } else {
     // 未上门按客户级别排序：A > B > C
     const order = { 'A': 0, 'B': 1, 'C': 2 };
