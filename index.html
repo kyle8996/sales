@@ -749,7 +749,9 @@ function renderSales() {
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
-        '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓</button> ' +
+        ((c.tags||'').includes('已转学员')
+          ? '<button class="btn btn-gray btn-xs" onclick="showToast(\'学员已在班级\',false)" title="已转学员" style="opacity:0.5">✅ 已转</button> '
+          : '<button class="btn btn-success btn-xs" onclick="openConvertModal(' + c.id + ')" title="转为学员">🎓 转为学员</button> ') +
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
@@ -1182,8 +1184,15 @@ async function saveFollowup() {
 function openConvertModal(cid) {
   const c = _customers.find(x => x.id === cid);
   if (!c) return;
+  
+  // 防重复：检查是否已转为学员
+  if ((c.tags||'').includes('已转学员')) {
+    showToast('学员已在班级', false);
+    return;
+  }
+  
   document.getElementById('convertInfo').innerHTML = 
-    '<b>' + (c.name||'') + '</b> | ' + (c.age||'') + ' | ' + (c.school||'');
+    '<b>' + (c.name||'') + '</b> | ' + (calcAge(c.birth_date)||(c.age||'')) + '岁 | ' + (c.enrolled_class||c.school||'');
   document.getElementById('fuCustomerId').value = cid;
   
   const sel = document.getElementById('convertClass');
@@ -1204,10 +1213,19 @@ async function convertToStudent() {
   const c = _customers.find(x => x.id === cid);
   if (!c) return;
   
-  // 检查是否已存在同名学员
-  const { data: existing } = await sb.from('students').select('id').eq('name', c.name).eq('class_id', parseInt(classId));
-  if (existing && existing.length > 0) {
-    showToast('该班级已存在同名学员', false); return;
+  // 第一道防线：检查客户标签
+  if ((c.tags||'').includes('已转学员')) {
+    showToast('学员已在班级', false);
+    closeModal('convertModal');
+    return;
+  }
+  
+  // 第二道防线：检查 students 表中是否已有同名学员（跨所有班级）
+  const { data: existingAll } = await sb.from('students').select('id, class_id').eq('name', c.name);
+  if (existingAll && existingAll.length > 0) {
+    showToast('学员已在班级', false);
+    closeModal('convertModal');
+    return;
   }
   
   // 创建学员记录（仅用 students 表已有字段）
@@ -1225,7 +1243,7 @@ async function convertToStudent() {
   
   if (error) { showToast('转入失败: '+error.message, false); return; }
   
-  // 更新客户标签
+  // 标记客户已转学员
   await sb.from('customers').update({
     tags: ((c.tags||'') + ' 已转学员').trim(),
     updated_at: new Date().toISOString()
@@ -1234,7 +1252,7 @@ async function convertToStudent() {
   showToast('🎉 ' + c.name + ' 已转为正式学员！');
   closeModal('convertModal');
   await loadAll();
-  renderCustomers();
+  renderSales();
 }
 
 // ═══════════════════════════════════════
