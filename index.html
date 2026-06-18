@@ -501,7 +501,7 @@ if (localStorage.getItem('sales_auth') === '1') {
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
-  const [cr, fr, tr, sr, clr, rnr, str] = await Promise.all([
+  const results = await Promise.allSettled([
     sb.from('customers').select('*').order('created_at', {ascending: false}),
     sb.from('followups').select('*').order('created_at', {ascending: false}),
     sb.from('trial_schedule').select('*'),
@@ -510,13 +510,14 @@ async function loadAll() {
     sb.from('renewals').select('*').order('created_at', {ascending: false}),
     sb.from('students').select('name')
   ]);
-  _customers = cr.data || [];
-  _followups = fr.data || [];
-  _trialSchedule = tr.data || [];
-  _trialSessions = sr.data || [];
-  _classes = clr.data || [];
-  _renewals = rnr.data || [];
-  _students = str.data || [];
+  const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
+  _customers = get(0);
+  _followups = get(1);
+  _trialSchedule = get(2);
+  _trialSessions = get(3);
+  _classes = get(4);
+  _renewals = get(5);
+  _students = get(6);
 }
 
 async function initApp() {
