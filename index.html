@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- v2026.06.18-001 -->
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
 .auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);display:flex;align-items:center;justify-content:center;z-index:9999}
-.auth-overlay.hidden{display:none !important}
+.auth-overlay.hidden,.auth-hidden{display:none !important}
 .auth-box{background:#fff;padding:32px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:360px;text-align:center}
 .auth-box h1{font-size:20px;margin-bottom:8px;color:#1e40af}
 .auth-box p{font-size:13px;color:#64748b;margin-bottom:20px}
@@ -484,7 +485,9 @@ let _salesSubTab = 'new';
 function doAuth() {
   const v = document.getElementById('authInput').value;
   if (v === 'DK0308') {
-    document.getElementById('authOverlay').classList.add('hidden');
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'none';
+    overlay.classList.add('hidden', 'auth-hidden');
     document.getElementById('appHeader').style.display = 'flex';
     localStorage.setItem('sales_auth', '1');
     initApp();
@@ -493,7 +496,9 @@ function doAuth() {
   }
 }
 if (localStorage.getItem('sales_auth') === '1') {
-  document.getElementById('authOverlay').classList.add('hidden');
+  const overlay = document.getElementById('authOverlay');
+  overlay.style.display = 'none';
+  overlay.classList.add('hidden', 'auth-hidden');
   document.getElementById('appHeader').style.display = 'flex';
   initApp();
 }
@@ -529,6 +534,10 @@ async function loadAll() {
 async function initApp() {
   try {
     await loadAll();
+    // 二次确认登录遮罩已隐藏
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'none';
+    overlay.classList.add('hidden', 'auth-hidden');
     renderSales();
     renderCustomers();
     updateCounts();
