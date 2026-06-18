@@ -290,6 +290,7 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="text-align:left">学员姓名</th>
           <th>上次跟进</th>
           <th>跟进人</th>
+          <th>下次跟进</th>
           <th>提醒状态</th>
           <th>操作</th>
         </tr></thead>
@@ -376,9 +377,14 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <div class="check-row">
-        <input type="checkbox" id="fuNeedReminder">
+        <input type="checkbox" id="fuNeedReminder" onchange="document.getElementById('nextFollowupRow').style.display=this.checked?'':'none'">
         <span>需要提醒跟进（出现在跟进提醒列表）</span>
       </div>
+    </div>
+    <div class="form-row" id="nextFollowupRow" style="display:none">
+      <label style="flex:1">下次跟进备注
+        <input type="text" id="fuNextNote" placeholder="如：8月初联系、暑假前再联系…" style="width:100%">
+      </label>
     </div>
     <input type="hidden" id="fuCustomerId">
     <div class="modal-actions">
@@ -1137,8 +1143,8 @@ function openFollowupModal(cid) {
   document.getElementById('fuTrialAttended').checked = false;
   document.getElementById('fuPayment').checked = false;
   document.getElementById('fuNeedReminder').checked = false;
-  
-  // 加载历史跟进（followups 表 + 客户 notes 字段）
+  document.getElementById('fuNextNote').value = '';
+  document.getElementById('nextFollowupRow').style.display = 'none';（followups 表 + 客户 notes 字段）
   const fus = _followups.filter(f => f.customer_id === cid);
   let tl = '';
   if (fus.length === 0 && !(c?.notes)) {
@@ -1185,6 +1191,7 @@ async function saveFollowup() {
   const trialAttended = document.getElementById('fuTrialAttended').checked;
   const payment = document.getElementById('fuPayment').checked;
   const needReminder = document.getElementById('fuNeedReminder').checked;
+  const nextNote = document.getElementById('fuNextNote').value.trim();
   
   if (!content && !trialSessionId && !trialAttended && !payment && !needReminder) {
     showToast('请至少填写跟进内容或选择一个操作', false); return;
@@ -1212,6 +1219,7 @@ async function saveFollowup() {
     customer_id: cid,
     content: content || null,
     need_reminder: needReminder,
+    next_followup_note: needReminder ? (nextNote || null) : null,
     trial_invited: trialInvited,
     trial_session_id: trialSessionId ? parseInt(trialSessionId) : null,
     owner: document.getElementById('custOwner')?.value || 'Kyle',
@@ -1497,13 +1505,21 @@ function renderReminders() {
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (fuDate ? fuDate.toLocaleDateString('zh-CN') : '') + '</td>' +
       '<td>' + (c.owner||'') + '</td>' +
+      '<td style="min-width:140px"><input type="text" value="' + (lastFu.next_followup_note||'').replace(/"/g,'&quot;') + '" placeholder="填写备注…" style="border:1px solid #e2e8f0;border-radius:6px;padding:4px 8px;font-size:12px;width:100%;background:#fff" onblur="saveNextNote(' + lastFu.id + ',this.value)"></td>' +
       '<td>' + statusText + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')">📝 跟进</button> ' +
         '<button class="btn btn-danger btn-xs" onclick="clearReminder(' + c.id + ')">取消提醒</button>' +
       '</td></tr>';
   });
-  document.getElementById('reminderTbody').innerHTML = html || '<tr><td colspan="5" class="empty-state">🎉 暂无需要跟进提醒的客户</td></tr>';
+  document.getElementById('reminderTbody').innerHTML = html || '<tr><td colspan="6" class="empty-state">🎉 暂无需要跟进提醒的客户</td></tr>';
+}
+
+async function saveNextNote(followupId, note) {
+  await sb.from('followups').update({ next_followup_note: note || null }).eq('id', followupId);
+  // 静默更新本地缓存，不刷新整页
+  const f = _followups.find(x => x.id === followupId);
+  if (f) f.next_followup_note = note || null;
 }
 
 async function clearReminder(cid) {
