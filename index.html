@@ -501,14 +501,14 @@ if (localStorage.getItem('sales_auth') === '1') {
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
+  const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   const results = await Promise.allSettled([
-    sb.from('customers').select('*').order('created_at', {ascending: false}),
-    sb.from('followups').select('*').order('created_at', {ascending: false}),
-    sb.from('trial_schedule').select('*'),
-    sb.from('trial_sessions').select('*').order('session_date', {ascending: true}),
-    sb.from('classes').select('*').order('id', {ascending: true}),
-    sb.from('renewals').select('*').order('created_at', {ascending: false}),
-    sb.from('students').select('name')
+    withTimeout(sb.from('customers').select('*').order('created_at', {ascending: false})),
+    withTimeout(sb.from('followups').select('*').order('created_at', {ascending: false})),
+    withTimeout(sb.from('trial_schedule').select('*')),
+    withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true})),
+    withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
+    withTimeout(sb.from('renewals').select('*').order('created_at', {ascending: false}))
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
@@ -517,18 +517,28 @@ async function loadAll() {
   _trialSessions = get(3);
   _classes = get(4);
   _renewals = get(5);
-  _students = get(6);
+  // 单独查students，失败不影响主流程
+  _students = [];
+  try {
+    const r = await withTimeout(sb.from('students').select('name'), 8000);
+    _students = r.data || [];
+  } catch(e) { console.warn('students query failed, ignore:', e.message); }
 }
 
 async function initApp() {
-  await loadAll();
-  renderSales();
-  renderCustomers();
-  updateCounts();
-  fillFilters();
-  fillSalesFilters();
-  setThisWeek();
-  switchTab('customers');
+  try {
+    await loadAll();
+    renderSales();
+    renderCustomers();
+    updateCounts();
+    fillFilters();
+    fillSalesFilters();
+    setThisWeek();
+    switchTab('customers');
+  } catch(e) {
+    console.error('initApp error:', e);
+    alert('系统加载失败：' + (e.message || e) + '\n请刷新重试，如持续出现请联系管理员。');
+  }
 }
 
 // ═══════════════════════════════════════
