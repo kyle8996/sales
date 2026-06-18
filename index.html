@@ -1165,7 +1165,7 @@ function openFollowupModal(cid) {
   document.getElementById('fuPayment').checked = false;
   document.getElementById('fuNeedReminder').checked = false;
   document.getElementById('fuNextNote').value = '';
-  document.getElementById('nextFollowupRow').style.display = 'none';（followups 表 + 客户 notes 字段）
+  document.getElementById('nextFollowupRow').style.display = 'none';
   const fus = _followups.filter(f => f.customer_id === cid);
   let tl = '';
   if (fus.length === 0 && !(c?.notes)) {
