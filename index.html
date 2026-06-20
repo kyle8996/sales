@@ -1138,7 +1138,15 @@ async function saveCustomer() {
   data.unit_price = (data.course_hours > 0 && netPayment > 0) ? Math.round(netPayment / data.course_hours) : 0;
   let err;
   if (editId) {
+    // 检测试听时间是否被清空（从有值变为null），需同步清理 trial_schedule
+    const oldCust = _customers.find(c => c.id === parseInt(editId));
+    const wasTrial = oldCust && oldCust.trial_date;
+    const nowTrial = !!data.trial_date;
     ({error: err} = await sb.from('customers').update(data).eq('id', parseInt(editId)));
+    if (!err && wasTrial && !nowTrial) {
+      // 试听时间被清除，同步删除 trial_schedule 中的排期记录
+      await sb.from('trial_schedule').delete().eq('customer_id', parseInt(editId));
+    }
   } else {
     ({error: err} = await sb.from('customers').insert(data));
   }
