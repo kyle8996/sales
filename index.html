@@ -555,6 +555,7 @@ async function initApp() {
 // Tab 切换
 // ═══════════════════════════════════════
 function switchTab(tab) {
+  _currentTab = tab;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('header .tabs button').forEach(b => b.classList.remove('active'));
   const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales'};
@@ -1601,12 +1602,87 @@ async function deleteCustomer(cid) {
 // 导出
 // ═══════════════════════════════════════
 function exportTab() {
-  const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
-  const rows = _customers.map(c => [
-    c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
-    c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
-  ]);
-  exportCSV(headers, rows, 'DK邻里客户管理_' + new Date().toISOString().substring(0,10) + '.csv');
+  if (_currentTab === 'customers') {
+    // 客户管理：根据当前子Tab和筛选条件导出
+    let list;
+    if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
+    else if (_currentSubTab === 'promised') list = _customers.filter(c => c.status === '未上门' && c.trial_date);
+    else list = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date);
+
+    // 应用筛选条件
+    const fSource = document.getElementById('custFilterSource').value;
+    const fLevel = document.getElementById('custFilterLevel').value;
+    const fOwner = document.getElementById('custFilterOwner').value;
+    const fSearch = document.getElementById('custFilterSearch').value.toLowerCase();
+    if (fSource !== 'all') list = list.filter(c => (c.source_primary||'') === fSource);
+    if (fLevel !== 'all') list = list.filter(c => (c.level||'B') === fLevel);
+    if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
+    if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
+
+    const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
+    const rows = list.map(c => [
+      c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
+      c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
+    ]);
+    exportCSV(headers, rows, 'DK邻里客户管理_' + (_currentSubTab === 'trial' ? '已上门未报名_' : _currentSubTab === 'promised' ? '承诺上门_' : '未上门_') + new Date().toISOString().substring(0,10) + '.csv');
+  } else if (_currentTab === 'trials') {
+    // 试听邀约：导出试听排期数据
+    exportTrials();
+  } else if (_currentTab === 'reminders') {
+    // 跟进提醒：导出需要跟进的客户
+    exportReminders();
+  } else if (_currentTab === 'sales') {
+    // 销售管理：提示用户使用Tab内的导出按钮
+    showToast('请在销售管理Tab中点击对应的导出按钮', false);
+  }
+}
+
+function exportReminders() {
+  // 找出最新跟进中 need_reminder=true 的客户
+  const reminderMap = {};
+  _followups.filter(f => f.need_reminder).forEach(f => {
+    if (!reminderMap[f.customer_id] || new Date(f.created_at) > new Date(reminderMap[f.customer_id].created_at)) {
+      reminderMap[f.customer_id] = f;
+    }
+  });
+
+  const reminderCids = Object.keys(reminderMap).map(Number);
+  const list = _customers.filter(c => reminderCids.includes(c.id));
+
+  const headers = ['姓名','出生日期','年龄','电话','家长','学校','一级渠道','二级渠道','级别','状态','跟进时间','下次跟进备注'];
+  const rows = list.map(c => {
+    const lastFu = reminderMap[c.id];
+    return [
+      c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.phone||'', c.parent||'',
+      c.school||'', c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'',
+      lastFu?.created_at ? new Date(lastFu.created_at).toLocaleDateString('zh-CN') : '',
+      lastFu?.next_followup_note||''
+    ];
+  });
+  exportCSV(headers, rows, 'DK邻里跟进提醒_' + new Date().toISOString().substring(0,10) + '.csv');
+}
+
+function exportTrials() {
+  // 导出试听排期数据
+  const headers = ['场次日期','场次时间','场次标题','当前报名','容量','客户姓名','电话','家长','级别','状态'];
+  const rows = [];
+  _trialSchedule.forEach(sch => {
+    const sess = _trialSessions.find(s => s.id === sch.session_id);
+    const c = _customers.find(c => c.id === sch.customer_id);
+    rows.push([
+      sess ? sess.session_date||'' : '',
+      sess ? (sess.start_time||'') + '-' + (sess.end_time||'') : '',
+      sess ? sess.title||'' : '',
+      '',
+      sess ? (sess.enrolled_count||0) + '/' + (sess.capacity||0) : '',
+      c ? c.name||'' : '',
+      c ? c.phone||'' : '',
+      c ? c.parent||'' : '',
+      c ? c.level||'' : '',
+      c ? c.status||'' : ''
+    ]);
+  });
+  exportCSV(headers, rows, 'DK邻里试听邀约_' + new Date().toISOString().substring(0,10) + '.csv');
 }
 
 function csvEscape(val) {
