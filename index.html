@@ -1233,13 +1233,23 @@ async function saveFollowup() {
     const sess = _trialSessions.find(s => s.id === parseInt(trialSessionId));
     if (sess) {
       trialDate = sess.session_date + 'T' + (sess.start_time||'19:00');
-      // 同时记录到 trial_schedule
-      await sb.from('trial_schedule').insert({
-        customer_id: cid,
-        trial_session_id: parseInt(trialSessionId),
-        week_start: getWeekStart(sess.session_date),
-        status: '已预约'
-      });
+      // 同时记录到 trial_schedule（先查是否已有记录，有则更新，避免重复）
+      const existingSched = _trialSchedule.find(s => s.customer_id === cid);
+      if (existingSched) {
+        await sb.from('trial_schedule').update({
+          trial_session_id: parseInt(trialSessionId),
+          week_start: getWeekStart(sess.session_date),
+          status: '已预约',
+          attended: false
+        }).eq('id', existingSched.id);
+      } else {
+        await sb.from('trial_schedule').insert({
+          customer_id: cid,
+          trial_session_id: parseInt(trialSessionId),
+          week_start: getWeekStart(sess.session_date),
+          status: '已预约'
+        });
+      }
     }
   }
   
