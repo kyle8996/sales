@@ -72,6 +72,22 @@ header .user-info{font-size:13px;color:#64748b}
 .toast-success{background:#16a34a}
 .toast-error{background:#dc2626}
 @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.month-calendar{margin-top:12px}
+.month-header-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:2px}
+.month-header-cell{text-align:center;font-size:11px;font-weight:600;color:#64748b;padding:4px 0}
+.month-header-cell.weekend{color:#e26a6a}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.month-day{border:1px solid #e2e8f0;border-radius:8px;min-height:90px;padding:5px;background:#fafbfc;position:relative}
+.month-day.today{border-color:#2563eb;background:#f0f7ff}
+.month-day.other-month{background:#f8fafc;opacity:.5}
+.month-day h4{font-size:11px;color:#64748b;margin-bottom:3px;font-weight:600}
+.month-day h4.weekend-num{color:#e26a6a}
+.month-day h4.today-num{color:#2563eb;font-weight:700}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.month-nav b{font-size:16px;min-width:100px;text-align:center}
+.month-nav button{padding:4px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer}
+.month-nav button:hover{background:#f1f5f9}
+/* 保留旧类以防兼容 */
 .week-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
 .week-day{border:1px solid #e2e8f0;border-radius:10px;min-height:180px;padding:8px;background:#fafbfc}
 .week-day.today{border-color:#2563eb;background:#f0f7ff}
@@ -251,14 +267,14 @@ header .user-info{font-size:13px;color:#64748b}
 <!-- Tab 3: 试听邀约 -->
 <div class="section" id="sec-trials">
   <div class="container">
-    <!-- 周历视图 -->
+    <!-- 月历视图 -->
     <div class="card">
-      <h2>试听周历
-        <div class="toolbar">
-          <label>起：<input type="date" id="trialStart" onchange="renderTrialCalendar()"></label>
-          <label>止：<input type="date" id="trialEnd" onchange="renderTrialCalendar()"></label>
-          <button class="btn btn-primary btn-sm" onclick="renderTrialCalendar()">🔍 查看</button>
-          <button class="btn btn-gray btn-sm" onclick="setThisWeek()" style="margin-left:4px">本周</button>
+      <h2>试听月历
+        <div class="month-nav" id="monthNav">
+          <button onclick="shiftMonth(-1)">&#8249;</button>
+          <b id="monthLabel"></b>
+          <button onclick="shiftMonth(1)">&#8250;</button>
+          <button class="btn btn-gray btn-sm" onclick="goThisMonth()">本月</button>
         </div>
         <button class="btn btn-success btn-sm" onclick="switchTrialView('sessions')" style="margin-left:auto">📋 排课管理</button>
       </h2>
@@ -543,7 +559,7 @@ async function initApp() {
     updateCounts();
     fillFilters();
     fillSalesFilters();
-    setThisWeek();
+    goThisMonth();
     switchTab('customers');
   } catch(e) {
     console.error('initApp error:', e);
@@ -608,12 +624,23 @@ function switchTrialView(view) {
 }
 
 function setThisWeek() {
+  goThisMonth();
+}
+
+let _currentMonthYear = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+function goThisMonth() {
   const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now); monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-  document.getElementById('trialStart').value = toDateStr(monday);
-  document.getElementById('trialEnd').value = toDateStr(sunday);
+  _currentMonthYear = { year: now.getFullYear(), month: now.getMonth() };
+  renderTrialCalendar();
+}
+
+function shiftMonth(delta) {
+  let { year, month } = _currentMonthYear;
+  month += delta;
+  if (month < 0) { month = 11; year--; }
+  if (month > 11) { month = 0; year++; }
+  _currentMonthYear = { year, month };
   renderTrialCalendar();
 }
 
@@ -1375,37 +1402,42 @@ async function convertToStudent() {
 // 试听邀约
 // ═══════════════════════════════════════
 function renderTrialCalendar() {
-  const start = document.getElementById('trialStart').value;
-  const end = document.getElementById('trialEnd').value;
-  if (!start || !end) { setThisWeek(); return; }
-  
-  const sDate = new Date(start);
-  const eDate = new Date(end);
-  if (eDate < sDate) { showToast('结束日期不能早于开始', false); return; }
-  
-  // Build 7-day grid starting from start
-  const days = [];
-  const d = new Date(sDate);
-  while (d <= eDate && days.length < 14) {
-    days.push(new Date(d));
-    d.setDate(d.getDate() + 1);
-  }
-  
+  const { year, month } = _currentMonthYear;
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('monthLabel').textContent = year + '年 ' + monthNames[month];
+
   const today = toDateStr(new Date());
-  let html = '<div class="week-calendar">';
-  days.forEach(day => {
-    const ds = toDateStr(day);
-    const dayNames = ['日','一','二','三','四','五','六'];
-    const dn = dayNames[day.getDay()];
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  // 星期一为第一列（0=周一,...,6=周日）
+  let startDow = firstDay.getDay(); // 0=日,1=一,...,6=六
+  startDow = startDow === 0 ? 6 : startDow - 1; // 转换为 0=周一
+
+  const dayNames = ['一','二','三','四','五','六','日'];
+  let html = '<div class="month-header-row">';
+  dayNames.forEach((n, i) => {
+    html += '<div class="month-header-cell' + (i >= 5 ? ' weekend' : '') + '">' + n + '</div>';
+  });
+  html += '</div><div class="month-grid">';
+
+  // 上月填充格
+  const prevLast = new Date(year, month, 0);
+  for (let i = startDow - 1; i >= 0; i--) {
+    const d = prevLast.getDate() - i;
+    html += '<div class="month-day other-month"><h4>' + d + '</h4></div>';
+  }
+
+  // 本月格
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const date = new Date(year, month, d);
+    const ds = toDateStr(date);
+    const dow = date.getDay(); // 0=日,6=六
+    const isWeekend = dow === 0 || dow === 6;
     const isToday = ds === today;
-    
-    // Find sessions on this day
+
     const sessions = _trialSessions.filter(s => s.session_date === ds);
-    
-    // Find customers invited to this day
-    const scheduled = _trialSchedule.filter(ts => {
-      return ts.status === '已预约';
-    });
+    const scheduled = _trialSchedule.filter(ts => ts.status === '已预约');
     const dayCustomers = [];
     scheduled.forEach(ts => {
       const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
@@ -1414,28 +1446,36 @@ function renderTrialCalendar() {
         if (cust) dayCustomers.push({...cust, attended: ts.attended});
       }
     });
-    
-    html += '<div class="week-day' + (isToday ? ' today' : '') + '">';
-    html += '<h4>' + dn + ' <span>' + (day.getMonth()+1) + '/' + day.getDate() + '</span></h4>';
-    
-    // Sessions
+
+    html += '<div class="month-day' + (isToday ? ' today' : '') + '">';
+    html += '<h4 class="' + (isToday ? 'today-num' : isWeekend ? 'weekend-num' : '') + '">' + d + '</h4>';
+
     sessions.forEach(s => {
       html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + '</div></div>';
     });
-    
-    // Customers
+
     dayCustomers.forEach(c => {
       html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
         '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
-        (c.name||'') + ' ' + (c.age||'') +
+        (c.name||'') + (c.age ? ' ' + c.age : '') +
       '</div>';
     });
-    
+
     if (sessions.length === 0 && dayCustomers.length === 0) {
-      html += '<div style="font-size:11px;color:#cbd5e1;text-align:center;padding:20px 0">暂无安排</div>';
+      html += '<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:10px 0">—</div>';
     }
     html += '</div>';
-  });
+  }
+
+  // 下月填充格（补满最后一行）
+  const totalCells = startDow + lastDay.getDate();
+  const remainder = totalCells % 7;
+  if (remainder !== 0) {
+    for (let d = 1; d <= 7 - remainder; d++) {
+      html += '<div class="month-day other-month"><h4>' + d + '</h4></div>';
+    }
+  }
+
   html += '</div>';
   document.getElementById('trialCalendar').innerHTML = html;
 }
