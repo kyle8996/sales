@@ -1446,31 +1446,30 @@ function renderTrialCalendar() {
     const isToday = ds === today;
 
     const sessions = _trialSessions.filter(s => s.session_date === ds);
-    const scheduled = _trialSchedule.filter(ts => ts.status === '已预约');
-    const dayCustomers = [];
-    scheduled.forEach(ts => {
-      const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
-      if (sess && sess.session_date === ds) {
-        const cust = _customers.find(c => c.id === ts.customer_id);
-        if (cust) dayCustomers.push({...cust, attended: ts.attended});
-      }
-    });
 
     html += '<div class="month-day' + (isToday ? ' today' : '') + '">';
     html += '<h4 class="' + (isToday ? 'today-num' : isWeekend ? 'weekend-num' : '') + '">' + d + '</h4>';
 
     sessions.forEach(s => {
-      html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + '</div></div>';
+      // 找出这个具体场次对应的预约客户
+      const sessCustomers = [];
+      _trialSchedule.filter(ts => ts.status === '已预约' && ts.trial_session_id === s.id).forEach(ts => {
+        const cust = _customers.find(c => c.id === ts.customer_id);
+        if (cust) sessCustomers.push({...cust, attended: ts.attended});
+      });
+      
+      html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + (s.max_capacity ? ' (' + sessCustomers.length + '/' + s.max_capacity + ')' : '') + '</div>';
+      // 该场次下的学员
+      sessCustomers.forEach(c => {
+        html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
+          '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
+          (c.name||'') + (c.age ? ' ' + c.age : '') +
+        '</div>';
+      });
+      html += '</div>'; // close day-session
     });
 
-    dayCustomers.forEach(c => {
-      html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
-        '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
-        (c.name||'') + (c.age ? ' ' + c.age : '') +
-      '</div>';
-    });
-
-    if (sessions.length === 0 && dayCustomers.length === 0) {
+    if (sessions.length === 0) {
       html += '<div style="font-size:10px;color:#cbd5e1;text-align:center;padding:10px 0">—</div>';
     }
     html += '</div>';
