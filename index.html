@@ -283,6 +283,15 @@ header .user-info{font-size:13px;color:#64748b}
     <!-- 排课管理 -->
     <div class="card" id="sessionsCard" style="display:none">
       <h2>体验课排课
+        <div class="month-nav" id="sessionWeekNav" style="margin-left:8px">
+          <button onclick="shiftSessionWeek(-1)">&#8249;</button>
+          <b id="sessionWeekLabel"></b>
+          <button onclick="shiftSessionWeek(1)">&#8250;</button>
+          <button class="btn btn-gray btn-sm" onclick="goSessionThisWeek()">本周</button>
+          <label style="margin-left:6px;font-size:11px;color:#64748b;font-weight:400;cursor:pointer;display:flex;align-items:center;gap:3px">
+            <input type="checkbox" id="sessionShowPast" onchange="renderSessions()"> 含过去
+          </label>
+        </div>
         <button class="btn btn-gray btn-sm" onclick="switchTrialView('calendar')" style="margin-left:4px">📅 返回周历</button>
         <button class="btn btn-primary btn-sm" onclick="openSessionModal()" style="margin-left:auto">＋ 新增场次</button>
       </h2>
@@ -1480,11 +1489,58 @@ function renderTrialCalendar() {
   document.getElementById('trialCalendar').innerHTML = html;
 }
 
+let _sessionWeekStart = null; // 当前筛选周的周一
+
+function getSessionWeekRange() {
+  if (!_sessionWeekStart) {
+    // 默认：从今天开始的一周
+    const today = new Date();
+    const day = today.getDay(); // 0=日 1=一 ... 6=六
+    _sessionWeekStart = new Date(today);
+    _sessionWeekStart.setHours(0,0,0,0);
+  }
+  const monday = new Date(_sessionWeekStart);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23,59,59,999);
+  return { start: monday, end: sunday };
+}
+
+function shiftSessionWeek(delta) {
+  if (!_sessionWeekStart) _sessionWeekStart = new Date();
+  _sessionWeekStart.setDate(_sessionWeekStart.getDate() + (delta * 7));
+  renderSessions();
+}
+
+function goSessionThisWeek() {
+  const today = new Date();
+  _sessionWeekStart = new Date(today);
+  _sessionWeekStart.setHours(0,0,0,0);
+  renderSessions();
+}
+
 function renderSessions() {
+  const range = getSessionWeekRange();
+  const showPast = document.getElementById('sessionShowPast') && document.getElementById('sessionShowPast').checked;
+  const todayStr = toDateStr(new Date());
+  
+  // 更新周标签
+  const m = range.start.getMonth()+1, d = range.start.getDate();
+  const m2 = range.end.getMonth()+1, d2 = range.end.getDate();
+  document.getElementById('sessionWeekLabel').textContent =
+    range.start.getFullYear() + '年' + m + '月' + d + '日 ~ ' + m2 + '月' + d2 + '日';
+  
   let html = '';
+  let hasData = false;
   _trialSessions.forEach(s => {
+    // 周筛选
+    if (s.session_date < toDateStr(range.start) || s.session_date > toDateStr(range.end)) return;
+    // 过去时间过滤（默认隐藏已过去的）
+    if (!showPast && s.session_date < todayStr) return;
+    hasData = true;
     const booked = _trialSchedule.filter(ts => ts.trial_session_id === s.id && ts.status === '已预约').length;
-    html += '<tr>' +
+    const isPast = s.session_date < todayStr;
+    html += '<tr' + (isPast ? ' style="opacity:0.5"' : '') + '>' +
       '<td style="font-weight:500">' + (s.title||'') + '</td>' +
       '<td>' + (s.session_date||'') + '</td>' +
       '<td>' + (s.start_time||'') + ' ~ ' + (s.end_time||'') + '</td>' +
@@ -1496,7 +1552,8 @@ function renderSessions() {
         '<button class="btn btn-danger btn-xs" onclick="deleteSession(' + s.id + ')">🗑</button>' +
       '</td></tr>';
   });
-  document.getElementById('sessionsTbody').innerHTML = html || '<tr><td colspan="7" class="empty-state">暂无试听场次</td></tr>';
+  document.getElementById('sessionsTbody').innerHTML = html || 
+    '<tr><td colspan="7" class="empty-state">本周暂无试听场次（勾选"含过去"可查看历史）</td></tr>';
 }
 
 function openSessionModal(sid) {
