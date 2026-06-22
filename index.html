@@ -749,7 +749,19 @@ function renderCustomers() {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
-    const trialDate = c.trial_date ? c.trial_date.substring(0, 10) : '';
+    // 试听时间：显示日期+具体场次时间
+    let trialDate = '';
+    if (c.trial_date) {
+      const datePart = c.trial_date.substring(0, 10);
+      // 查找该客户的试听排期，获取具体场次时间
+      const ts = _trialSchedule.find(t => t.customer_id === c.id && t.status === '已预约');
+      if (ts && ts.trial_session_id) {
+        const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
+        trialDate = datePart + ' ' + (sess ? (sess.start_time||'') : '');
+      } else {
+        trialDate = datePart;
+      }
+    }
     html += '<tr>' +
       (isTrial ? '<td>' + trialDate + '</td>' : '') +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
@@ -1716,10 +1728,21 @@ function exportTab() {
     if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
     const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
-    const rows = list.map(c => [
-      c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
-      c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', c.trial_date||'', c.owner||'', c.tags||''
-    ]);
+    const rows = list.map(c => {
+      // 试听时间：带具体时间
+      let trialDt = c.trial_date || '';
+      if (trialDt) {
+        const ts = _trialSchedule.find(t => t.customer_id === c.id && t.status === '已预约');
+        if (ts && ts.trial_session_id) {
+          const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
+          trialDt = trialDt.substring(0,10) + ' ' + (sess ? (sess.start_time||'') : '');
+        }
+      }
+      return [
+        c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
+        c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', trialDt, c.owner||'', c.tags||''
+      ];
+    });
     exportCSV(headers, rows, 'DK邻里客户管理_' + (_currentSubTab === 'trial' ? '已上门未报名_' : _currentSubTab === 'promised' ? '承诺上门_' : '未上门_') + new Date().toISOString().substring(0,10) + '.csv');
   } else if (_currentTab === 'trials') {
     // 试听邀约：导出试听排期数据
