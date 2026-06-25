@@ -758,8 +758,20 @@ function renderCustomers() {
         lastFollowDate = custFus[0].created_at ? custFus[0].created_at.substring(0, 10) : '';
       }
     }
+    // 上门日期（已上门未报名Tab用）
+    let visitDate = '';
+    if (isTrial && c.trial_date) {
+      const datePart = c.trial_date.substring(0, 10);
+      const ts = _trialSchedule.find(t => t.customer_id === c.id && t.status === '已预约');
+      if (ts && ts.trial_session_id) {
+        const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
+        visitDate = datePart + ' ' + (sess ? (sess.start_time||'') : '');
+      } else {
+        visitDate = datePart;
+      }
+    }
     html += '<tr>' +
-      (isTrial ? '<td>' + trialDate + '</td>' : '') +
+      (isTrial ? '<td>' + visitDate + '</td>' : '') +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
