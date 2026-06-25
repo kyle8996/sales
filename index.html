@@ -751,11 +751,13 @@ function renderCustomers() {
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
     // 最近跟进时间（仅未上门lead Tab）
     let lastFollowDate = '';
+    let lastFollowContent = '';
     if (_currentSubTab === 'lead') {
       const custFus = _followups.filter(f => f.customer_id === c.id);
       if (custFus.length > 0) {
         custFus.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
         lastFollowDate = custFus[0].created_at ? custFus[0].created_at.substring(0, 10) : '';
+        lastFollowContent = (custFus[0].content || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
     }
     // 试听邀约时间（仅承诺上门promised Tab）
@@ -784,7 +786,7 @@ function renderCustomers() {
     }
     html += '<tr>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
-      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600" title="' + (lastFollowContent ? lastFollowDate + '：' + lastFollowContent : '') + '">' + (c.name||'') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
