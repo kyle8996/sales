@@ -107,6 +107,9 @@ header .user-info{font-size:13px;color:#64748b}
 .followup-item .fu-content{font-size:13px;color:#334155;margin-top:2px}
 .followup-item .fu-meta{font-size:11px;color:#64748b;margin-top:3px;display:flex;gap:12px}
 .empty-state{text-align:center;padding:40px;color:#94a3b8;font-size:14px}
+.fu-tip{position:relative;cursor:default}
+.fu-tip .fu-tip-box{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:400;white-space:nowrap;max-width:300px;overflow:hidden;text-overflow:ellipsis;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.2);margin-bottom:4px}
+.fu-tip:hover .fu-tip-box{display:block}
 .check-row{display:flex;align-items:center;gap:6px;margin-top:6px}
 .check-row input[type=checkbox]{width:16px;height:16px}
 .check-row span{font-size:12px;color:#64748b}
@@ -786,7 +789,7 @@ function renderCustomers() {
     }
     html += '<tr>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
-      '<td style="text-align:left;font-weight:600" title="' + (lastFollowContent ? lastFollowDate + '：' + lastFollowContent : '') + '">' + (c.name||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600" class="fu-tip">' + (c.name||'') + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
