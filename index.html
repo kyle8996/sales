@@ -720,7 +720,7 @@ function renderCustomers() {
     '<th style="width:40px">级别</th>' +
     '<th style="width:80px">学校</th>' +
     '<th style="width:85px">状态</th>' +
-    (isTrial ? '' : '<th style="width:90px">试听时间</th>') +
+    (isTrial ? '' : '<th style="width:90px">最近跟进</th>') +
     '<th style="width:55px">跟进人</th>' +
     '<th style="width:140px">操作</th>' +
   '</tr>';
@@ -749,17 +749,13 @@ function renderCustomers() {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
-    // 试听时间：显示日期+具体场次时间
-    let trialDate = '';
-    if (c.trial_date) {
-      const datePart = c.trial_date.substring(0, 10);
-      // 查找该客户的试听排期，获取具体场次时间
-      const ts = _trialSchedule.find(t => t.customer_id === c.id && t.status === '已预约');
-      if (ts && ts.trial_session_id) {
-        const sess = _trialSessions.find(s => s.id === ts.trial_session_id);
-        trialDate = datePart + ' ' + (sess ? (sess.start_time||'') : '');
-      } else {
-        trialDate = datePart;
+    // 最近跟进时间：显示最新跟进记录的日期（仅未上门/承诺上门Tab）
+    let lastFollowDate = '';
+    if (!isTrial) {
+      const custFus = _followups.filter(f => f.customer_id === c.id);
+      if (custFus.length > 0) {
+        custFus.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+        lastFollowDate = custFus[0].created_at ? custFus[0].created_at.substring(0, 10) : '';
       }
     }
     html += '<tr>' +
@@ -773,7 +769,7 @@ function renderCustomers() {
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
-      (isTrial ? '' : '<td>' + trialDate + '</td>') +
+      (isTrial ? '' : '<td>' + lastFollowDate + '</td>') +
       '<td>' + (c.owner||'') + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
