@@ -1483,7 +1483,7 @@ function renderTrialCalendar() {
     const isWeekend = dow === 0 || dow === 6;
     const isToday = ds === today;
 
-    const sessions = _trialSessions.filter(s => s.session_date === ds);
+    const sessions = _trialSessions.filter(s => s.session_date === ds).sort((a, b) => (a.start_time||'').localeCompare(b.start_time||''));
 
     html += '<div class="month-day' + (isToday ? ' today' : '') + '">';
     html += '<h4 class="' + (isToday ? 'today-num' : isWeekend ? 'weekend-num' : '') + '">' + d + '</h4>';
@@ -1569,7 +1569,12 @@ function renderSessions() {
   
   let html = '';
   let hasData = false;
-  _trialSessions.forEach(s => {
+  // 按日期+时间排序（早的在前）
+  const sorted = [..._trialSessions].sort((a, b) => {
+    if (a.session_date !== b.session_date) return a.session_date.localeCompare(b.session_date);
+    return (a.start_time || '').localeCompare(b.start_time || '');
+  });
+  sorted.forEach(s => {
     // 周筛选
     if (s.session_date < toDateStr(range.start) || s.session_date > toDateStr(range.end)) return;
     // 过去时间过滤（默认隐藏已过去的）
