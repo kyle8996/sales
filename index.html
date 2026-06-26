@@ -1425,6 +1425,7 @@ async function convertToStudent() {
     id: maxId + 1,
     name: c.name,
     class_id: parseInt(classId),
+    phone: c.phone || null,
     paid_hours: paidHours,
     remaining_hours: paidHours,
     status: '在读',
