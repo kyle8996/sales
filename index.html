@@ -876,14 +876,15 @@ function renderSales() {
   });
 
   // 已在教务系统的学员：按"姓名+班级"判断（同一学员可报多个班级）
-  const studentClassPairs = new Set(_students.map(s => s.name + '|' + s.class_id));
+  // 统一转为字符串，避免 number vs string 类型不一致导致匹配失败
+  const studentClassPairs = new Set(_students.map(s => (s.name||'').trim() + '|' + String(s.class_id||'')));
 
   let html = '';
   list.forEach(c => {
-    // 找到该客户报名班级对应的 class_id
-    const cls = _classes.find(cl => cl.name === c.enrolled_class);
+    // 找到该客户报名班级对应的 class_id（trim 防止空格不匹配）
+    const cls = _classes.find(cl => (cl.name||'').trim() === (c.enrolled_class||'').trim());
     const clsId = cls ? cls.id : null;
-    const isConverted = (c.tags||'').includes('已转学员') || (clsId && studentClassPairs.has(c.name + '|' + clsId));
+    const isConverted = (c.tags||'').includes('已转学员') || (clsId && studentClassPairs.has((c.name||'').trim() + '|' + String(clsId)));
     html += '<tr>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
