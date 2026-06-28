@@ -103,6 +103,8 @@ header .user-info{font-size:13px;color:#64748b}
 .day-customer .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .day-customer .dot.attended{background:#16a34a}
 .day-customer .dot.booked{background:#f59e0b}
+.day-customer .tag-converted{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#dcfce7;color:#16a34a;margin-left:auto}
+.day-customer .tag-no-sign{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#fef3c7;color:#92400e;margin-left:auto}
 .followup-timeline{max-height:300px;overflow-y:auto;margin-bottom:12px}
 .followup-item{padding:10px 12px;border-left:3px solid #e2e8f0;margin-bottom:8px;border-radius:0 8px 8px 0;background:#fafbfc}
 .followup-item:hover{background:#f0f7ff}
@@ -1500,9 +1502,12 @@ function renderTrialCalendar() {
       html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + (s.max_capacity ? ' (' + sessCustomers.length + '/' + s.max_capacity + ')' : '') + '</div>';
       // 该场次下的学员
       sessCustomers.forEach(c => {
+        const statusBadge = c.status === '已报名' ? '<span class="tag-converted">已报</span>' :
+                            (c.attended ? '<span class="tag-no-sign">未报</span>' : '');
         html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
           '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
-          (c.name||'') + (c.age ? ' ' + c.age : '') +
+          '<span>' + (c.name||'') + (c.age ? ' ' + c.age : '') + '</span>' +
+          statusBadge +
         '</div>';
       });
       html += '</div>'; // close day-session
