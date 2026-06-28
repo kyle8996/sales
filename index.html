@@ -1405,12 +1405,8 @@ async function convertToStudent() {
   const c = _customers.find(x => x.id === cid);
   if (!c) return;
   
-  // 第一道防线：检查客户标签
-  if ((c.tags||'').includes('已转学员')) {
-    showToast('学员已在班级', false);
-    closeModal('convertModal');
-    return;
-  }
+  // 第一道防线不再拦截——同一学员可以为不同班级分别转入
+  // 精确重复判断交给下面的第二道防线（按 class_id 维度）
   
   // 第二道防线：检查 students 表中是否已有同名学员在同一班级（允许不同班级）
   const { data: existingInClass } = await sb.from('students').select('id, class_id').eq('name', c.name).eq('class_id', parseInt(classId));
