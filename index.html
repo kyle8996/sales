@@ -297,6 +297,7 @@ header .user-info{font-size:13px;color:#64748b}
           <b id="sessionWeekLabel"></b>
           <button onclick="shiftSessionWeek(1)">&#8250;</button>
           <button class="btn btn-gray btn-sm" onclick="goSessionThisWeek()">本周</button>
+          <input type="date" id="sessionStartDate" style="margin-left:6px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;cursor:pointer" title="选择周起始日期" onchange="setSessionStartDate(this.value)">
           <label style="margin-left:6px;font-size:11px;color:#64748b;font-weight:400;cursor:pointer;display:flex;align-items:center;gap:3px">
             <input type="checkbox" id="sessionShowPast" onchange="renderSessions()"> 含过去
           </label>
@@ -1536,29 +1537,47 @@ let _sessionWeekStart = null; // 当前筛选周的周一
 
 function getSessionWeekRange() {
   if (!_sessionWeekStart) {
-    // 默认：从今天开始的一周
+    // 默认：本周一 00:00:00
     const today = new Date();
     const day = today.getDay(); // 0=日 1=一 ... 6=六
+    const diff = day === 0 ? 6 : day - 1; // 距离本周一的天数
     _sessionWeekStart = new Date(today);
-    _sessionWeekStart.setHours(0,0,0,0);
+    _sessionWeekStart.setDate(today.getDate() - diff);
+    _sessionWeekStart.setHours(0, 0, 0, 0);
   }
   const monday = new Date(_sessionWeekStart);
+  monday.setHours(0, 0, 0, 0);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23,59,59,999);
+  sunday.setHours(23, 59, 59, 999);
   return { start: monday, end: sunday };
 }
 
 function shiftSessionWeek(delta) {
-  if (!_sessionWeekStart) _sessionWeekStart = new Date();
+  if (!_sessionWeekStart) _sessionWeekStart = getSessionWeekRange().start;
   _sessionWeekStart.setDate(_sessionWeekStart.getDate() + (delta * 7));
   renderSessions();
 }
 
 function goSessionThisWeek() {
   const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? 6 : day - 1;
   _sessionWeekStart = new Date(today);
-  _sessionWeekStart.setHours(0,0,0,0);
+  _sessionWeekStart.setDate(today.getDate() - diff);
+  _sessionWeekStart.setHours(0, 0, 0, 0);
+  renderSessions();
+}
+
+function setSessionStartDate(dateStr) {
+  if (!dateStr) return;
+  const selected = new Date(dateStr + 'T00:00:00');
+  if (isNaN(selected.getTime())) return;
+  const day = selected.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  _sessionWeekStart = new Date(selected);
+  _sessionWeekStart.setDate(selected.getDate() - diff);
+  _sessionWeekStart.setHours(0, 0, 0, 0);
   renderSessions();
 }
 
@@ -1567,11 +1586,13 @@ function renderSessions() {
   const showPast = document.getElementById('sessionShowPast') && document.getElementById('sessionShowPast').checked;
   const todayStr = toDateStr(new Date());
   
-  // 更新周标签
+  // 更新周标签和日期选择器
   const m = range.start.getMonth()+1, d = range.start.getDate();
   const m2 = range.end.getMonth()+1, d2 = range.end.getDate();
   document.getElementById('sessionWeekLabel').textContent =
     range.start.getFullYear() + '年' + m + '月' + d + '日 ~ ' + m2 + '月' + d2 + '日';
+  const dateInput = document.getElementById('sessionStartDate');
+  if (dateInput) dateInput.value = toDateStr(range.start);
   
   let html = '';
   let hasData = false;
