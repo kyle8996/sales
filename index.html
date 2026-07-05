@@ -719,8 +719,10 @@ function renderCustomers() {
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
   const isTrial = _currentSubTab === 'trial';
+  const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead';
   document.getElementById('custThead').innerHTML = '<tr>' +
     (isTrial ? '<th style="width:90px">上门日期</th>' : '') +
+    (showAddDate ? '<th style="width:100px">客户添加日期</th>' : '') +
     '<th style="text-align:left;width:70px">姓名</th>' +
     '<th style="width:40px">年龄</th>' +
     '<th style="width:110px">电话</th>' +
@@ -796,6 +798,7 @@ function renderCustomers() {
     }
     html += '<tr>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
+      (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
       '<td style="text-align:left;font-weight:600" class="fu-tip">' + (c.name||'') + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
@@ -813,7 +816,8 @@ function renderCustomers() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="12" class="empty-state">暂无客户</td></tr>';
+  const colCount = isTrial ? 12 : 13;
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">暂无客户</td></tr>';
 }
 
 // ═══════════════════════════════════════
