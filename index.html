@@ -549,7 +549,7 @@ async function loadAll() {
     withTimeout(sb.from('trial_schedule').select('*')),
     withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true})),
     withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
-    withTimeout(sb.from('renewals').select('*').order('created_at', {ascending: false}))
+    withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false}))
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
@@ -1079,7 +1079,8 @@ async function saveRenewal() {
     current_class: document.getElementById('renewalClass').value.trim(),
     payment_type: document.getElementById('renewalType').value.trim(),
     book_fee: parseFloat(document.getElementById('renewalBookFee').value) || 0,
-    total_payment: parseFloat(document.getElementById('renewalTotal').value) || 0
+    total_payment: parseFloat(document.getElementById('renewalTotal').value) || 0,
+    source: 'sales'
   };
   // 计算课单价
   const hours = parseInt(document.getElementById('renewalHours').value) || 0;

@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS renewals (
   book_fee NUMERIC DEFAULT 0,      -- 书费
   total_payment NUMERIC DEFAULT 0, -- 合计缴费
   unit_price NUMERIC DEFAULT 0,    -- 课单价
+  source TEXT DEFAULT 'sales',     -- 来源：sales(销售系统手动添加) / edusys(教务系统同步)
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
