@@ -751,9 +751,8 @@ function renderCustomers() {
     // 承诺上门按试听时间正序（即将上门在前）
     list.sort((a, b) => (a.trial_date||'').localeCompare(b.trial_date||''));
   } else {
-    // 未上门按客户级别排序：A > B > C
-    const order = { 'A': 0, 'B': 1, 'C': 2 };
-    list.sort((a, b) => (order[a.level] ?? 1) - (order[b.level] ?? 1));
+    // 未上门按客户添加日期倒序（最新在前）
+    list.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
   }
 
   let html = '';
