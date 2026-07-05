@@ -1094,24 +1094,60 @@ async function saveRenewal() {
   }
 
   if (rid) {
+    // 编辑续费：先读取旧记录，计算课时差值
+    const oldR = _renewals.find(r => r.id === rid);
+    const oldHours = oldR ? (parseFloat(oldR.course_hours) || 0) : 0;
+    const hourDiff = hours - oldHours;
+
     const { error } = await sb.from('renewals').update(data).eq('id', rid);
     if (error) { alert('更新失败: ' + error.message); return; }
     const idx = _renewals.findIndex(r => r.id === rid);
     if (idx >= 0) _renewals[idx] = { ..._renewals[idx], ...data };
+
+    // 同步课时差额到教务系统
+    if (hourDiff !== 0) {
+      syncRenewalToStudentHours(data.phone, hourDiff);
+    }
   } else {
     const { data: inserted, error } = await sb.from('renewals').insert([data]).select();
     if (error) { alert('新增失败: ' + error.message); return; }
     if (inserted && inserted.length > 0) _renewals.unshift(inserted[0]);
+
+    // 新增续费：同步课时到教务系统
+    syncRenewalToStudentHours(data.phone, hours);
   }
   closeModal('renewalModal');
   renderRenewals();
 }
 
+// 将销售系统续费课时同步到教务系统学员的 paid_hours
+async function syncRenewalToStudentHours(phone, deltaHours) {
+  if (!phone || deltaHours === 0) return;
+  try {
+    const { data: stuRows, error: selErr } = await sb.from('students')
+      .select('id,paid_hours')
+      .eq('phone', phone);
+    if (selErr || !stuRows || stuRows.length === 0) return;
+    // 可能一个电话对应多个学员（ siblings / 同名不同班），给每个匹配学员都加上
+    for (const stu of stuRows) {
+      const newPaid = (parseFloat(stu.paid_hours) || 0) + deltaHours;
+      await sb.from('students').update({ paid_hours: newPaid }).eq('id', stu.id);
+    }
+  } catch(e) { /* 教务系统学员表可能不存在，忽略 */ }
+}
+
 async function deleteRenewal(rid) {
   if (!confirm('确认删除这条续费记录？')) return;
+  const r = _renewals.find(x => x.id === rid);
+  const hours = r ? (parseFloat(r.course_hours) || 0) : 0;
+  const phone = r ? r.phone : '';
   const { error } = await sb.from('renewals').delete().eq('id', rid);
   if (error) { alert('删除失败: ' + error.message); return; }
   _renewals = _renewals.filter(r => r.id !== rid);
+  // 同步扣减教务系统课时
+  if (hours !== 0) {
+    syncRenewalToStudentHours(phone, -hours);
+  }
   renderRenewals();
 }
 
