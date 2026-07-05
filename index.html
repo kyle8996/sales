@@ -1106,7 +1106,7 @@ async function saveRenewal() {
 
     // 同步课时差额到教务系统
     if (hourDiff !== 0) {
-      syncRenewalToStudentHours(data.phone, hourDiff);
+      syncRenewalToStudentHours(data.phone, data.student_name, hourDiff);
     }
   } else {
     const { data: inserted, error } = await sb.from('renewals').insert([data]).select();
@@ -1114,21 +1114,21 @@ async function saveRenewal() {
     if (inserted && inserted.length > 0) _renewals.unshift(inserted[0]);
 
     // 新增续费：同步课时到教务系统
-    syncRenewalToStudentHours(data.phone, hours);
+    syncRenewalToStudentHours(data.phone, data.student_name, hours);
   }
   closeModal('renewalModal');
   renderRenewals();
 }
 
 // 将销售系统续费课时同步到教务系统学员的 paid_hours
-async function syncRenewalToStudentHours(phone, deltaHours) {
-  if (!phone || deltaHours === 0) return;
+async function syncRenewalToStudentHours(phone, studentName, deltaHours) {
+  if (!phone || !studentName || deltaHours === 0) return;
   try {
     const { data: stuRows, error: selErr } = await sb.from('students')
       .select('id,paid_hours')
-      .eq('phone', phone);
+      .eq('phone', phone)
+      .eq('name', studentName);
     if (selErr || !stuRows || stuRows.length === 0) return;
-    // 可能一个电话对应多个学员（ siblings / 同名不同班），给每个匹配学员都加上
     for (const stu of stuRows) {
       const newPaid = (parseFloat(stu.paid_hours) || 0) + deltaHours;
       await sb.from('students').update({ paid_hours: newPaid }).eq('id', stu.id);
@@ -1141,12 +1141,13 @@ async function deleteRenewal(rid) {
   const r = _renewals.find(x => x.id === rid);
   const hours = r ? (parseFloat(r.course_hours) || 0) : 0;
   const phone = r ? r.phone : '';
+  const studentName = r ? r.student_name : '';
   const { error } = await sb.from('renewals').delete().eq('id', rid);
   if (error) { alert('删除失败: ' + error.message); return; }
   _renewals = _renewals.filter(r => r.id !== rid);
   // 同步扣减教务系统课时
   if (hours !== 0) {
-    syncRenewalToStudentHours(phone, -hours);
+    syncRenewalToStudentHours(phone, studentName, -hours);
   }
   renderRenewals();
 }
