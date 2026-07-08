@@ -372,7 +372,7 @@ header .user-info{font-size:13px;color:#64748b}
       <label>报名班级<input type="text" id="custEnrollClass" placeholder="如:K1001"></label>
     </div>
     <div class="form-row">
-      <label>课时数<input type="number" id="custCourseHours" value="0" min="0" step="1" onchange="onCustCalcChange()" oninput="onCustCalcChange()" style="width:80px"></label>
+      <label>课时数<input type="number" id="custCourseHours" value="0" min="0" step="0.5" onchange="onCustCalcChange()" oninput="onCustCalcChange()" style="width:80px"></label>
       <label>书费(¥)<input type="number" id="custBookFee" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()"></label>
       <label>合计缴费(¥)<input type="number" id="custTotalPayment" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()"></label>
       <label>课单价(¥)<input type="text" id="custUnitPrice" readonly style="background:#f1f5f9;width:80px"></label>
@@ -489,7 +489,7 @@ header .user-info{font-size:13px;color:#64748b}
     <div class="form-row">
       <label>缴费日期*<input type="date" id="renewalPayDate"></label>
       <label>缴费类型<input type="text" id="renewalType" placeholder="如:续费/转介绍" style="width:120px"></label>
-      <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="1" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px"></label>
+      <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="0.5" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px"></label>
     </div>
     <div class="form-row">
       <label>书费(¥)<input type="number" id="renewalBookFee" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()"></label>
@@ -1045,7 +1045,7 @@ function unitPriceDisplay(v) {
 function onCustCalcChange() {
   const total = parseFloat(document.getElementById('custTotalPayment').value) || 0;
   const bookFee = parseFloat(document.getElementById('custBookFee').value) || 0;
-  const hours = parseInt(document.getElementById('custCourseHours').value) || 0;
+  const hours = parseFloat(document.getElementById('custCourseHours').value) || 0;
   const netPayment = total - bookFee;
   if (hours > 0 && netPayment > 0) {
     document.getElementById('custUnitPrice').value = '¥' + Math.round(netPayment / hours);
@@ -1062,7 +1062,7 @@ function onRenewalBirthChange() {
 function onRenewalCalcChange() {
   const total = parseFloat(document.getElementById('renewalTotal').value) || 0;
   const bookFee = parseFloat(document.getElementById('renewalBookFee').value) || 0;
-  const hours = parseInt(document.getElementById('renewalHours').value) || 0;
+  const hours = parseFloat(document.getElementById('renewalHours').value) || 0;
   const netPayment = total - bookFee;
   if (hours > 0 && netPayment > 0) {
     document.getElementById('renewalUnitPrice').value = '¥' + Math.round(netPayment / hours);
@@ -1086,7 +1086,7 @@ async function saveRenewal() {
     source: 'sales'
   };
   // 计算课单价
-  const hours = parseInt(document.getElementById('renewalHours').value) || 0;
+  const hours = parseFloat(document.getElementById('renewalHours').value) || 0;
   data.course_hours = hours;
   const netPayment = data.total_payment - data.book_fee;
   data.unit_price = (hours > 0 && netPayment > 0) ? Math.round(netPayment / hours) : 0;
@@ -1254,7 +1254,7 @@ async function saveCustomer() {
     trial_date: document.getElementById('custTrialDate').value || null,
     owner: document.getElementById('custOwner').value,
     tags: document.getElementById('custTags').value,
-    course_hours: parseInt(document.getElementById('custCourseHours').value) || 0,
+    course_hours: parseFloat(document.getElementById('custCourseHours').value) || 0,
     book_fee: parseFloat(document.getElementById('custBookFee').value) || 0,
     total_payment: parseFloat(document.getElementById('custTotalPayment').value) || 0,
     updated_at: new Date().toISOString()
