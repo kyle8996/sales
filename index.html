@@ -1109,7 +1109,7 @@ async function saveRenewal() {
 
     // 同步课时差额到教务系统
     if (hourDiff !== 0) {
-      syncRenewalToStudentHours(data.phone, data.student_name, hourDiff);
+      await syncRenewalToStudentHours(data.phone, data.student_name, hourDiff);
     }
   } else {
     const { data: inserted, error } = await sb.from('renewals').insert([data]).select();
@@ -1117,7 +1117,7 @@ async function saveRenewal() {
     if (inserted && inserted.length > 0) _renewals.unshift(inserted[0]);
 
     // 新增续费：同步课时到教务系统
-    syncRenewalToStudentHours(data.phone, data.student_name, hours);
+    await syncRenewalToStudentHours(data.phone, data.student_name, hours);
   }
   closeModal('renewalModal');
   renderRenewals();
@@ -1131,12 +1131,17 @@ async function syncRenewalToStudentHours(phone, studentName, deltaHours) {
       .select('id,paid_hours')
       .eq('phone', phone)
       .eq('name', studentName);
-    if (selErr || !stuRows || stuRows.length === 0) return;
+    if (selErr) { console.error('同步课时查询失败:', selErr); return; }
+    if (!stuRows || stuRows.length === 0) {
+      console.warn('同步课时: 未找到匹配学员 phone=' + phone + ' name=' + studentName);
+      return;
+    }
     for (const stu of stuRows) {
       const newPaid = (parseFloat(stu.paid_hours) || 0) + deltaHours;
-      await sb.from('students').update({ paid_hours: newPaid }).eq('id', stu.id);
+      const { error: updErr } = await sb.from('students').update({ paid_hours: newPaid }).eq('id', stu.id);
+      if (updErr) console.error('同步课时更新失败:', updErr);
     }
-  } catch(e) { /* 教务系统学员表可能不存在，忽略 */ }
+  } catch(e) { console.error('同步课时异常:', e); }
 }
 
 async function deleteRenewal(rid) {
@@ -1150,7 +1155,7 @@ async function deleteRenewal(rid) {
   _renewals = _renewals.filter(r => r.id !== rid);
   // 同步扣减教务系统课时
   if (hours !== 0) {
-    syncRenewalToStudentHours(phone, studentName, -hours);
+    await syncRenewalToStudentHours(phone, studentName, -hours);
   }
   renderRenewals();
 }
