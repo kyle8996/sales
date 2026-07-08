@@ -217,7 +217,7 @@ header .user-info{font-size:13px;color:#64748b}
         <div class="toolbar" style="margin-left:auto">
           <select id="renewalFilterClass" onchange="renderRenewals()"><option value="all">全部班级</option></select>
           <select id="renewalFilterMonth" onchange="renderRenewals()"><option value="all">全部月份</option></select>
-          <input type="text" id="renewalFilterSearch" placeholder="搜索姓名/电话/班级..." oninput="renderRenewals()" style="width:180px">
+          <input type="text" id="renewalFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderRenewals()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openRenewalModal()">＋ 新增续费</button>
           <button class="btn btn-gray btn-sm" onclick="exportRenewals()">📥 导出</button>
         </div>
@@ -230,6 +230,7 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:40px">年龄</th>
           <th style="width:110px">电话</th>
           <th style="width:50px">家长</th>
+          <th style="width:90px">所在学校</th>
           <th style="width:80px">所在班级</th>
           <th style="width:60px">缴费类型</th>
           <th style="width:55px">课时数</th>
@@ -484,11 +485,14 @@ header .user-info{font-size:13px;color:#64748b}
     <div class="form-row">
       <label>电话<input type="text" id="renewalPhone"></label>
       <label>家长姓名<input type="text" id="renewalParent"></label>
-      <label>所在班级*<input type="text" id="renewalClass" placeholder="如:K1001"></label>
+      <label>所在学校<input type="text" id="renewalSchool"></label>
     </div>
     <div class="form-row">
+      <label>所在班级*<input type="text" id="renewalClass" placeholder="如:K1001"></label>
       <label>缴费日期*<input type="date" id="renewalPayDate"></label>
       <label>缴费类型<input type="text" id="renewalType" placeholder="如:续费/转介绍" style="width:120px"></label>
+    </div>
+    <div class="form-row">
       <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="0.5" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px"></label>
     </div>
     <div class="form-row">
@@ -944,7 +948,7 @@ function renderRenewals() {
 
   if (fCls !== 'all') list = list.filter(r => r.current_class === fCls);
   if (fMon !== 'all') list = list.filter(r => (r.payment_date||'').startsWith(fMon));
-  if (fQ) list = list.filter(r => (r.student_name||'').toLowerCase().includes(fQ) || (r.phone||'').includes(fQ) || (r.current_class||'').toLowerCase().includes(fQ));
+  if (fQ) list = list.filter(r => (r.student_name||'').toLowerCase().includes(fQ) || (r.phone||'').includes(fQ) || (r.school||'').toLowerCase().includes(fQ) || (r.current_class||'').toLowerCase().includes(fQ));
 
   // 按缴费日期倒序
   list.sort((a, b) => {
@@ -966,6 +970,7 @@ function renderRenewals() {
       '<td>' + age + '</td>' +
       '<td>' + (r.phone||'') + '</td>' +
       '<td>' + (r.parent_name||'') + '</td>' +
+      '<td>' + (r.school||'') + '</td>' +
       '<td>' + (r.current_class||'') + '</td>' +
       '<td>' + (r.payment_type||'') + '</td>' +
       '<td>' + (r.course_hours||'') + '</td>' +
@@ -977,7 +982,7 @@ function renderRenewals() {
         '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="13" class="empty-state">暂无续费记录</td></tr>';
+  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="14" class="empty-state">暂无续费记录</td></tr>';
   fillRenewalFilters();
 }
 
@@ -1016,6 +1021,7 @@ function openRenewalModal(rid) {
       document.getElementById('renewalAge').value = calcAge(r.birth_date)||'';
       document.getElementById('renewalPhone').value = r.phone||'';
       document.getElementById('renewalParent').value = r.parent_name||'';
+      document.getElementById('renewalSchool').value = r.school||'';
       document.getElementById('renewalClass').value = r.current_class||'';
       document.getElementById('renewalPayDate').value = r.payment_date||'';
       document.getElementById('renewalType').value = r.payment_type||'';
@@ -1026,7 +1032,7 @@ function openRenewalModal(rid) {
     }
   } else {
     // 清空
-    ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalClass','renewalPayDate','renewalType'].forEach(id => {
+    ['renewalName','renewalBirthDate','renewalAge','renewalPhone','renewalParent','renewalSchool','renewalClass','renewalPayDate','renewalType'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('renewalHours').value = '0';
@@ -1079,6 +1085,7 @@ async function saveRenewal() {
     birth_date: document.getElementById('renewalBirthDate').value,
     phone: document.getElementById('renewalPhone').value.trim(),
     parent_name: document.getElementById('renewalParent').value.trim(),
+    school: document.getElementById('renewalSchool').value.trim(),
     current_class: document.getElementById('renewalClass').value.trim(),
     payment_type: document.getElementById('renewalType').value.trim(),
     book_fee: parseFloat(document.getElementById('renewalBookFee').value) || 0,
@@ -1161,12 +1168,12 @@ async function deleteRenewal(rid) {
 }
 
 function exportRenewals() {
-  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在班级','缴费类型','课时数','书费','合计缴费','课单价'];
+  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','所在班级','缴费类型','课时数','书费','合计缴费','课单价'];
   const list = [..._renewals];
   list.sort((a, b) => (b.payment_date||'').localeCompare(a.payment_date||''));
   const rows = list.map(r => [
     r.payment_date||'', r.student_name||'', r.birth_date||'', calcAge(r.birth_date)||'',
-    r.phone||'', r.parent_name||'', r.current_class||'', r.payment_type||'', r.course_hours||'',
+    r.phone||'', r.parent_name||'', r.school||'', r.current_class||'', r.payment_type||'', r.course_hours||'',
     r.book_fee||'', r.total_payment||'', r.unit_price||''
   ]);
   exportCSV(headers, rows, 'DK邻里在读续费_' + new Date().toISOString().substring(0,10) + '.csv');
