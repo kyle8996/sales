@@ -100,11 +100,14 @@ header .user-info{font-size:13px;color:#64748b}
 .day-session .sess-title{font-weight:600;color:#1e40af;font-size:11px}
 .day-customer{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 6px;margin-bottom:2px;font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer}
 .day-customer:hover{background:#f0f7ff}
-.day-customer .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.day-customer .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .day-customer .dot.attended{background:#16a34a}
 .day-customer .dot.booked{background:#f59e0b}
+.day-customer.attended-row{background:#f0fdf4;border-color:#bbf7d0}
+.day-customer.booked-row{background:#fffbeb;border-color:#fde68a}
 .day-customer .tag-converted{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#dcfce7;color:#16a34a;margin-left:auto}
 .day-customer .tag-no-sign{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#fef3c7;color:#92400e;margin-left:auto}
+.day-customer .tag-pending{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#e0e7ff;color:#3730a3;margin-left:auto}
 .followup-timeline{max-height:300px;overflow-y:auto;margin-bottom:12px}
 .followup-item{padding:10px 12px;border-left:3px solid #e2e8f0;margin-bottom:8px;border-radius:0 8px 8px 0;background:#fafbfc}
 .followup-item:hover{background:#f0f7ff}
@@ -1418,6 +1421,11 @@ async function saveFollowup() {
       trial_date: trialDate || undefined,
       updated_at: new Date().toISOString()
     }).eq('id', cid);
+    // 同步更新 trial_schedule.attended
+    if (trialAttended) {
+      await sb.from('trial_schedule').update({ attended: true })
+        .eq('customer_id', cid).eq('status', '已预约');
+    }
   } else if (trialSessionId) {
     await sb.from('customers').update({
       trial_date: trialDate,
@@ -1550,15 +1558,20 @@ function renderTrialCalendar() {
       const sessCustomers = [];
       _trialSchedule.filter(ts => ts.status === '已预约' && ts.trial_session_id === s.id).forEach(ts => {
         const cust = _customers.find(c => c.id === ts.customer_id);
-        if (cust) sessCustomers.push({...cust, attended: ts.attended});
+        if (cust) {
+          // attended 以 trial_schedule 为准，但如果客户状态已是已上门/已报名，也视为已上门
+          const isAttended = ts.attended || cust.status === '已上门未报名' || cust.status === '已报名';
+          sessCustomers.push({...cust, attended: isAttended});
+        }
       });
       
       html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + (s.max_capacity ? ' (' + sessCustomers.length + '/' + s.max_capacity + ')' : '') + '</div>';
       // 该场次下的学员
       sessCustomers.forEach(c => {
         const statusBadge = c.status === '已报名' ? '<span class="tag-converted">已报</span>' :
-                            (c.attended ? '<span class="tag-no-sign">未报</span>' : '');
-        html += '<div class="day-customer" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
+                            (c.attended ? '<span class="tag-no-sign">未报</span>' : '<span class="tag-pending">待上门</span>');
+        const rowClass = c.attended ? 'attended-row' : 'booked-row';
+        html += '<div class="day-customer ' + rowClass + '" onclick="openFollowupModal(' + c.id + ')" title="' + (c.notes||'') + '">' +
           '<span class="dot ' + (c.attended ? 'attended' : 'booked') + '"></span>' +
           '<span>' + (c.name||'') + (c.age ? ' ' + c.age : '') + '</span>' +
           statusBadge +
