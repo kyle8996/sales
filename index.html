@@ -568,7 +568,7 @@ async function loadAll() {
   // 单独查students，失败不影响主流程
   _students = [];
   try {
-    const r = await withTimeout(sb.from('students').select('name,class_id'), 8000);
+    const r = await withTimeout(sb.from('students').select('name,class_id,phone'), 8000);
     _students = r.data || [];
   } catch(e) { console.warn('students query failed, ignore:', e.message); }
 }
