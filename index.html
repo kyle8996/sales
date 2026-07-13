@@ -190,6 +190,7 @@ header .user-info{font-size:13px;color:#64748b}
       </h2>
       <div class="tbl"><table>
         <thead><tr>
+          <th style="width:50px">序号</th>
           <th style="width:80px">报名日期</th>
           <th style="text-align:left;width:70px">姓名</th>
           <th style="width:80px">出生日期</th>
@@ -227,6 +228,7 @@ header .user-info{font-size:13px;color:#64748b}
       </h2>
       <div class="tbl"><table>
         <thead><tr>
+          <th style="width:50px">序号</th>
           <th style="width:80px">缴费日期</th>
           <th style="text-align:left;width:70px">姓名</th>
           <th style="width:80px">出生日期</th>
@@ -328,6 +330,7 @@ header .user-info{font-size:13px;color:#64748b}
       <h2>跟进提醒 <span style="font-size:12px;color:#94a3b8;font-weight:400">仅显示需要提醒跟进的客户</span></h2>
       <div class="tbl"><table>
         <thead><tr>
+          <th style="width:50px">序号</th>
           <th style="text-align:left">学员姓名</th>
           <th>上次跟进</th>
           <th>跟进人</th>
@@ -728,6 +731,7 @@ function renderCustomers() {
   const isTrial = _currentSubTab === 'trial';
   const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead';
   document.getElementById('custThead').innerHTML = '<tr>' +
+    '<th style="width:50px">序号</th>' +
     (isTrial ? '<th style="width:90px">上门日期</th>' : '') +
     (showAddDate ? '<th style="width:100px">客户添加日期</th>' : '') +
     '<th style="text-align:left;width:70px">姓名</th>' +
@@ -763,7 +767,7 @@ function renderCustomers() {
   }
 
   let html = '';
-  list.forEach(c => {
+  list.forEach((c, idx) => {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
@@ -803,6 +807,7 @@ function renderCustomers() {
       }
     }
     html += '<tr>' +
+      '<td>' + (idx + 1) + '</td>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
       (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
       '<td style="text-align:left;font-weight:600" class="fu-tip">' + (c.name||'') + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
@@ -822,7 +827,7 @@ function renderCustomers() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  const colCount = isTrial ? 12 : 13;
+  const colCount = isTrial ? 13 : 14;
   document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">暂无客户</td></tr>';
 }
 
@@ -902,7 +907,7 @@ function renderSales() {
   });
 
   let html = '';
-  list.forEach(c => {
+  list.forEach((c, idx) => {
     const cName = (c.name || '').trim();
     const cPhone = (c.phone || '').trim();
     const cls = _classes.find(cl => (cl.name || '').trim() === (c.enrolled_class || '').trim());
@@ -911,6 +916,7 @@ function renderSales() {
       || (cPhone && studentNamePhonePairs.has(cName + '|' + cPhone))
       || (clsId && studentClassPairs.has(cName + '|' + String(clsId)));
     html += '<tr>' +
+      '<td>' + (idx + 1) + '</td>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (c.birth_date||'') + '</td>' +
@@ -935,14 +941,14 @@ function renderSales() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="16" class="empty-state">暂无新招学员</td></tr>';
+  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="17" class="empty-state">暂无新招学员</td></tr>';
 }
 
 function exportSales() {
-  const headers = ['报名日期','姓名','出生日期','年龄','电话','家长','一级渠道','二级渠道','学校','报名班级','跟进人','课时数','书费','合计缴费','课单价'];
+  const headers = ['序号','报名日期','姓名','出生日期','年龄','电话','家长','一级渠道','二级渠道','学校','报名班级','跟进人','课时数','书费','合计缴费','课单价'];
   const list = _customers.filter(c => c.status === '已报名');
-  const rows = list.map(c => [
-    c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
+  const rows = list.map((c, idx) => [
+    idx + 1, c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
     c.phone||'', c.parent||'', c.source_primary||'', c.source_secondary||c.source||'', c.school||'',
     c.enrolled_class||'', c.owner||'',
     c.course_hours||'', c.book_fee||'', c.total_payment||'', c.unit_price||''
@@ -976,9 +982,10 @@ function renderRenewals() {
   });
 
   let html = '';
-  list.forEach(r => {
+  list.forEach((r, idx) => {
     const age = calcAge(r.birth_date) || '';
     html += '<tr>' +
+      '<td>' + (idx + 1) + '</td>' +
       '<td>' + (r.payment_date||'') + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + '</td>' +
       '<td>' + (r.birth_date||'') + '</td>' +
@@ -997,7 +1004,7 @@ function renderRenewals() {
         '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="14" class="empty-state">暂无续费记录</td></tr>';
+  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="15" class="empty-state">暂无续费记录</td></tr>';
   fillRenewalFilters();
 }
 
@@ -1183,10 +1190,11 @@ async function deleteRenewal(rid) {
 }
 
 function exportRenewals() {
-  const headers = ['缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','所在班级','缴费类型','课时数','书费','合计缴费','课单价'];
+  const headers = ['序号','缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','所在班级','缴费类型','课时数','书费','合计缴费','课单价'];
   const list = [..._renewals];
   list.sort((a, b) => (b.payment_date||'').localeCompare(a.payment_date||''));
-  const rows = list.map(r => [
+  const rows = list.map((r, idx) => [
+    idx + 1,
     r.payment_date||'', r.student_name||'', r.birth_date||'', calcAge(r.birth_date)||'',
     r.phone||'', r.parent_name||'', r.school||'', r.current_class||'', r.payment_type||'', r.course_hours||'',
     r.book_fee||'', r.total_payment||'', r.unit_price||''
@@ -1778,7 +1786,7 @@ function renderReminders() {
   
   const now = new Date();
   let html = '';
-  list.forEach(c => {
+  list.forEach((c, idx) => {
     const lastFu = reminderMap[c.id];
     const fuDate = lastFu?.created_at ? new Date(lastFu.created_at) : null;
     const daysAgo = fuDate ? Math.floor((now - fuDate) / 86400000) : 999;
@@ -1786,6 +1794,7 @@ function renderReminders() {
     const statusText = daysAgo > 7 ? '🔴 逾期' + daysAgo + '天' : (daysAgo > 3 ? '🟡 ' + daysAgo + '天前' : '🟢 近期');
     
     html += '<tr class="' + rowClass + '">' +
+      '<td>' + (idx + 1) + '</td>' +
       '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
       '<td>' + (fuDate ? fuDate.toLocaleDateString('zh-CN') : '') + '</td>' +
       '<td>' + (c.owner||'') + '</td>' +
@@ -1796,7 +1805,7 @@ function renderReminders() {
         '<button class="btn btn-danger btn-xs" onclick="clearReminder(' + c.id + ')">取消提醒</button>' +
       '</td></tr>';
   });
-  document.getElementById('reminderTbody').innerHTML = html || '<tr><td colspan="6" class="empty-state">🎉 暂无需要跟进提醒的客户</td></tr>';
+  document.getElementById('reminderTbody').innerHTML = html || '<tr><td colspan="7" class="empty-state">🎉 暂无需要跟进提醒的客户</td></tr>';
 }
 
 async function saveNextNote(followupId, note) {
@@ -1863,8 +1872,8 @@ function exportTab() {
     if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
     if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
-    const headers = ['姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
-    const rows = list.map(c => {
+    const headers = ['序号','姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
+    const rows = list.map((c, idx) => {
       // 试听时间：带具体时间
       let trialDt = c.trial_date || '';
       if (trialDt) {
@@ -1875,7 +1884,7 @@ function exportTab() {
         }
       }
       return [
-        c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
+        idx + 1, c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
         c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', trialDt, c.owner||'', c.tags||''
       ];
     });
@@ -1904,10 +1913,11 @@ function exportReminders() {
   const reminderCids = Object.keys(reminderMap).map(Number);
   const list = _customers.filter(c => reminderCids.includes(c.id));
 
-  const headers = ['姓名','出生日期','年龄','电话','家长','学校','一级渠道','二级渠道','级别','状态','跟进时间','下次跟进备注'];
-  const rows = list.map(c => {
+  const headers = ['序号','姓名','出生日期','年龄','电话','家长','学校','一级渠道','二级渠道','级别','状态','跟进时间','下次跟进备注'];
+  const rows = list.map((c, idx) => {
     const lastFu = reminderMap[c.id];
     return [
+      idx + 1,
       c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.phone||'', c.parent||'',
       c.school||'', c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'',
       lastFu?.created_at ? new Date(lastFu.created_at).toLocaleDateString('zh-CN') : '',
