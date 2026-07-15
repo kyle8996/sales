@@ -893,27 +893,20 @@ function renderSales() {
     return db.localeCompare(da);
   });
 
-  // 已在教务系统的学员：
-  // 1) 按"姓名+电话"判断（覆盖跨班级/转班/毕业后的情况，避免家庭共用电话需结合姓名）
-  // 2) 按"姓名+班级"兜底（兼容无电话或电话不一致的旧数据）
-  // 统一转为字符串，避免 number vs string 类型不一致导致匹配失败
+  // 已在教务系统的学员：按"姓名+班级"判断
+  // 注意：不再按"姓名+电话"判断，避免同一孩子报了多个班时，一个电话导致全部班级都被误判为"已转"
   const studentClassPairs = new Set();
-  const studentNamePhonePairs = new Set();
   _students.forEach(s => {
     const name = (s.name || '').trim();
     studentClassPairs.add(name + '|' + String(s.class_id || ''));
-    const phone = (s.phone || '').trim();
-    if (phone) studentNamePhonePairs.add(name + '|' + phone);
   });
 
   let html = '';
   list.forEach((c, idx) => {
     const cName = (c.name || '').trim();
-    const cPhone = (c.phone || '').trim();
     const cls = _classes.find(cl => (cl.name || '').trim() === (c.enrolled_class || '').trim());
     const clsId = cls ? cls.id : null;
     const isConverted = (c.tags || '').includes('已转学员')
-      || (cPhone && studentNamePhonePairs.has(cName + '|' + cPhone))
       || (clsId && studentClassPairs.has(cName + '|' + String(clsId)));
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
