@@ -2131,11 +2131,11 @@ function renderRevenue() {
   html += '</tbody>' +
     '<tfoot><tr style="background:#f8fafc;font-weight:700;border-top:2px solid #e2e8f0">' +
     '<td style="text-align:left" colspan="2">全部学员合计</td>' +
-    months.map(m => '<td>' + monthlyTotals[m].toFixed(1) + '</td>').join('') +
-    '<td>' + grandTotal.toFixed(1) + '</td>' +
+    months.map(m => '<td>' + Math.round(monthlyTotals[m] || 0).toFixed(0) + '</td>').join('') +
+    '<td>' + Math.round(grandTotal).toFixed(0) + '</td>' +
     '<td colspan="2"></td>' +
     '</tr></tfoot></table></div>';
-  html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
+  html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + Math.round(grandTotal).toFixed(0) + '</div>';
   html += '</div>';
 
   container.innerHTML = html;
@@ -2231,7 +2231,7 @@ function exportRevenue() {
       rows.push(row);
     });
   });
-  rows.push(['全机构合计', '', ...months.map(() => ''), grandTotal.toFixed(1), '']);
+  rows.push(['全机构合计', '', ...months.map(() => ''), Math.round(grandTotal).toFixed(0), '']);
   exportCSV(headers, rows, 'DK邻里确收表_' + year + '年3月-' + currentMonth + '月_' + new Date().toISOString().substring(0, 10) + '.csv');
 }
 
