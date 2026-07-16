@@ -2130,12 +2130,14 @@ function buildRevenueData() {
       const rev = calcStudentRevenue(s);
       if (rev.hasPrice) {
         // 合计用精确值累加（最后统一舍入），与手工电子表格口径一致
+        // 毕业学员的金额同样计入合计（名单隐藏但金额照算）
         grandTotal += rev.totalRaw;
         months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
       } else {
         nopriceCount++;
       }
-      return { student: s, rev };
+      const isGrad = s.status === '毕业';
+      return { student: s, rev, isGrad };
     });
     classes.push({ cls, students });
   });
@@ -2166,7 +2168,10 @@ function renderRevenue() {
     if (students.length === 0) return;
     let classTotal = 0;
     let classRows = '';
-    students.forEach(({ student, rev }) => {
+    students.forEach(({ student, rev, isGrad }) => {
+      // 毕业学员的金额计入班级合计，但不展示在名单中
+      if (rev.hasPrice) classTotal += rev.total;
+      if (isGrad) return;
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
@@ -2178,7 +2183,6 @@ function renderRevenue() {
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
           '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
-        classTotal += rev.total;
       }
     });
     html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
@@ -2280,7 +2284,8 @@ function exportRevenue() {
   const rows = [];
   classes.forEach(({ cls, students }) => {
     if (students.length === 0) return;
-    students.forEach(({ student, rev }) => {
+    students.forEach(({ student, rev, isGrad }) => {
+      if (isGrad) return;  // 毕业学员不纳入名单导出
       const row = [cls.name, student.name];
       months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
       row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
