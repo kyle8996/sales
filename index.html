@@ -142,6 +142,9 @@ header .user-info{font-size:13px;color:#64748b}
 .rev-table tr.rev-class-row td{background:#f1f5f9;font-weight:700;color:#334155;font-size:13px}
 .rev-table tr.rev-noprice td{background:#fef2f2;color:#94a3b8}
 .rev-table tbody tr:not(.rev-class-row):hover{background:#f8fafc}
+.rev-table tbody tr[data-student-id]{cursor:grab}
+.rev-table tbody tr[data-student-id]:active{cursor:grabbing}
+.rev-table tbody tr[data-student-id].rev-dragging{opacity:.4}
 /* 确收表缴费批次编辑 */
 .batch-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .batch-row .batch-label{width:50px;font-size:12px;color:#64748b;white-space:nowrap}
@@ -2010,13 +2013,13 @@ function renderRevenue() {
     let classRows = '';
     students.forEach(({ student, rev }) => {
       if (!rev.hasPrice) {
-        classRows += '<tr class="rev-noprice"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
+        classRows += '<tr class="rev-noprice" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
           '<td>—</td><td><span style="color:#dc2626;font-size:11px">无课单价</span></td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       } else {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
-        classRows += '<tr><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
+        classRows += '<tr data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
           '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
@@ -2032,6 +2035,81 @@ function renderRevenue() {
   html += '</div>';
 
   container.innerHTML = html;
+  enableRevenueDragSort();
+}
+
+// ══════════════════════════════════════════
+// 确收表学员拖拽排序（按班级内）
+// ══════════════════════════════════════════
+let _revDragStudentId = null;
+let _revDragClassId = null;
+
+function enableRevenueDragSort() {
+  const container = document.getElementById('revenueContainer');
+  if (!container) return;
+  const table = container.querySelector('table.rev-table');
+  if (!table) return;
+  const rows = table.querySelectorAll('tbody tr[data-student-id]');
+  rows.forEach(tr => {
+    tr.setAttribute('draggable', 'true');
+    tr.addEventListener('dragstart', onRevDragStart);
+    tr.addEventListener('dragover', onRevDragOver);
+    tr.addEventListener('drop', onRevDrop);
+    tr.addEventListener('dragend', onRevDragEnd);
+  });
+}
+
+function onRevDragStart(e) {
+  _revDragStudentId = parseInt(this.getAttribute('data-student-id'));
+  _revDragClassId = parseInt(this.getAttribute('data-class-id'));
+  this.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(_revDragStudentId)); } catch (err) {}
+}
+
+function onRevDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function onRevDrop(e) {
+  e.preventDefault();
+  const targetId = parseInt(this.getAttribute('data-student-id'));
+  const targetClassId = parseInt(this.getAttribute('data-class-id'));
+  if (targetClassId !== _revDragClassId) return; // 仅允许班级内排序
+  if (targetId === _revDragStudentId) return;
+  reorderRevenueStudents(_revDragClassId, _revDragStudentId, targetId);
+}
+
+function onRevDragEnd() {
+  this.style.opacity = '';
+}
+
+async function reorderRevenueStudents(classId, dragId, targetId) {
+  // 取该班级当前学员（按 sort_order）
+  const list = _students
+    .filter(s => s.class_id === classId)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  const fromIdx = list.findIndex(s => s.id === dragId);
+  if (fromIdx === -1) return;
+  const [moved] = list.splice(fromIdx, 1);
+  let toIdx = list.findIndex(s => s.id === targetId);
+  if (toIdx === -1) toIdx = list.length;
+  list.splice(toIdx, 0, moved);
+
+  // 更新本地 sort_order 并写回 Supabase
+  const updates = list.map((s, idx) => {
+    s.sort_order = idx + 1;
+    return sb.from('students').update({ sort_order: idx + 1 }).eq('id', s.id);
+  });
+  try {
+    await Promise.all(updates);
+    renderRevenue();
+    showToast('排序已保存');
+  } catch (err) {
+    alert('排序保存失败：' + (err.message || err));
+  }
 }
 
 function exportRevenue() {
