@@ -146,11 +146,14 @@ header .user-info{font-size:13px;color:#64748b}
 .rev-table tbody tr[data-student-id]:active{cursor:grabbing}
 .rev-table tbody tr[data-student-id].rev-dragging{opacity:.4}
 /* 确收表缴费批次编辑 */
-.batch-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.batch-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .batch-row .batch-label{width:50px;font-size:12px;color:#64748b;white-space:nowrap}
 .batch-row input[type=number]{flex:1;padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none}
 .batch-row input[type=number]:focus{border-color:#2563eb}
 .batch-row .batch-actions{white-space:nowrap}
+.batch-row-header{display:flex;gap:8px;align-items:center;padding:0 0 4px 50px;font-size:11px;color:#94a3b8}
+.batch-row-header span{flex:1;text-align:center}
+.batch-unit-price{flex:1;text-align:center;padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#334155;min-height:19px}
 </style>
 </head>
 <body>
@@ -542,10 +545,11 @@ header .user-info{font-size:13px;color:#64748b}
 
 <!-- 确收表缴费批次编辑 Modal -->
 <div class="modal-overlay" id="revenueBatchModal">
-  <div class="modal-box" style="max-width:560px">
+  <div class="modal-box" style="max-width:680px">
     <h3 id="revenueBatchModalTitle">编辑缴费批次</h3>
     <input type="hidden" id="revenueBatchStudentId">
-    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。</p>
+    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。课单价 =（合计缴费 - 书费）÷ 课时数，自动计算。</p>
+    <div class="batch-row-header"><span>课时数</span><span>书费</span><span>合计缴费</span><span>课单价</span><span></span></div>
     <div id="revenueBatchRows"></div>
     <div style="margin-top:10px">
       <button class="btn btn-gray btn-sm" onclick="addBatchRow()">＋ 添加一批次</button>
@@ -2136,13 +2140,25 @@ function exportRevenue() {
 // ══════════════════════════════════════════
 let _revenueBatchStudentId = null;
 
-function renderBatchRow(idx, hours, price) {
+function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice) {
   return '<div class="batch-row">' +
     '<span class="batch-label">批次' + idx + '</span>' +
-    '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="缴费课时数" value="' + (hours || '') + '">' +
-    '<input type="number" class="batch-price" step="0.01" min="0" placeholder="课单价" value="' + (price || '') + '">' +
+    '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="课时数" value="' + (hours || '') + '" oninput="calcBatchUnitPrice(this)">' +
+    '<input type="number" class="batch-book" step="0.01" min="0" placeholder="书费" value="' + (bookFee || '') + '" oninput="calcBatchUnitPrice(this)">' +
+    '<input type="number" class="batch-total" step="0.01" min="0" placeholder="合计缴费" value="' + (totalPayment || '') + '" oninput="calcBatchUnitPrice(this)">' +
+    '<div class="batch-unit-price">' + (unitPrice ? '¥' + Math.round(Number(unitPrice)) : '') + '</div>' +
     '<span class="batch-actions"><button class="btn btn-danger btn-xs" onclick="removeBatchRow(this)">删除</button></span>' +
     '</div>';
+}
+
+function calcBatchUnitPrice(el) {
+  const row = el.closest('.batch-row');
+  const hours = parseFloat(row.querySelector('.batch-hours').value) || 0;
+  const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
+  const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
+  const net = totalPayment - bookFee;
+  const unitPrice = (hours > 0 && net > 0) ? Math.round(net / hours) : 0;
+  row.querySelector('.batch-unit-price').textContent = unitPrice ? '¥' + unitPrice : '';
 }
 
 function renumberBatchRows() {
@@ -2156,7 +2172,7 @@ function addBatchRow() {
   const rowsDiv = document.getElementById('revenueBatchRows');
   const count = rowsDiv.querySelectorAll('.batch-row').length + 1;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = renderBatchRow(count, '', '');
+  wrapper.innerHTML = renderBatchRow(count, '', '', '', '');
   rowsDiv.appendChild(wrapper.firstElementChild);
 }
 
@@ -2179,7 +2195,7 @@ function openRevenueBatchModal(studentId) {
     .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
 
   if (custom.length > 0) {
-    rowsDiv.innerHTML = custom.map((b, idx) => renderBatchRow(idx + 1, b.hours, b.unit_price)).join('');
+    rowsDiv.innerHTML = custom.map((b, idx) => renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, b.unit_price)).join('');
   } else {
     // 未自定义时，用续费记录作为默认值预填充，方便直接修改
     const renewals = _renewals
@@ -2187,9 +2203,9 @@ function openRevenueBatchModal(studentId) {
       .filter(r => (parseFloat(r.course_hours) || 0) > 0)
       .sort((a, b) => (a.payment_date || '').localeCompare(b.payment_date || ''));
     if (renewals.length > 0) {
-      rowsDiv.innerHTML = renewals.map((r, idx) => renderBatchRow(idx + 1, r.course_hours, r.unit_price)).join('');
+      rowsDiv.innerHTML = renewals.map((r, idx) => renderBatchRow(idx + 1, r.course_hours, r.book_fee, r.total_payment, r.unit_price)).join('');
     } else {
-      rowsDiv.innerHTML = renderBatchRow(1, '', '');
+      rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '');
     }
   }
   document.getElementById('revenueBatchModal').classList.add('show');
@@ -2203,9 +2219,12 @@ async function saveRevenueBatches() {
   const batches = [];
   rows.forEach((row, idx) => {
     const h = parseFloat(row.querySelector('.batch-hours').value) || 0;
-    const p = parseFloat(row.querySelector('.batch-price').value) || 0;
-    if (h > 0 && p > 0) {
-      batches.push({ student_id: studentId, batch_order: idx + 1, hours: h, unit_price: p });
+    const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
+    const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
+    const net = totalPayment - bookFee;
+    const unitPrice = (h > 0 && net > 0) ? Math.round(net / h) : 0;
+    if (h > 0 && totalPayment > 0) {
+      batches.push({ student_id: studentId, batch_order: idx + 1, hours: h, book_fee: bookFee, total_payment: totalPayment, unit_price: unitPrice });
     }
   });
 
