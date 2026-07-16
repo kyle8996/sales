@@ -653,7 +653,7 @@ async function loadAll() {
     withTimeout(sb.from('followups').select('*').order('created_at', {ascending: false})),
     withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
     withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
-    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000)
+    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order,status'), 8000)
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
