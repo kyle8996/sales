@@ -2185,7 +2185,7 @@ function renderRevenue() {
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
-    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.filter(s => !s.isGrad).length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
     html += classRows;
   });
 
