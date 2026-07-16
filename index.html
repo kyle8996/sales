@@ -2222,8 +2222,13 @@ async function saveRevenueBatches() {
     const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
     const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
     const net = totalPayment - bookFee;
-    const unitPrice = (h > 0 && net > 0) ? Math.round(net / h) : 0;
-    if (h > 0 && totalPayment > 0) {
+    let unitPrice = (h > 0 && net > 0) ? Math.round(net / h) : 0;
+    // 兼容旧数据：未填写书费/合计缴费但有历史 unit_price 时，保留原课单价
+    if (unitPrice <= 0 && bookFee <= 0 && totalPayment <= 0) {
+      const original = _revenue_batches.find(b => b.student_id === studentId && b.batch_order === (idx + 1));
+      if (original) unitPrice = parseFloat(original.unit_price) || 0;
+    }
+    if (h > 0 && (totalPayment > 0 || unitPrice > 0)) {
       batches.push({ student_id: studentId, batch_order: idx + 1, hours: h, book_fee: bookFee, total_payment: totalPayment, unit_price: unitPrice });
     }
   });
