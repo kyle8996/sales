@@ -1924,7 +1924,11 @@ function buildRevenueData() {
     const custom = _revenue_batches
       .filter(b => b.student_id === student.id)
       .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
-      .map(b => ({ hours: parseFloat(b.hours) || 0, unit_price: parseFloat(b.unit_price) || 0, date: '' }));
+      .map(b => ({
+        hours: parseFloat(b.hours) || 0,
+        unit_price: calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price),
+        date: ''
+      }));
     if (custom.length > 0) return custom;
 
     // 未自定义时，回退到“在读续费”记录
@@ -1932,7 +1936,7 @@ function buildRevenueData() {
       .filter(r => (r.student_name || '').trim() === (student.name || '').trim())
       .map(r => ({
         hours: parseFloat(r.course_hours) || 0,
-        unit_price: parseFloat(r.unit_price) || 0,
+        unit_price: calcPreciseUnitPrice(r.course_hours, r.book_fee, r.total_payment, r.unit_price),
         date: (r.payment_date || '').substring(0, 10)
       }))
       .filter(b => b.hours > 0)
@@ -1973,8 +1977,10 @@ function buildRevenueData() {
       if (need > 0.001) overflow = true;
     });
 
+    // 月度确收保留 1 位小数，合计与显示一致
+    months.forEach(m => monthRevenue[m] = Math.round(monthRevenue[m] * 10) / 10);
     const total = months.reduce((s, m) => s + monthRevenue[m], 0);
-    return { hasPrice: true, monthRevenue, total, overflow };
+    return { hasPrice: true, monthRevenue, total: Math.round(total * 10) / 10, overflow };
   }
 
   const classes = [];
@@ -2140,13 +2146,26 @@ function exportRevenue() {
 // ══════════════════════════════════════════
 let _revenueBatchStudentId = null;
 
+function calcPreciseUnitPrice(hours, bookFee, totalPayment, fallback) {
+  const net = (parseFloat(totalPayment) || 0) - (parseFloat(bookFee) || 0);
+  const h = parseFloat(hours) || 0;
+  if (h > 0 && net > 0) return net / h;
+  const fb = parseFloat(fallback);
+  return fb > 0 ? fb : 0;
+}
+
+function formatBatchUnitPrice(v) {
+  const n = parseFloat(v);
+  return (n > 0) ? '¥' + n.toFixed(2) : '';
+}
+
 function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice) {
   return '<div class="batch-row">' +
     '<span class="batch-label">批次' + idx + '</span>' +
     '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="课时数" value="' + (hours || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-book" step="0.01" min="0" placeholder="书费" value="' + (bookFee || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-total" step="0.01" min="0" placeholder="合计缴费" value="' + (totalPayment || '') + '" oninput="calcBatchUnitPrice(this)">' +
-    '<div class="batch-unit-price">' + (unitPrice ? '¥' + Math.round(Number(unitPrice)) : '') + '</div>' +
+    '<div class="batch-unit-price">' + formatBatchUnitPrice(unitPrice) + '</div>' +
     '<span class="batch-actions"><button class="btn btn-danger btn-xs" onclick="removeBatchRow(this)">删除</button></span>' +
     '</div>';
 }
@@ -2156,9 +2175,8 @@ function calcBatchUnitPrice(el) {
   const hours = parseFloat(row.querySelector('.batch-hours').value) || 0;
   const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
   const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
-  const net = totalPayment - bookFee;
-  const unitPrice = (hours > 0 && net > 0) ? Math.round(net / hours) : 0;
-  row.querySelector('.batch-unit-price').textContent = unitPrice ? '¥' + unitPrice : '';
+  const up = calcPreciseUnitPrice(hours, bookFee, totalPayment, 0);
+  row.querySelector('.batch-unit-price').textContent = formatBatchUnitPrice(up);
 }
 
 function renumberBatchRows() {
@@ -2195,7 +2213,10 @@ function openRevenueBatchModal(studentId) {
     .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
 
   if (custom.length > 0) {
-    rowsDiv.innerHTML = custom.map((b, idx) => renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, b.unit_price)).join('');
+    rowsDiv.innerHTML = custom.map((b, idx) => {
+      const up = calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price);
+      return renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, up);
+    }).join('');
   } else {
     // 未自定义时，用续费记录作为默认值预填充，方便直接修改
     const renewals = _renewals
@@ -2203,7 +2224,10 @@ function openRevenueBatchModal(studentId) {
       .filter(r => (parseFloat(r.course_hours) || 0) > 0)
       .sort((a, b) => (a.payment_date || '').localeCompare(b.payment_date || ''));
     if (renewals.length > 0) {
-      rowsDiv.innerHTML = renewals.map((r, idx) => renderBatchRow(idx + 1, r.course_hours, r.book_fee, r.total_payment, r.unit_price)).join('');
+      rowsDiv.innerHTML = renewals.map((r, idx) => {
+        const up = calcPreciseUnitPrice(r.course_hours, r.book_fee, r.total_payment, r.unit_price);
+        return renderBatchRow(idx + 1, r.course_hours, r.book_fee, r.total_payment, up);
+      }).join('');
     } else {
       rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '');
     }
@@ -2221,13 +2245,9 @@ async function saveRevenueBatches() {
     const h = parseFloat(row.querySelector('.batch-hours').value) || 0;
     const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
     const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
-    const net = totalPayment - bookFee;
-    let unitPrice = (h > 0 && net > 0) ? Math.round(net / h) : 0;
-    // 兼容旧数据：未填写书费/合计缴费但有历史 unit_price 时，保留原课单价
-    if (unitPrice <= 0 && bookFee <= 0 && totalPayment <= 0) {
-      const original = _revenue_batches.find(b => b.student_id === studentId && b.batch_order === (idx + 1));
-      if (original) unitPrice = parseFloat(original.unit_price) || 0;
-    }
+    const original = _revenue_batches.find(b => b.student_id === studentId && b.batch_order === (idx + 1));
+    const originalUp = original ? original.unit_price : 0;
+    const unitPrice = calcPreciseUnitPrice(h, bookFee, totalPayment, originalUp);
     if (h > 0 && (totalPayment > 0 || unitPrice > 0)) {
       batches.push({ student_id: studentId, batch_order: idx + 1, hours: h, book_fee: bookFee, total_payment: totalPayment, unit_price: unitPrice });
     }
