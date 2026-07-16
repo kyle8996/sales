@@ -177,7 +177,7 @@ header .user-info{font-size:13px;color:#64748b}
     <button class="active" onclick="switchTab('customers')">客户管理</button>
     <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒</button>
-    <button onclick="switchTab('revenue')">确收表</button>
+    <button onclick="switchTab('revenue')">确收明细</button>
   </div>
   <span class="user-info" style="margin-left:auto">
     <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
@@ -370,6 +370,9 @@ header .user-info{font-size:13px;color:#64748b}
 <!-- ================================================================= -->
 <div class="section" id="sec-revenue">
   <div class="container">
+    <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#475569;margin-bottom:10px;cursor:pointer">
+      <input type="checkbox" id="showGradRevenue" onchange="renderRevenue()"> 显示毕业学员
+    </label>
     <div id="revenueContainer"></div>
   </div>
 </div>
@@ -2150,12 +2153,13 @@ function renderRevenue() {
   if (!container) return;
   const data = buildRevenueData();
   const { year, currentMonth, months, classes, grandTotal, monthlyTotals, nopriceCount } = data;
+  const showGrad = document.getElementById('showGradRevenue') ? document.getElementById('showGradRevenue').checked : false;
 
   const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
 
   let html = '<div class="card">' +
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
-    '<h2 style="margin:0">确收表 · 确认课时费收入</h2>' +
+    '<h2 style="margin:0">确收明细 · 确认课时费收入</h2>' +
     '<button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>' +
     '</div>' +
     '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
@@ -2169,9 +2173,9 @@ function renderRevenue() {
     let classTotal = 0;
     let classRows = '';
     students.forEach(({ student, rev, isGrad }) => {
-      // 毕业学员的金额计入班级合计，但不展示在名单中
+      // 毕业学员的金额计入班级合计；未勾选「显示毕业学员」时不在名单展示
       if (rev.hasPrice) classTotal += rev.total;
-      if (isGrad) return;
+      if (isGrad && !showGrad) return;
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
@@ -2185,7 +2189,7 @@ function renderRevenue() {
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
-    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.filter(s => !s.isGrad).length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.filter(s => showGrad || !s.isGrad).length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
     html += classRows;
   });
 
@@ -2285,7 +2289,7 @@ function exportRevenue() {
   classes.forEach(({ cls, students }) => {
     if (students.length === 0) return;
     students.forEach(({ student, rev, isGrad }) => {
-      if (isGrad) return;  // 毕业学员不纳入名单导出
+      if (isGrad && !document.getElementById('showGradRevenue').checked) return;  // 未勾选显示毕业学员时，不纳入名单导出
       const row = [cls.name, student.name];
       months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
       row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
