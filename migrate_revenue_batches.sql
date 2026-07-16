@@ -1,0 +1,15 @@
+-- 确收表：每个学员的缴费批次（FIFO 匹配课单价）
+CREATE TABLE IF NOT EXISTS public.revenue_batches (
+  id BIGSERIAL PRIMARY KEY,
+  student_id INTEGER NOT NULL,
+  batch_order INTEGER NOT NULL DEFAULT 1,
+  hours NUMERIC NOT NULL DEFAULT 0,
+  unit_price NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (student_id, batch_order)
+);
+
+CREATE INDEX IF NOT EXISTS idx_revenue_batches_student ON public.revenue_batches(student_id);
+
+COMMENT ON TABLE public.revenue_batches IS '销售系统确收表：学员缴费批次，按 batch_order 先进先出计算确收';

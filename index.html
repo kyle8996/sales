@@ -142,6 +142,12 @@ header .user-info{font-size:13px;color:#64748b}
 .rev-table tr.rev-class-row td{background:#f1f5f9;font-weight:700;color:#334155;font-size:13px}
 .rev-table tr.rev-noprice td{background:#fef2f2;color:#94a3b8}
 .rev-table tbody tr:not(.rev-class-row):hover{background:#f8fafc}
+/* 确收表缴费批次编辑 */
+.batch-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.batch-row .batch-label{width:50px;font-size:12px;color:#64748b;white-space:nowrap}
+.batch-row input[type=number]{flex:1;padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none}
+.batch-row input[type=number]:focus{border-color:#2563eb}
+.batch-row .batch-actions{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -531,6 +537,23 @@ header .user-info{font-size:13px;color:#64748b}
   </div>
 </div>
 
+<!-- 确收表缴费批次编辑 Modal -->
+<div class="modal-overlay" id="revenueBatchModal">
+  <div class="modal-box" style="max-width:560px">
+    <h3 id="revenueBatchModalTitle">编辑缴费批次</h3>
+    <input type="hidden" id="revenueBatchStudentId">
+    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。</p>
+    <div id="revenueBatchRows"></div>
+    <div style="margin-top:10px">
+      <button class="btn btn-gray btn-sm" onclick="addBatchRow()">＋ 添加一批次</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('revenueBatchModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRevenueBatches()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════
@@ -540,7 +563,7 @@ const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTUwMjU3MiwiZXhwIjoyMDk3MDc4NTcyfQ.j6B2y8ZUgsO7WGrv4Aypho4qiqDrwkJ5O0HxiQfvbjY';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [];
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [], _revenue_batches = [];
 let _currentSubTab = 'trial';
 let _salesSubTab = 'new';
 
@@ -594,6 +617,13 @@ async function loadAll() {
     const r = await withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000);
     _students = r.data || [];
   } catch(e) { console.warn('students query failed, ignore:', e.message); }
+
+  // 单独查 revenue_batches（确收表自定义缴费批次），表未创建时不影响主流程
+  _revenue_batches = [];
+  try {
+    const rb = await withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000);
+    _revenue_batches = rb.data || [];
+  } catch(e) { console.warn('revenue_batches query failed, ignore:', e.message); }
 }
 
 async function initApp() {
@@ -1882,9 +1912,16 @@ function buildRevenueData() {
   const sortedClasses = [..._classes].sort((a, b) => (a.id || 0) - (b.id || 0));
 
   // 计算单个学员的月度确收（FIFO 按缴费批次匹配课单价）
-  function calcStudentRevenue(student) {
-    // 课单价批次：该学员在 renewals 中的每笔缴费
-    const batches = _renewals
+  function getStudentBatches(student) {
+    // 优先使用在确收表内自定义的缴费批次
+    const custom = _revenue_batches
+      .filter(b => b.student_id === student.id)
+      .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
+      .map(b => ({ hours: parseFloat(b.hours) || 0, unit_price: parseFloat(b.unit_price) || 0, date: '' }));
+    if (custom.length > 0) return custom;
+
+    // 未自定义时，回退到“在读续费”记录
+    return _renewals
       .filter(r => (r.student_name || '').trim() === (student.name || '').trim())
       .map(r => ({
         hours: parseFloat(r.course_hours) || 0,
@@ -1893,7 +1930,10 @@ function buildRevenueData() {
       }))
       .filter(b => b.hours > 0)
       .sort((a, b) => (a.date < b.date ? -1 : (a.date > b.date ? 1 : 0)));
+  }
 
+  function calcStudentRevenue(student) {
+    const batches = getStudentBatches(student);
     if (batches.length === 0) {
       return { hasPrice: false, monthRevenue: {}, total: 0, overflow: false };
     }
@@ -1959,10 +1999,10 @@ function renderRevenue() {
   let html = '<div class="card">' +
     '<h2>确收表 · 确认课时费收入</h2>' +
     '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
-    (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员缺课单价数据（未在续费记录登记缴费），未计入合计，补全续费记录后自动计入。</span>' : '') +
+    (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员未设置课单价，未计入合计；点击右侧「编辑」即可录入缴费批次。</span>' : '') +
     '</p>' +
     '<div style="overflow-x:auto"><table class="rev-table">' +
-    '<thead><tr><th style="text-align:left">班级</th><th style="text-align:left">学员</th>' + monthHeads + '<th>合计</th><th>状态</th></tr></thead><tbody>';
+    '<thead><tr><th style="text-align:left">班级</th><th style="text-align:left">学员</th>' + monthHeads + '<th>合计</th><th>状态</th><th>操作</th></tr></thead><tbody>';
 
   classes.forEach(({ cls, students }) => {
     if (students.length === 0) return;
@@ -1972,16 +2012,18 @@ function renderRevenue() {
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
-          '<td>—</td><td><span style="color:#dc2626;font-size:11px">无课单价</span></td></tr>';
+          '<td>—</td><td><span style="color:#dc2626;font-size:11px">无课单价</span></td>' +
+          '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       } else {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
         classRows += '<tr><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
-          '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td></tr>';
+          '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td>' +
+          '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
         classTotal += rev.total;
       }
     });
-    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 3) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 5) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
     html += classRows;
   });
 
@@ -2009,6 +2051,101 @@ function exportRevenue() {
   });
   rows.push(['全机构合计', '', ...months.map(() => ''), grandTotal.toFixed(1), '']);
   exportCSV(headers, rows, 'DK邻里确收表_' + year + '年3月-' + currentMonth + '月_' + new Date().toISOString().substring(0, 10) + '.csv');
+}
+
+// ══════════════════════════════════════════
+// 确收表缴费批次编辑
+// ══════════════════════════════════════════
+let _revenueBatchStudentId = null;
+
+function renderBatchRow(idx, hours, price) {
+  return '<div class="batch-row">' +
+    '<span class="batch-label">批次' + idx + '</span>' +
+    '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="缴费课时数" value="' + (hours || '') + '">' +
+    '<input type="number" class="batch-price" step="0.01" min="0" placeholder="课单价" value="' + (price || '') + '">' +
+    '<span class="batch-actions"><button class="btn btn-danger btn-xs" onclick="removeBatchRow(this)">删除</button></span>' +
+    '</div>';
+}
+
+function renumberBatchRows() {
+  const rows = document.querySelectorAll('#revenueBatchRows .batch-row');
+  rows.forEach((row, idx) => {
+    row.querySelector('.batch-label').textContent = '批次' + (idx + 1);
+  });
+}
+
+function addBatchRow() {
+  const rowsDiv = document.getElementById('revenueBatchRows');
+  const count = rowsDiv.querySelectorAll('.batch-row').length + 1;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = renderBatchRow(count, '', '');
+  rowsDiv.appendChild(wrapper.firstElementChild);
+}
+
+function removeBatchRow(btn) {
+  btn.closest('.batch-row').remove();
+  renumberBatchRows();
+}
+
+function openRevenueBatchModal(studentId) {
+  const student = _students.find(s => s.id === studentId);
+  if (!student) return;
+  _revenueBatchStudentId = studentId;
+  document.getElementById('revenueBatchModalTitle').textContent = '编辑缴费批次 - ' + (student.name || '');
+  document.getElementById('revenueBatchStudentId').value = studentId;
+  const rowsDiv = document.getElementById('revenueBatchRows');
+
+  // 优先使用已保存的自定义批次
+  const custom = _revenue_batches
+    .filter(b => b.student_id === studentId)
+    .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
+
+  if (custom.length > 0) {
+    rowsDiv.innerHTML = custom.map((b, idx) => renderBatchRow(idx + 1, b.hours, b.unit_price)).join('');
+  } else {
+    // 未自定义时，用续费记录作为默认值预填充，方便直接修改
+    const renewals = _renewals
+      .filter(r => (r.student_name || '').trim() === (student.name || '').trim())
+      .filter(r => (parseFloat(r.course_hours) || 0) > 0)
+      .sort((a, b) => (a.payment_date || '').localeCompare(b.payment_date || ''));
+    if (renewals.length > 0) {
+      rowsDiv.innerHTML = renewals.map((r, idx) => renderBatchRow(idx + 1, r.course_hours, r.unit_price)).join('');
+    } else {
+      rowsDiv.innerHTML = renderBatchRow(1, '', '');
+    }
+  }
+  document.getElementById('revenueBatchModal').classList.add('show');
+}
+
+async function saveRevenueBatches() {
+  const studentId = parseInt(document.getElementById('revenueBatchStudentId').value);
+  if (!studentId) return;
+
+  const rows = document.querySelectorAll('#revenueBatchRows .batch-row');
+  const batches = [];
+  rows.forEach((row, idx) => {
+    const h = parseFloat(row.querySelector('.batch-hours').value) || 0;
+    const p = parseFloat(row.querySelector('.batch-price').value) || 0;
+    if (h > 0 && p > 0) {
+      batches.push({ student_id: studentId, batch_order: idx + 1, hours: h, unit_price: p });
+    }
+  });
+
+  try {
+    await sb.from('revenue_batches').delete().eq('student_id', studentId);
+    if (batches.length > 0) {
+      const { error } = await sb.from('revenue_batches').insert(batches);
+      if (error) throw error;
+    }
+    // 更新本地缓存
+    _revenue_batches = _revenue_batches.filter(b => b.student_id !== studentId)
+      .concat(batches.map(b => ({ ...b })));
+    closeModal('revenueBatchModal');
+    renderRevenue();
+    showToast('缴费批次保存成功');
+  } catch (e) {
+    alert('保存失败：' + (e.message || e) + '\n请确认已在 Supabase 执行 migrate_revenue_batches.sql 创建 revenue_batches 表。');
+  }
 }
 
 function exportTab() {
