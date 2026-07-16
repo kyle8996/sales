@@ -571,6 +571,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [], _revenue_batches = [];
+let _revenueRefreshTimer = null;
 let _currentSubTab = 'trial';
 let _salesSubTab = 'new';
 
@@ -633,6 +634,33 @@ async function loadAll() {
   } catch(e) { console.warn('revenue_batches query failed, ignore:', e.message); }
 }
 
+// 重新拉取确收表依赖的数据（students/attendance/renewals/revenue_batches），确保跟随教务出勤变化
+async function refreshRevenueData() {
+  const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  try {
+    const [att, stu, ren, rb] = await Promise.all([
+      withTimeout(sb.from('attendance').select('*'), 12000),
+      withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000),
+      withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false}), 8000),
+      withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000)
+    ]);
+    if (att.data) _attendance = att.data;
+    if (stu.data) _students = stu.data;
+    if (ren.data) _renewals = ren.data;
+    if (rb.data) _revenue_batches = rb.data;
+  } catch(e) { console.warn('refreshRevenueData error:', e.message); }
+  if (_currentTab === 'revenue') renderRevenue();
+}
+
+function startRevenueAutoRefresh() {
+  stopRevenueAutoRefresh();
+  _revenueRefreshTimer = setInterval(() => { if (_currentTab === 'revenue') refreshRevenueData(); }, 60000);
+}
+
+function stopRevenueAutoRefresh() {
+  if (_revenueRefreshTimer) { clearInterval(_revenueRefreshTimer); _revenueRefreshTimer = null; }
+}
+
 async function initApp() {
   try {
     await loadAll();
@@ -668,7 +696,14 @@ function switchTab(tab) {
   if (tab === 'trials') renderTrialCalendar();
   if (tab === 'reminders') renderReminders();
   if (tab === 'sales') { switchSalesSubTab(_salesSubTab); }
-  if (tab === 'revenue') { renderRevenue(); }
+  if (tab === 'revenue') {
+    // 先用缓存即时渲染，再拉取最新数据（含教务出勤变化）刷新
+    renderRevenue();
+    refreshRevenueData();
+    startRevenueAutoRefresh();
+  } else {
+    stopRevenueAutoRefresh();
+  }
 }
 
 function switchSubTab(sub) {
@@ -1201,6 +1236,7 @@ async function saveRenewal() {
   }
   closeModal('renewalModal');
   renderRenewals();
+  if (_currentTab === 'revenue') refreshRevenueData();
 }
 
 // 将销售系统续费课时同步到教务系统学员的 paid_hours
@@ -1579,6 +1615,7 @@ async function convertToStudent() {
   closeModal('convertModal');
   await loadAll();
   renderSales();
+  if (_currentTab === 'revenue') renderRevenue();
 }
 
 // ═══════════════════════════════════════
@@ -2010,7 +2047,10 @@ function renderRevenue() {
   const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
 
   let html = '<div class="card">' +
-    '<h2>确收表 · 确认课时费收入</h2>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+    '<h2 style="margin:0">确收表 · 确认课时费收入</h2>' +
+    '<button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>' +
+    '</div>' +
     '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
     (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员未设置课单价，未计入合计；点击右侧「编辑」即可录入缴费批次。</span>' : '') +
     '</p>' +
