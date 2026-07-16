@@ -134,6 +134,14 @@ header .user-info{font-size:13px;color:#64748b}
 .session-card .sess-info{flex:1}
 .session-card .sess-date{font-size:13px;font-weight:600;color:#1e40af}
 .session-card .sess-detail{font-size:12px;color:#64748b}
+
+/* 确收表 */
+.rev-table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+.rev-table th{text-align:center;padding:8px 4px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+.rev-table td{text-align:center;padding:7px 4px;border-bottom:1px solid #f1f5f9;white-space:nowrap}
+.rev-table tr.rev-class-row td{background:#f1f5f9;font-weight:700;color:#334155;font-size:13px}
+.rev-table tr.rev-noprice td{background:#fef2f2;color:#94a3b8}
+.rev-table tbody tr:not(.rev-class-row):hover{background:#f8fafc}
 </style>
 </head>
 <body>
@@ -157,6 +165,7 @@ header .user-info{font-size:13px;color:#64748b}
     <button class="active" onclick="switchTab('customers')">客户管理</button>
     <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒</button>
+    <button onclick="switchTab('revenue')">确收表</button>
   </div>
   <span class="user-info" style="margin-left:auto">
     <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
@@ -345,6 +354,15 @@ header .user-info{font-size:13px;color:#64748b}
 </div>
 
 <!-- ================================================================= -->
+<!-- Tab 5: 确收表 -->
+<!-- ================================================================= -->
+<div class="section" id="sec-revenue">
+  <div class="container">
+    <div id="revenueContainer"></div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
 <!-- Modals -->
 <!-- ================================================================= -->
 
@@ -522,7 +540,7 @@ const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTUwMjU3MiwiZXhwIjoyMDk3MDc4NTcyfQ.j6B2y8ZUgsO7WGrv4Aypho4qiqDrwkJ5O0HxiQfvbjY';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [];
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [];
 let _currentSubTab = 'trial';
 let _salesSubTab = 'new';
 
@@ -559,7 +577,8 @@ async function loadAll() {
     withTimeout(sb.from('trial_schedule').select('*')),
     withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true})),
     withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
-    withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false}))
+    withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
+    withTimeout(sb.from('attendance').select('*'), 12000)
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
@@ -568,10 +587,11 @@ async function loadAll() {
   _trialSessions = get(3);
   _classes = get(4);
   _renewals = get(5);
+  _attendance = get(6);
   // 单独查students，失败不影响主流程
   _students = [];
   try {
-    const r = await withTimeout(sb.from('students').select('name,class_id,phone'), 8000);
+    const r = await withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000);
     _students = r.data || [];
   } catch(e) { console.warn('students query failed, ignore:', e.message); }
 }
@@ -603,14 +623,15 @@ function switchTab(tab) {
   _currentTab = tab;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('header .tabs button').forEach(b => b.classList.remove('active'));
-  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales'};
-  const idx = {sales:0, customers:1, trials:2, reminders:3};
+  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales', revenue:'sec-revenue'};
+  const idx = {sales:0, customers:1, trials:2, reminders:3, revenue:4};
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
   if (tab === 'trials') renderTrialCalendar();
   if (tab === 'reminders') renderReminders();
   if (tab === 'sales') { switchSalesSubTab(_salesSubTab); }
+  if (tab === 'revenue') { renderRevenue(); }
 }
 
 function switchSubTab(sub) {
@@ -1847,6 +1868,149 @@ async function deleteCustomer(cid) {
 // ═══════════════════════════════════════
 // 导出
 // ═══════════════════════════════════════
+// ══════════════════════════════════════════
+// 确收表（确认课时费收入）
+// ══════════════════════════════════════════
+function buildRevenueData() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const startMonth = 3;
+  const months = [];
+  for (let m = startMonth; m <= currentMonth; m++) months.push(m);
+
+  const sortedClasses = [..._classes].sort((a, b) => (a.id || 0) - (b.id || 0));
+
+  // 计算单个学员的月度确收（FIFO 按缴费批次匹配课单价）
+  function calcStudentRevenue(student) {
+    // 课单价批次：该学员在 renewals 中的每笔缴费
+    const batches = _renewals
+      .filter(r => (r.student_name || '').trim() === (student.name || '').trim())
+      .map(r => ({
+        hours: parseFloat(r.course_hours) || 0,
+        unit_price: parseFloat(r.unit_price) || 0,
+        date: (r.payment_date || '').substring(0, 10)
+      }))
+      .filter(b => b.hours > 0)
+      .sort((a, b) => (a.date < b.date ? -1 : (a.date > b.date ? 1 : 0)));
+
+    if (batches.length === 0) {
+      return { hasPrice: false, monthRevenue: {}, total: 0, overflow: false };
+    }
+
+    // 出勤（按月份升序）
+    const att = _attendance.filter(a => a.student_id === student.id && a.year === year && a.month >= startMonth && a.month <= currentMonth);
+    att.sort((a, b) => a.month - b.month);
+
+    // 剩余课时池
+    const pool = batches.map(b => ({ remain: b.hours, unit_price: b.unit_price, date: b.date }));
+    const monthRevenue = {};
+    months.forEach(m => monthRevenue[m] = 0);
+    let overflow = false;
+
+    att.forEach(a => {
+      const m = a.month;
+      let need = parseFloat(a.hours) || 0;
+      if (need <= 0) return;
+      // 该月可用批次：缴费日 <= 当月月底（未来批次不参与）
+      const monthUpper = year + '-' + (m < 10 ? '0' + m : m) + '-31';
+      for (const b of pool) {
+        if (b.date > monthUpper) continue;
+        if (b.remain <= 0) continue;
+        const deduct = Math.min(need, b.remain);
+        monthRevenue[m] += deduct * b.unit_price;
+        b.remain -= deduct;
+        need -= deduct;
+        if (need <= 0) break;
+      }
+      if (need > 0.001) overflow = true;
+    });
+
+    const total = months.reduce((s, m) => s + monthRevenue[m], 0);
+    return { hasPrice: true, monthRevenue, total, overflow };
+  }
+
+  const classes = [];
+  let grandTotal = 0;
+  let nopriceCount = 0;
+  sortedClasses.forEach(cls => {
+    const clsStudents = _students.filter(s => s.class_id === cls.id);
+    clsStudents.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const students = clsStudents.map(s => {
+      const rev = calcStudentRevenue(s);
+      if (rev.hasPrice) grandTotal += rev.total;
+      else nopriceCount++;
+      return { student: s, rev };
+    });
+    classes.push({ cls, students });
+  });
+
+  return { year, currentMonth, startMonth, months, classes, grandTotal, nopriceCount };
+}
+
+function renderRevenue() {
+  const container = document.getElementById('revenueContainer');
+  if (!container) return;
+  const data = buildRevenueData();
+  const { year, currentMonth, months, classes, grandTotal, nopriceCount } = data;
+
+  const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
+
+  let html = '<div class="card">' +
+    '<h2>确收表 · 确认课时费收入</h2>' +
+    '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
+    (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员缺课单价数据（未在续费记录登记缴费），未计入合计，补全续费记录后自动计入。</span>' : '') +
+    '</p>' +
+    '<div style="overflow-x:auto"><table class="rev-table">' +
+    '<thead><tr><th style="text-align:left">班级</th><th style="text-align:left">学员</th>' + monthHeads + '<th>合计</th><th>状态</th></tr></thead><tbody>';
+
+  classes.forEach(({ cls, students }) => {
+    if (students.length === 0) return;
+    let classTotal = 0;
+    let classRows = '';
+    students.forEach(({ student, rev }) => {
+      if (!rev.hasPrice) {
+        classRows += '<tr class="rev-noprice"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
+          months.map(() => '<td>—</td>').join('') +
+          '<td>—</td><td><span style="color:#dc2626;font-size:11px">无课单价</span></td></tr>';
+      } else {
+        const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
+        classRows += '<tr><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
+          monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
+          '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td></tr>';
+        classTotal += rev.total;
+      }
+    });
+    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 3) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + '）</span></td></tr>';
+    html += classRows;
+  });
+
+  html += '</tbody></table></div>';
+  html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function exportRevenue() {
+  const data = buildRevenueData();
+  const { year, currentMonth, months, classes, grandTotal } = data;
+  const headers = ['班级', '学员'].concat(months.map(m => m + '月确收')).concat(['合计', '状态']);
+  const rows = [];
+  classes.forEach(({ cls, students }) => {
+    if (students.length === 0) return;
+    students.forEach(({ student, rev }) => {
+      const row = [cls.name, student.name];
+      months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
+      row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
+      row.push(rev.hasPrice ? (rev.overflow ? '超批' : '正常') : '无课单价');
+      rows.push(row);
+    });
+  });
+  rows.push(['全机构合计', '', ...months.map(() => ''), grandTotal.toFixed(1), '']);
+  exportCSV(headers, rows, 'DK邻里确收表_' + year + '年3月-' + currentMonth + '月_' + new Date().toISOString().substring(0, 10) + '.csv');
+}
+
 function exportTab() {
   if (_currentTab === 'customers') {
     // 客户管理：根据当前子Tab和筛选条件导出
@@ -1891,6 +2055,9 @@ function exportTab() {
   } else if (_currentTab === 'sales') {
     // 销售管理：提示用户使用Tab内的导出按钮
     showToast('请在销售管理Tab中点击对应的导出按钮', false);
+  } else if (_currentTab === 'revenue') {
+    // 确收表：导出确认课时费收入
+    exportRevenue();
   }
 }
 
