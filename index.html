@@ -2056,10 +2056,14 @@ function buildRevenueData() {
       if (need > 0.001) overflow = true;
     });
 
-    // 月度确收保留 1 位小数，合计与显示一致
+    // 保留精确月度确收（未舍入），供合计行精确累加使用，避免逐学员舍入误差累积
+    const monthRevenueRaw = {};
+    months.forEach(m => monthRevenueRaw[m] = monthRevenue[m]);
+    // 学员行显示用：月度确收保留 1 位小数
     months.forEach(m => monthRevenue[m] = Math.round(monthRevenue[m] * 10) / 10);
     const total = months.reduce((s, m) => s + monthRevenue[m], 0);
-    return { hasPrice: true, monthRevenue, total: Math.round(total * 10) / 10, overflow };
+    const totalRaw = months.reduce((s, m) => s + monthRevenueRaw[m], 0);
+    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow };
   }
 
   const classes = [];
@@ -2073,8 +2077,9 @@ function buildRevenueData() {
     const students = clsStudents.map(s => {
       const rev = calcStudentRevenue(s);
       if (rev.hasPrice) {
-        grandTotal += rev.total;
-        months.forEach(m => monthlyTotals[m] += rev.monthRevenue[m]);
+        // 合计用精确值累加（最后统一舍入），与手工电子表格口径一致
+        grandTotal += rev.totalRaw;
+        months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
       } else {
         nopriceCount++;
       }
