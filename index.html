@@ -561,22 +561,46 @@ header .user-info{font-size:13px;color:#64748b}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.6"></script>
 <script>
 // ═══════════════════════════════════════
 // 初始化
 // ═══════════════════════════════════════
 const SB_URL = 'https://chasxggorljjqqmficnh.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoYXN4Z2dvcmxqanFxbWZpY25oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTUwMjU3MiwiZXhwIjoyMDk3MDc4NTcyfQ.j6B2y8ZUgsO7WGrv4Aypho4qiqDrwkJ5O0HxiQfvbjY';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+// SDK 使用 defer 加载，DOM 就绪后再初始化（首次打开不被阻塞）
+let sb = null;
+function initSb() {
+  if (sb) return true;
+  if (typeof supabase !== 'undefined' && supabase.createClient) {
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    return true;
+  }
+  return false;
+}
+if (!initSb()) document.addEventListener('DOMContentLoaded', initSb);
+
+// 当前统计年份（确收表 / 出勤过滤共用，避免跨年数据混入）
+const REVENUE_YEAR = new Date().getFullYear();
 
 let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [], _revenue_batches = [];
 let _revenueRefreshTimer = null;
+let _trialLoaded = false;
 let _currentSubTab = 'trial';
+
+// 客户端缓存：重复打开秒出数（sessionStorage），后台仍会拉取最新数据覆盖
+const _CACHE_PREFIX = 'sales_cache_';
+function _cacheSet(name, data) {
+  try { sessionStorage.setItem(_CACHE_PREFIX + name, JSON.stringify(data)); } catch(e) {}
+}
+function _cacheGet(name) {
+  try { const s = sessionStorage.getItem(_CACHE_PREFIX + name); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
 let _salesSubTab = 'new';
 
 // Auth
 function doAuth() {
+  initSb();
   const v = document.getElementById('authInput').value;
   if (v === 'DK0308') {
     const overlay = document.getElementById('authOverlay');
@@ -589,72 +613,100 @@ function doAuth() {
     document.getElementById('authErr').style.display = 'block';
   }
 }
-if (localStorage.getItem('sales_auth') === '1') {
-  const overlay = document.getElementById('authOverlay');
-  overlay.style.display = 'none';
-  overlay.classList.add('hidden', 'auth-hidden');
-  document.getElementById('appHeader').style.display = 'flex';
-  initApp();
+// 自动登录：SDK 可能未就绪，待 DOM 就绪后再启动
+function bootIfAuth() {
+  if (localStorage.getItem('sales_auth') === '1') {
+    const overlay = document.getElementById('authOverlay');
+    overlay.style.display = 'none';
+    overlay.classList.add('hidden', 'auth-hidden');
+    document.getElementById('appHeader').style.display = 'flex';
+    initApp();
+  }
 }
+if (typeof supabase !== 'undefined') bootIfAuth();
+else document.addEventListener('DOMContentLoaded', bootIfAuth);
 
 // ═══════════════════════════════════════
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+
+  // 先用缓存即时出数（重复打开秒开），后台再拉最新数据覆盖
+  const cC = _cacheGet('customers'), cF = _cacheGet('followups'), cCl = _cacheGet('classes'),
+        cR = _cacheGet('renewals'), cS = _cacheGet('students');
+  if (cC || cF) {
+    if (cC) _customers = cC;
+    if (cF) _followups = cF;
+    if (cCl) _classes = cCl;
+    if (cR) _renewals = cR;
+    if (cS) _students = cS;
+    // 试用缓存先渲染首屏
+    renderCustomers(); updateCounts(); fillFilters();
+    renderSales(); fillSalesFilters();
+  }
+
+  // 首屏必需数据：单批次并行（customers/followups/classes/renewals/students）
+  // 懒加载表延后：attendance/revenue_batches → 确收表；trial_schedule/trial_sessions → 试听邀约
   const results = await Promise.allSettled([
     withTimeout(sb.from('customers').select('*').order('created_at', {ascending: false})),
     withTimeout(sb.from('followups').select('*').order('created_at', {ascending: false})),
-    withTimeout(sb.from('trial_schedule').select('*')),
-    withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true})),
     withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
     withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
-    withTimeout(sb.from('attendance').select('*'), 12000)
+    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000)
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
   _followups = get(1);
-  _trialSchedule = get(2);
-  _trialSessions = get(3);
-  _classes = get(4);
-  _renewals = get(5);
-  _attendance = get(6);
-  // 单独查students，失败不影响主流程
-  _students = [];
-  try {
-    const r = await withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000);
-    _students = r.data || [];
-  } catch(e) { console.warn('students query failed, ignore:', e.message); }
+  _classes = get(2);
+  _renewals = get(3);
+  _students = get(4);
 
-  // 单独查 revenue_batches（确收表自定义缴费批次），表未创建时不影响主流程
-  _revenue_batches = [];
+  // 写入缓存供下次秒开
+  _cacheSet('customers', _customers);
+  _cacheSet('followups', _followups);
+  _cacheSet('classes', _classes);
+  _cacheSet('renewals', _renewals);
+  _cacheSet('students', _students);
+}
+
+// 懒加载：试听邀约相关数据（仅首次打开该 Tab 时拉取）
+async function ensureTrialData() {
+  if (_trialLoaded) return;
+  const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
-    const rb = await withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000);
-    _revenue_batches = rb.data || [];
-  } catch(e) { console.warn('revenue_batches query failed, ignore:', e.message); }
+    const [ts, sess] = await Promise.all([
+      withTimeout(sb.from('trial_schedule').select('*')),
+      withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
+    ]);
+    if (ts.data) _trialSchedule = ts.data;
+    if (sess.data) _trialSessions = sess.data;
+    _trialLoaded = true;
+  } catch(e) { console.warn('ensureTrialData error:', e.message); }
 }
 
 // 重新拉取确收表依赖的数据（students/attendance/renewals/revenue_batches），确保跟随教务出勤变化
 async function refreshRevenueData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
-    const [att, stu, ren, rb] = await Promise.all([
-      withTimeout(sb.from('attendance').select('*'), 12000),
-      withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order'), 8000),
-      withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false}), 8000),
+    const [att, rb] = await Promise.all([
+      withTimeout(sb.from('attendance').select('id,student_id,year,month,hours').eq('year', REVENUE_YEAR), 12000),
       withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000)
     ]);
     if (att.data) _attendance = att.data;
-    if (stu.data) _students = stu.data;
-    if (ren.data) _renewals = ren.data;
     if (rb.data) _revenue_batches = rb.data;
+    _cacheSet('attendance', _attendance);
+    _cacheSet('revenue_batches', _revenue_batches);
   } catch(e) { console.warn('refreshRevenueData error:', e.message); }
   if (_currentTab === 'revenue') renderRevenue();
 }
 
 function startRevenueAutoRefresh() {
   stopRevenueAutoRefresh();
-  _revenueRefreshTimer = setInterval(() => { if (_currentTab === 'revenue') refreshRevenueData(); }, 60000);
+  // 降频：5 分钟一次（原 60s），且页面隐藏时不刷新，避免后台空耗
+  _revenueRefreshTimer = setInterval(() => {
+    if (_currentTab === 'revenue' && !document.hidden) refreshRevenueData();
+  }, 300000);
 }
 
 function stopRevenueAutoRefresh() {
@@ -693,7 +745,7 @@ function switchTab(tab) {
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
-  if (tab === 'trials') renderTrialCalendar();
+  if (tab === 'trials') { ensureTrialData().then(renderTrialCalendar); }
   if (tab === 'reminders') renderReminders();
   if (tab === 'sales') { switchSalesSubTab(_salesSubTab); }
   if (tab === 'revenue') {
@@ -1965,7 +2017,7 @@ function classPhaseRank(cls) {
 
 function buildRevenueData() {
   const now = new Date();
-  const year = now.getFullYear();
+  const year = REVENUE_YEAR;
   const currentMonth = now.getMonth() + 1;
   const startMonth = 3;
   const months = [];
