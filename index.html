@@ -1945,6 +1945,24 @@ async function deleteCustomer(cid) {
 // ══════════════════════════════════════════
 // 确收表（确认课时费收入）
 // ══════════════════════════════════════════
+// 确收表班级排序：已开课优先（K1→K2→S 顺序），未开课随后（同顺序），暑假班置底，已毕业最后
+function isSummerClass(cls) {
+  const ph = cls.phase || '';
+  const nm = cls.name || '';
+  return ph === '暑假' || /暑|假|SH/i.test(nm);
+}
+function classPhaseRank(cls) {
+  const ph = cls.phase;
+  if (ph === 'K1') return 0;
+  if (ph === 'K2') return 1;
+  if (ph === 'S') return 2;
+  const nm = String(cls.name || '');
+  if (/^K1/i.test(nm)) return 0;
+  if (/^K2/i.test(nm)) return 1;
+  if (/^S/i.test(nm)) return 2;
+  return 99;
+}
+
 function buildRevenueData() {
   const now = new Date();
   const year = now.getFullYear();
@@ -1953,7 +1971,31 @@ function buildRevenueData() {
   const months = [];
   for (let m = startMonth; m <= currentMonth; m++) months.push(m);
 
-  const sortedClasses = [..._classes].sort((a, b) => (a.id || 0) - (b.id || 0));
+  // 预计算已开课班级（有任意出勤课时记录的班级 = 已开班）
+  const openedClassIds = new Set(_classes.filter(cls => {
+    const stuIds = new Set(_students.filter(s => s.class_id === cls.id).map(s => s.id));
+    return _attendance.some(a => stuIds.has(a.student_id) && (parseFloat(a.hours) || 0) > 0);
+  }).map(c => c.id));
+
+  const sortedClasses = [..._classes].sort((a, b) => {
+    // 0. 已毕业班级排最后
+    const aGrad = a.status === '已毕业', bGrad = b.status === '已毕业';
+    if (aGrad !== bGrad) return aGrad ? 1 : -1;
+    // 1. 暑假班排最下边（无论开课与否）
+    const aSummer = isSummerClass(a), bSummer = isSummerClass(b);
+    if (aSummer !== bSummer) return aSummer ? 1 : -1;
+    // 2. 已开课优先于未开课（开课班次整体在前，未开班开班后自动插入此处）
+    const aOpened = openedClassIds.has(a.id), bOpened = openedClassIds.has(b.id);
+    if (aOpened !== bOpened) return aOpened ? -1 : 1;
+    // 3. 阶段顺序 K1→K2→S
+    const pa = classPhaseRank(a), pb = classPhaseRank(b);
+    if (pa !== pb) return pa - pb;
+    // 4. 名称数字排序
+    const na = parseInt(String(a.name || '').replace(/\D/g, '')) || 9999;
+    const nb = parseInt(String(b.name || '').replace(/\D/g, '')) || 9999;
+    if (na !== nb) return na - nb;
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
 
   // 计算单个学员的月度确收（FIFO 按缴费批次匹配课单价）
   function getStudentBatches(student) {
