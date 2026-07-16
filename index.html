@@ -2065,26 +2065,32 @@ function buildRevenueData() {
   const classes = [];
   let grandTotal = 0;
   let nopriceCount = 0;
+  const monthlyTotals = {};
+  months.forEach(m => monthlyTotals[m] = 0);
   sortedClasses.forEach(cls => {
     const clsStudents = _students.filter(s => s.class_id === cls.id);
     clsStudents.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     const students = clsStudents.map(s => {
       const rev = calcStudentRevenue(s);
-      if (rev.hasPrice) grandTotal += rev.total;
-      else nopriceCount++;
+      if (rev.hasPrice) {
+        grandTotal += rev.total;
+        months.forEach(m => monthlyTotals[m] += rev.monthRevenue[m]);
+      } else {
+        nopriceCount++;
+      }
       return { student: s, rev };
     });
     classes.push({ cls, students });
   });
 
-  return { year, currentMonth, startMonth, months, classes, grandTotal, nopriceCount };
+  return { year, currentMonth, startMonth, months, classes, grandTotal, monthlyTotals, nopriceCount };
 }
 
 function renderRevenue() {
   const container = document.getElementById('revenueContainer');
   if (!container) return;
   const data = buildRevenueData();
-  const { year, currentMonth, months, classes, grandTotal, nopriceCount } = data;
+  const { year, currentMonth, months, classes, grandTotal, monthlyTotals, nopriceCount } = data;
 
   const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
 
@@ -2122,7 +2128,13 @@ function renderRevenue() {
     html += classRows;
   });
 
-  html += '</tbody></table></div>';
+  html += '</tbody>' +
+    '<tfoot><tr style="background:#f8fafc;font-weight:700;border-top:2px solid #e2e8f0">' +
+    '<td style="text-align:left" colspan="2">全部学员合计</td>' +
+    months.map(m => '<td>' + monthlyTotals[m].toFixed(1) + '</td>').join('') +
+    '<td>' + grandTotal.toFixed(1) + '</td>' +
+    '<td colspan="2"></td>' +
+    '</tr></tfoot></table></div>';
   html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
   html += '</div>';
 
