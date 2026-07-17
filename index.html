@@ -370,7 +370,18 @@ header .user-info{font-size:13px;color:#64748b}
 <!-- ================================================================= -->
 <div class="section" id="sec-revenue">
   <div class="container">
-    <div id="revenueContainer"></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <h2 style="margin:0">确收明细 · 确认课时费收入</h2>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer">
+            <input type="checkbox" id="showGradRevenue" onchange="renderRevenue()"> 显示毕业学员
+          </label>
+        </div>
+        <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>
+      </div>
+      <div id="revenueContainer"></div>
+    </div>
   </div>
 </div>
 
@@ -2154,17 +2165,7 @@ function renderRevenue() {
 
   const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
 
-  let html = '<div class="card">' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
-    '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
-    '<h2 style="margin:0">确收明细 · 确认课时费收入</h2>' +
-    '<label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer">' +
-    '<input type="checkbox" id="showGradRevenue" ' + (showGrad ? 'checked ' : '') + 'onchange="renderRevenue()"> 显示毕业学员' +
-    '</label>' +
-    '</div>' +
-    '<button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>' +
-    '</div>' +
-    '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
+  let html = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
     (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员未设置课单价，未计入合计；点击右侧「编辑」即可录入缴费批次。</span>' : '') +
     '</p>' +
     '<div style="overflow-x:auto"><table class="rev-table">' +
@@ -2203,7 +2204,6 @@ function renderRevenue() {
     '<td colspan="2"></td>' +
     '</tr></tfoot></table></div>';
   html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
-  html += '</div>';
 
   container.innerHTML = html;
   enableRevenueDragSort();
