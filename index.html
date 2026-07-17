@@ -2159,7 +2159,7 @@ function renderRevenue() {
     '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
     '<h2 style="margin:0">确收明细 · 确认课时费收入</h2>' +
     '<label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer">' +
-    '<input type="checkbox" id="showGradRevenue" onchange="renderRevenue()"> 显示毕业学员' +
+    '<input type="checkbox" id="showGradRevenue" ' + (showGrad ? 'checked ' : '') + 'onchange="renderRevenue()"> 显示毕业学员' +
     '</label>' +
     '</div>' +
     '<button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>' +
