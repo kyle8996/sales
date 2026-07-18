@@ -142,6 +142,9 @@ header .user-info{font-size:13px;color:#64748b}
 .rev-table td{text-align:center;padding:7px 4px;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 .rev-table tr.rev-class-row td{background:#f1f5f9;font-weight:700;color:#334155;font-size:13px}
 .rev-table tr.rev-noprice td{background:#fef2f2;color:#94a3b8}
+.rev-table tr.grad-row td{background:#f3e8ff !important;box-shadow:inset 3px 0 0 #7c3aed}
+.rev-table tr.rev-noprice.grad-row td{background:#f3e8ff !important;color:#475569 !important}
+.rev-table tbody tr.grad-row:hover td{background:#ede9fe !important}
 .rev-table tbody tr:not(.rev-class-row):hover{background:#f8fafc}
 .rev-table tbody tr[data-student-id]{cursor:grab}
 .rev-table tbody tr[data-student-id]:active{cursor:grabbing}
@@ -2183,13 +2186,13 @@ function renderRevenue() {
       if (rev.hasPrice) classTotal += rev.total;
       if (isGrad && !showGrad) return;
       if (!rev.hasPrice) {
-        classRows += '<tr class="rev-noprice" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
+        classRows += '<tr class="rev-noprice' + (isGrad ? ' grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
           '<td>—</td>' + (isGrad ? '<td><span style="color:#7c3aed;font-size:11px">毕业</span></td>' : '<td><span style="color:#dc2626;font-size:11px">无课单价</span></td>') +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       } else {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
-        classRows += '<tr data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
+        classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
           '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
