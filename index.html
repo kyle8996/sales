@@ -2185,13 +2185,13 @@ function renderRevenue() {
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
           months.map(() => '<td>—</td>').join('') +
-          '<td>—</td><td><span style="color:#dc2626;font-size:11px">无课单价</span></td>' +
+          '<td>—</td>' + (isGrad ? '<td><span style="color:#7c3aed;font-size:11px">毕业</span></td>' : '<td><span style="color:#dc2626;font-size:11px">无课单价</span></td>') +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       } else {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
         classRows += '<tr data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
-          '<td>' + (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>') + '</td>' +
+          '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
@@ -2298,7 +2298,7 @@ function exportRevenue() {
       const row = [cls.name, student.name];
       months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
       row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
-      row.push(rev.hasPrice ? (rev.overflow ? '超批' : '正常') : '无课单价');
+      row.push(isGrad ? '毕业' : (rev.hasPrice ? (rev.overflow ? '超批' : '正常') : '无课单价'));
       rows.push(row);
     });
   });
