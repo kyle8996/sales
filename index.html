@@ -2135,27 +2135,34 @@ function buildRevenueData() {
     return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow };
   }
 
+  // 预计算所有学员的确收（避免筛选前后重复计算）
+  const studentRevs = new Map();
+  _students.forEach(s => studentRevs.set(s.id, calcStudentRevenue(s)));
+
+  // 全机构合计始终包含毕业学员，保持“金额照算”
+  let grandTotal = 0;
+  const monthlyTotals = {};
+  months.forEach(m => monthlyTotals[m] = 0);
+  _students.forEach(s => {
+    const rev = studentRevs.get(s.id);
+    if (rev.hasPrice) {
+      grandTotal += rev.totalRaw;
+      months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
+    }
+  });
+
   // 仅看毕业学员开关：勾选只显示毕业学员，未勾选只显示在读学员
   const showGradOnly = document.getElementById('showGradRevenue')?.checked || false;
   const filteredStudents = _students.filter(s => showGradOnly ? s.status === '毕业' : s.status !== '毕业');
 
   const classes = [];
-  let grandTotal = 0;
   let nopriceCount = 0;
-  const monthlyTotals = {};
-  months.forEach(m => monthlyTotals[m] = 0);
   sortedClasses.forEach(cls => {
     const clsStudents = filteredStudents.filter(s => s.class_id === cls.id);
     clsStudents.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     const students = clsStudents.map(s => {
-      const rev = calcStudentRevenue(s);
-      if (rev.hasPrice) {
-        // 合计按当前筛选口径累加（毕业/在读二选一），最后统一舍入
-        grandTotal += rev.totalRaw;
-        months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
-      } else {
-        nopriceCount++;
-      }
+      const rev = studentRevs.get(s.id);
+      if (!rev.hasPrice) nopriceCount++;
       const isGrad = s.status === '毕业';
       return { student: s, rev, isGrad };
     });
