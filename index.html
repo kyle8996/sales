@@ -1050,8 +1050,8 @@ function renderSales() {
     return db.localeCompare(da);
   });
 
-  // 已在教务系统的学员：按"姓名+班级"判断
-  // 注意：不再按"姓名+电话"判断，避免同一孩子报了多个班时，一个电话导致全部班级都被误判为"已转"
+  // 已在教务系统的学员：优先按"姓名+班级"判断；同时用"姓名+电话"兜底，
+  // 避免销售记录里的"报名班级"和教务实际班级不一致时重复显示"转为学员"
   const studentClassPairs = new Set();
   _students.forEach(s => {
     const name = (s.name || '').trim();
@@ -1061,10 +1061,12 @@ function renderSales() {
   let html = '';
   list.forEach((c, idx) => {
     const cName = (c.name || '').trim();
+    const cPhone = (c.phone || '').trim();
     const cls = _classes.find(cl => (cl.name || '').trim() === (c.enrolled_class || '').trim());
     const clsId = cls ? cls.id : null;
     const isConverted = (c.tags || '').includes('已转学员')
-      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)));
+      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)))
+      || _students.some(s => (s.name || '').trim() === cName && (s.phone || '').trim() === cPhone);
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
