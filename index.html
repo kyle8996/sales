@@ -50,8 +50,9 @@ header .user-info{font-size:13px;color:#64748b}
 .btn-danger:hover{background:#fecaca}
 .btn-xs{padding:3px 8px;font-size:11px}
 .btn-sm{padding:5px 12px;font-size:12px}
-.tbl{overflow-x:auto}
+.tbl{overflow:auto;max-height:calc(100vh - 230px)}
 .tbl table{width:100%;border-collapse:collapse;font-size:13px}
+.tbl thead{position:sticky;top:0;z-index:10}
 .tbl th{background:#f8fafc;padding:10px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:12px}
 .tbl td{padding:9px 8px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 .tbl tr:hover td{background:#f8fafc}
