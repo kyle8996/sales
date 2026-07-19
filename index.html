@@ -55,6 +55,8 @@ header .user-info{font-size:13px;color:#64748b}
 .tbl th{background:#f8fafc;padding:10px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:12px}
 .tbl td{padding:9px 8px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 .tbl tr:hover td{background:#f8fafc}
+.tbl tfoot td{background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 8px;font-weight:600;color:#1e293b}
+.tbl tfoot .total-amount{color:#b45309;font-weight:700;font-size:14px}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .tag-signed{background:#dcfce7;color:#166534}
 .tag-trial{background:#fef3c7;color:#92400e}
@@ -234,6 +236,7 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:140px">操作</th>
         </tr></thead>
         <tbody id="salesTbody"></tbody>
+        <tfoot id="salesTfoot"></tfoot>
       </table></div>
     </div>
     <!-- 在读续费 -->
@@ -270,6 +273,7 @@ header .user-info{font-size:13px;color:#64748b}
           <th style="width:140px">操作</th>
         </tr></thead>
         <tbody id="renewalTbody"></tbody>
+        <tfoot id="renewalTfoot"></tfoot>
       </table></div>
     </div>
   </div>
@@ -1097,6 +1101,12 @@ function renderSales() {
       '</td></tr>';
   });
   document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="17" class="empty-state">暂无新招学员</td></tr>';
+  const totalAmount = list.reduce((sum, c) => sum + (Number(c.total_payment) || 0), 0);
+  document.getElementById('salesTfoot').innerHTML = '<tr>' +
+    '<td colspan="14" style="text-align:right">合计金额：</td>' +
+    '<td class="total-amount">¥' + totalAmount.toFixed(2) + '</td>' +
+    '<td colspan="2"></td>' +
+  '</tr>';
 }
 
 function exportSales() {
@@ -1160,6 +1170,12 @@ function renderRenewals() {
       '</td></tr>';
   });
   document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="15" class="empty-state">暂无续费记录</td></tr>';
+  const totalAmount = list.reduce((sum, r) => sum + (Number(r.total_payment) || 0), 0);
+  document.getElementById('renewalTfoot').innerHTML = '<tr>' +
+    '<td colspan="12" style="text-align:right">合计金额：</td>' +
+    '<td class="total-amount">¥' + totalAmount.toFixed(2) + '</td>' +
+    '<td colspan="2"></td>' +
+  '</tr>';
   fillRenewalFilters();
 }
 
