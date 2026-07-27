@@ -2302,8 +2302,10 @@ function buildRevenueData() {
       return { hasPrice: false, monthRevenue: {}, total: 0, overflow: false };
     }
 
-    // 出勤（按月份升序，仅限当前班级）
-    const att = _attendance.filter(a => a.student_id === student.id && a.class_id === classId && a.year === year && a.month >= startMonth && a.month <= currentMonth);
+    // 出勤（按月份升序）
+    // 注意：attendance 表没有 class_id，班级隔离通过上面 getStudentBatches 的 classId 过滤实现；
+    // 同一个学员在不同班级会有独立的 students 记录和对应的 attendance 记录。
+    const att = _attendance.filter(a => a.student_id === student.id && a.year === year && a.month >= startMonth && a.month <= currentMonth);
     att.sort((a, b) => a.month - b.month);
 
     // 剩余课时池
