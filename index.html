@@ -388,6 +388,7 @@ header .user-info{font-size:13px;color:#64748b}
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#7c3aed;font-weight:600;cursor:pointer">
             <input type="checkbox" id="showGradRevenue" onchange="renderRevenue()"> 🎓 仅看毕业学员
           </label>
+          <input type="text" id="revNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderRevenue()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
         </div>
         <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() => { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
         <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>
@@ -2329,7 +2330,12 @@ function buildRevenueData() {
 
   // 仅看毕业学员开关：勾选只显示毕业学员，未勾选只显示在读学员
   const showGradOnly = document.getElementById('showGradRevenue')?.checked || false;
-  const filteredStudents = _students.filter(s => showGradOnly ? s.status === '毕业' : s.status !== '毕业');
+  const nameSearch = (document.getElementById('revNameSearch')?.value || '').trim();
+  const filteredStudents = _students.filter(s => {
+    if (showGradOnly ? s.status !== '毕业' : s.status === '毕业') return false;
+    if (nameSearch && !(s.name || '').includes(nameSearch)) return false;
+    return true;
+  });
 
   const classes = [];
   let nopriceCount = 0;
