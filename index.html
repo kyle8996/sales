@@ -2281,10 +2281,11 @@ function buildRevenueData() {
       const m = a.month;
       let need = parseFloat(a.hours) || 0;
       if (need <= 0) return;
-      // 该月可用批次：缴费日 <= 当月月底（未来批次不参与）
+      // 该月可用批次：缴费日 <= 当月月底（未来批次不参与）；
+      // 「年前缴费」或空日期视为最早批次，所有月份均可使用
       const monthUpper = year + '-' + (m < 10 ? '0' + m : m) + '-31';
       for (const b of pool) {
-        if (b.date > monthUpper) continue;
+        if (b.date && b.date !== '年前缴费' && b.date > monthUpper) continue;
         if (b.remain <= 0) continue;
         const deduct = Math.min(need, b.remain);
         monthRevenue[m] += deduct * b.unit_price;
