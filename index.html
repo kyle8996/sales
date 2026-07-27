@@ -727,9 +727,14 @@ async function refreshRevenueData() {
 
 // 判断两个缴费批次是否在核心字段上相等（用于去重和识别手动记录）
 function isSameBatch(a, b) {
-  return Math.abs((parseFloat(a.hours) || 0) - (parseFloat(b.hours) || 0)) < 0.01 &&
-    Math.abs((parseFloat(a.book_fee) || 0) - (parseFloat(b.book_fee) || 0)) < 0.01 &&
-    Math.abs((parseFloat(a.total_payment) || 0) - (parseFloat(b.total_payment) || 0)) < 0.01;
+  const da = (a.payment_date || '').trim();
+  const db = (b.payment_date || '').trim();
+  const sa = (a.source || '').trim();
+  const sb = (b.source || '').trim();
+  return sa === sb && da === db &&
+    Math.abs((parseFloat(a.hours) || 0) - (parseFloat(b.hours) || 0)) < 0.01 &&
+    Math.abs((parseFloat(a.book_fee) || 0) - (parseFloat(a.book_fee) || 0)) < 0.01 &&
+    Math.abs((parseFloat(a.total_payment) || 0) - (parseFloat(a.total_payment) || 0)) < 0.01;
 }
 
 // 从销售系统（新招学员 + 在读续费）同步缴费批次到 revenue_batches。
