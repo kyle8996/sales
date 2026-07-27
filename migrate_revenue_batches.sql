@@ -18,8 +18,12 @@ CREATE TABLE IF NOT EXISTS public.revenue_batches (
 -- 若表已存在，补全新字段
 ALTER TABLE public.revenue_batches
   ADD COLUMN IF NOT EXISTS book_fee NUMERIC NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS total_payment NUMERIC NOT NULL DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS total_payment NUMERIC NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS payment_date TEXT,
+  ADD COLUMN IF NOT EXISTS source TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_revenue_batches_student ON public.revenue_batches(student_id);
 
 COMMENT ON TABLE public.revenue_batches IS '销售系统确收表：学员缴费批次，按 batch_order 先进先出计算确收。课单价 = (合计缴费 - 书费) / 课时数';
+COMMENT ON COLUMN public.revenue_batches.payment_date IS '缴费日期（YYYY-MM-DD 或特殊标记：年前缴费）';
+COMMENT ON COLUMN public.revenue_batches.source IS '批次来源：sales-new（新招学员）、sales-renewal（在读续费）、manual（手动编辑）';
