@@ -745,14 +745,31 @@ async function syncRevenueBatchesFromSales() {
 
   const changes = [];
 
+  // 班级名称 -> class_id 映射，用于把 customer.enrolled_class 精确对应到 student.class_id
+  const classNameToId = new Map();
+  if (_classes && _classes.length) {
+    _classes.forEach(cl => { if (cl.name) classNameToId.set(cl.name.trim(), cl.id); });
+  }
+
   for (const student of _students) {
     const studentId = student.id;
     const name = (student.name || '').trim();
+    const studentClassId = student.class_id;
     if (!name) continue;
 
     // 1) 销售系统推导出的批次
     const salesBatches = [];
-    const customer = _customers.find(c => c.status === '已报名' && (c.name || '').trim() === name);
+    const customer = _customers.find(c => {
+      if (c.status !== '已报名') return false;
+      if ((c.name || '').trim() !== name) return false;
+      // 同名多学员（常规班+暑假班）时，按 enrolled_class 精确匹配到对应 student.class_id
+      const custClassId = classNameToId.get((c.enrolled_class || '').trim());
+      if (custClassId && studentClassId) {
+        return custClassId === studentClassId;
+      }
+      // 无班级信息时 fallback 到姓名匹配
+      return true;
+    });
     if (customer) {
       const hours = parseFloat(customer.course_hours) || 0;
       const totalPayment = parseFloat(customer.total_payment) || 0;
