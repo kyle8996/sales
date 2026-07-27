@@ -729,15 +729,15 @@ async function refreshRevenueData() {
 }
 
 // 判断两个缴费批次是否在核心字段上相等（用于去重和识别手动记录）
+// 同日期 + 同班级 + 同金额/课时/书费 即视为同一笔，来源（销售/手动）不参与去重
 function isSameBatch(a, b) {
   const da = (a.payment_date || '').trim();
   const db = (b.payment_date || '').trim();
-  const sa = (a.source || '').trim();
-  const sb = (b.source || '').trim();
-  return sa === sb && da === db &&
+  return da === db &&
+    (a.class_id || null) === (b.class_id || null) &&
     Math.abs((parseFloat(a.hours) || 0) - (parseFloat(b.hours) || 0)) < 0.01 &&
-    Math.abs((parseFloat(a.book_fee) || 0) - (parseFloat(a.book_fee) || 0)) < 0.01 &&
-    Math.abs((parseFloat(a.total_payment) || 0) - (parseFloat(a.total_payment) || 0)) < 0.01;
+    Math.abs((parseFloat(a.book_fee) || 0) - (parseFloat(b.book_fee) || 0)) < 0.01 &&
+    Math.abs((parseFloat(a.total_payment) || 0) - (parseFloat(b.total_payment) || 0)) < 0.01;
 }
 
 // 从销售系统（新招学员 + 在读续费）同步缴费批次到 revenue_batches。
@@ -783,28 +783,24 @@ async function syncRevenueBatchesFromSales() {
     // 2) 若用户已手动录入/调整过同日期同金额的批次，销售系统的对应记录不再重复生成，
     //    以手动版本为准，避免自动同步破坏用户自定义顺序。
     const existing = _revenue_batches.filter(b => b.student_id === studentId).sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
-    // 保留已有手动/自定义 class_id 的记录，后续按原样写回
+    // 保留已有手动/自定义 class_id 的记录，后续按原样写回（签名不含 source，销售/手动视为同一笔）
     const classIdBySignature = new Map();
     existing.forEach(eb => {
       if (eb.class_id) {
-        const sig = (eb.payment_date || '') + '|' + (eb.hours || 0) + '|' + (eb.book_fee || 0) + '|' + (eb.total_payment || 0) + '|' + (eb.source || '');
+        const sig = (eb.payment_date || '') + '|' + (eb.hours || 0) + '|' + (eb.book_fee || 0) + '|' + (eb.total_payment || 0) + '|' + (eb.class_id || '');
         classIdBySignature.set(sig, eb.class_id);
       }
     });
     const existingManualBatches = existing.filter(eb => !eb.source || eb.source === 'manual');
     const shadowedSalesBatches = salesBatches.filter(sb => {
-      return !existingManualBatches.some(mb =>
-        (sb.payment_date || '') === (mb.payment_date || '') &&
-        Math.abs((parseFloat(sb.hours) || 0) - (parseFloat(mb.hours) || 0)) < 0.01 &&
-        Math.abs((parseFloat(sb.book_fee) || 0) - (parseFloat(mb.book_fee) || 0)) < 0.01 &&
-        Math.abs((parseFloat(sb.total_payment) || 0) - (parseFloat(mb.total_payment) || 0)) < 0.01
-      );
+      return !existingManualBatches.some(mb => isSameBatch(sb, mb));
     });
     const manualBatches = existing.filter(eb => {
       // 来源明确为手动的，直接保留
       if (!eb.source || eb.source === 'manual') return true;
       // 来源为 sales 但已不在当前 sales 数据里的，也保留（避免删除用户后续可能调整的销售记录）
-      return !shadowedSalesBatches.some(sb2 => isSameBatch(sb2, eb));
+      // 注意：这里必须用原始 salesBatches 判断，不能用已被手动记录 shadow 后的 shadowedSalesBatches
+      return !salesBatches.some(sb2 => isSameBatch(sb2, eb));
     }).map(eb => ({
       hours: parseFloat(eb.hours) || 0,
       book_fee: parseFloat(eb.book_fee) || 0,
@@ -815,12 +811,13 @@ async function syncRevenueBatchesFromSales() {
     }));
 
     // 3) 合并、排序、去重（使用被手动记录 shadow 后的 salesBatches）
+    // 手动记录优先加入，这样用户自定义的顺序和班级绑定会保留；同日期同金额的销售记录被去重
     const combined = [];
-    shadowedSalesBatches.forEach(sb => {
-      if (!combined.some(cb => isSameBatch(cb, sb))) combined.push(sb);
-    });
     manualBatches.forEach(mb => {
       if (!combined.some(cb => isSameBatch(cb, mb))) combined.push(mb);
+    });
+    shadowedSalesBatches.forEach(sb => {
+      if (!combined.some(cb => isSameBatch(cb, sb))) combined.push(sb);
     });
 
     // 排序：年前缴费 / 空日期在最前，其余按日期升序
@@ -835,7 +832,7 @@ async function syncRevenueBatchesFromSales() {
     });
 
     const targetBatches = combined.map((b, idx) => {
-      const sig = (b.payment_date || '') + '|' + (b.hours || 0) + '|' + (b.book_fee || 0) + '|' + (b.total_payment || 0) + '|' + (b.source || '');
+      const sig = (b.payment_date || '') + '|' + (b.hours || 0) + '|' + (b.book_fee || 0) + '|' + (b.total_payment || 0) + '|' + (b.class_id || '');
       const batch = {
         student_id: studentId,
         batch_order: idx + 1,
