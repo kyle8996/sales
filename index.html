@@ -610,6 +610,7 @@ let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], 
 let _revenueRefreshTimer = null;
 let _trialLoaded = false;
 let _currentSubTab = 'trial';
+let _currentTab = 'customers';
 
 // 客户端缓存：重复打开秒出数（sessionStorage），后台仍会拉取最新数据覆盖
 const _CACHE_PREFIX = 'sales_cache_';
