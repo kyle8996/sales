@@ -163,6 +163,8 @@ header .user-info{font-size:13px;color:#64748b}
 .batch-row-header{display:flex;gap:8px;align-items:center;padding:0 0 4px 50px;font-size:11px;color:#94a3b8}
 .batch-row-header span{flex:1;text-align:center}
 .batch-unit-price{flex:1;text-align:center;padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#334155;min-height:19px}
+.batch-class-select{flex:1.2;padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none;background:#fff;min-width:110px}
+.batch-class-select:focus{border-color:#2563eb}
 </style>
 </head>
 <body>
@@ -572,8 +574,8 @@ header .user-info{font-size:13px;color:#64748b}
   <div class="modal-box" style="max-width:720px">
     <h3 id="revenueBatchModalTitle">编辑缴费批次</h3>
     <input type="hidden" id="revenueBatchStudentId">
-    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。课单价 =（合计缴费 - 书费）÷ 课时数，自动计算。粉色日期为销售系统同步，灰色「年前缴费」为手动保留记录。</p>
-    <div class="batch-row-header"><span>课时数</span><span>书费</span><span>合计缴费</span><span>课单价</span><span></span></div>
+    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。课单价 =（合计缴费 - 书费）÷ 课时数，自动计算。粉色日期为销售系统同步，灰色「年前缴费」为手动保留记录。<br><b style="color:#334155">适用班级</b>：选择「全部班级」则该批次所有班级出勤均可使用；选择具体班级则仅该班级出勤使用。</p>
+    <div class="batch-row-header"><span style="flex:1.2">适用班级</span><span>课时数</span><span>书费</span><span>合计缴费</span><span>课单价</span><span></span></div>
     <div id="revenueBatchRows"></div>
     <div style="margin-top:10px">
       <button class="btn btn-gray btn-sm" onclick="addBatchRow()">＋ 添加一批次</button>
@@ -781,6 +783,14 @@ async function syncRevenueBatchesFromSales() {
     // 2) 若用户已手动录入/调整过同日期同金额的批次，销售系统的对应记录不再重复生成，
     //    以手动版本为准，避免自动同步破坏用户自定义顺序。
     const existing = _revenue_batches.filter(b => b.student_id === studentId).sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
+    // 保留已有手动/自定义 class_id 的记录，后续按原样写回
+    const classIdBySignature = new Map();
+    existing.forEach(eb => {
+      if (eb.class_id) {
+        const sig = (eb.payment_date || '') + '|' + (eb.hours || 0) + '|' + (eb.book_fee || 0) + '|' + (eb.total_payment || 0) + '|' + (eb.source || '');
+        classIdBySignature.set(sig, eb.class_id);
+      }
+    });
     const existingManualBatches = existing.filter(eb => !eb.source || eb.source === 'manual');
     const shadowedSalesBatches = salesBatches.filter(sb => {
       return !existingManualBatches.some(mb =>
@@ -824,16 +834,22 @@ async function syncRevenueBatchesFromSales() {
       return da.localeCompare(db);
     });
 
-    const targetBatches = combined.map((b, idx) => ({
-      student_id: studentId,
-      batch_order: idx + 1,
-      hours: b.hours,
-      book_fee: b.book_fee,
-      total_payment: b.total_payment,
-      unit_price: calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price),
-      payment_date: b.payment_date || '年前缴费',
-      source: b.source || 'manual'
-    }));
+    const targetBatches = combined.map((b, idx) => {
+      const sig = (b.payment_date || '') + '|' + (b.hours || 0) + '|' + (b.book_fee || 0) + '|' + (b.total_payment || 0) + '|' + (b.source || '');
+      const batch = {
+        student_id: studentId,
+        batch_order: idx + 1,
+        hours: b.hours,
+        book_fee: b.book_fee,
+        total_payment: b.total_payment,
+        unit_price: calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price),
+        payment_date: b.payment_date || '年前缴费',
+        source: b.source || 'manual'
+      };
+      const preservedClassId = classIdBySignature.get(sig);
+      if (preservedClassId) batch.class_id = preservedClassId;
+      return batch;
+    });
 
     // 4) 只在真正变化时才写入，减少数据库操作
     const changed = existing.length !== targetBatches.length || targetBatches.some((tb, idx) => {
@@ -842,7 +858,8 @@ async function syncRevenueBatchesFromSales() {
       return !isSameBatch(tb, eb) ||
         (tb.payment_date || '') !== (eb.payment_date || '') ||
         (tb.source || '') !== (eb.source || '') ||
-        (tb.batch_order || 0) !== (eb.batch_order || 0);
+        (tb.batch_order || 0) !== (eb.batch_order || 0) ||
+        (tb.class_id || null) !== (eb.class_id || null);
     });
 
     if (changed) changes.push({ studentId, targetBatches });
@@ -2232,10 +2249,11 @@ function buildRevenueData() {
   });
 
   // 计算单个学员的月度确收（FIFO 按缴费批次匹配课单价）
-  function getStudentBatches(student) {
+  function getStudentBatches(student, classId) {
     // revenue_batches 已包含销售系统同步的新招学员 + 在读续费 + 手动保留记录
+    // class_id 为空表示通用批次，所有班级均可使用；否则仅当前班级可用
     const custom = _revenue_batches
-      .filter(b => b.student_id === student.id)
+      .filter(b => b.student_id === student.id && (!b.class_id || b.class_id === classId))
       .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
       .map(b => ({
         hours: parseFloat(b.hours) || 0,
@@ -2278,14 +2296,14 @@ function buildRevenueData() {
     return salesBatches;
   }
 
-  function calcStudentRevenue(student) {
-    const batches = getStudentBatches(student);
+  function calcStudentRevenue(student, classId) {
+    const batches = getStudentBatches(student, classId);
     if (batches.length === 0) {
       return { hasPrice: false, monthRevenue: {}, total: 0, overflow: false };
     }
 
-    // 出勤（按月份升序）
-    const att = _attendance.filter(a => a.student_id === student.id && a.year === year && a.month >= startMonth && a.month <= currentMonth);
+    // 出勤（按月份升序，仅限当前班级）
+    const att = _attendance.filter(a => a.student_id === student.id && a.class_id === classId && a.year === year && a.month >= startMonth && a.month <= currentMonth);
     att.sort((a, b) => a.month - b.month);
 
     // 剩余课时池
@@ -2323,17 +2341,20 @@ function buildRevenueData() {
     return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow };
   }
 
-  // 预计算所有学员的确收（避免筛选前后重复计算）
-  const studentRevs = new Map();
-  _students.forEach(s => studentRevs.set(s.id, calcStudentRevenue(s)));
+  // 预计算所有 (学员, 班级) 组合的确收（避免筛选前后重复计算）
+  const studentClassRevs = new Map();
+  _students.forEach(s => {
+    const key = s.id + '|' + s.class_id;
+    studentClassRevs.set(key, calcStudentRevenue(s, s.class_id));
+  });
 
   // 全机构合计始终包含毕业学员，保持“金额照算”
   let grandTotal = 0;
   const monthlyTotals = {};
   months.forEach(m => monthlyTotals[m] = 0);
   _students.forEach(s => {
-    const rev = studentRevs.get(s.id);
-    if (rev.hasPrice) {
+    const rev = studentClassRevs.get(s.id + '|' + s.class_id);
+    if (rev && rev.hasPrice) {
       grandTotal += rev.totalRaw;
       months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
     }
@@ -2354,10 +2375,10 @@ function buildRevenueData() {
     const clsStudents = filteredStudents.filter(s => s.class_id === cls.id);
     clsStudents.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     const students = clsStudents.map(s => {
-      const rev = studentRevs.get(s.id);
-      if (!rev.hasPrice) nopriceCount++;
+      const rev = studentClassRevs.get(s.id + '|' + cls.id);
+      if (!rev || !rev.hasPrice) nopriceCount++;
       const isGrad = s.status === '毕业';
-      return { student: s, rev, isGrad };
+      return { student: s, rev: rev || { hasPrice: false, monthRevenue: {}, total: 0, overflow: false }, isGrad };
     });
     classes.push({ cls, students });
   });
@@ -2533,12 +2554,13 @@ function getBatchLabel(idx) {
   return (idx - 1) + '次续费';
 }
 
-function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice, paymentDate, source) {
+function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice, paymentDate, source, classId, classOptionsHtml) {
   const label = getBatchLabel(idx);
   const dateText = paymentDate || '年前缴费';
   const dateColor = source && source.startsWith('sales') ? '#db2777' : '#94a3b8';
-  return '<div class="batch-row" data-payment-date="' + (paymentDate || '') + '" data-source="' + (source || '') + '">' +
+  return '<div class="batch-row" data-payment-date="' + (paymentDate || '') + '" data-source="' + (source || '') + '" data-class-id="' + (classId || '') + '">' +
     '<span class="batch-label"><div class="batch-name">' + label + '</div><div class="batch-date" style="color:' + dateColor + '">' + dateText + '</div></span>' +
+    '<select class="batch-class-select" onchange="this.closest(\'.batch-row\').dataset.classId = this.value || \'\'">' + classOptionsHtml + '</select>' +
     '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="课时数" value="' + (hours || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-book" step="0.01" min="0" placeholder="书费" value="' + (bookFee || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-total" step="0.01" min="0" placeholder="合计缴费" value="' + (totalPayment || '') + '" oninput="calcBatchUnitPrice(this)">' +
@@ -2571,12 +2593,25 @@ function renumberBatchRows() {
   });
 }
 
+function buildBatchClassOptions(selectedClassId) {
+  const studentId = parseInt(document.getElementById('revenueBatchStudentId').value) || 0;
+  const student = _students.find(s => s.id === studentId);
+  const studentClassIds = student ? new Set(_students.filter(s => s.name === student.name).map(s => s.class_id)) : new Set();
+  let html = '<option value="">全部班级</option>';
+  _classes.filter(c => studentClassIds.has(c.id)).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach(c => {
+    html += '<option value="' + c.id + '"' + (String(selectedClassId) === String(c.id) ? ' selected' : '') + '>' + (c.name || '') + '</option>';
+  });
+  return html;
+}
+
 function addBatchRow() {
   const rowsDiv = document.getElementById('revenueBatchRows');
   const count = rowsDiv.querySelectorAll('.batch-row').length + 1;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = renderBatchRow(count, '', '', '', '', '年前缴费', 'manual');
-  rowsDiv.appendChild(wrapper.firstElementChild);
+  wrapper.innerHTML = renderBatchRow(count, '', '', '', '', '年前缴费', 'manual', '', buildBatchClassOptions(''));
+  const row = wrapper.firstElementChild;
+  rowsDiv.appendChild(row);
+  row.dataset.classId = '';
 }
 
 function removeBatchRow(btn) {
@@ -2616,10 +2651,11 @@ function openRevenueBatchModal(studentId) {
     .filter(b => b.student_id === studentId)
     .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
 
+  const classOptionsHtml = buildBatchClassOptions('');
   if (custom.length > 0) {
     rowsDiv.innerHTML = custom.map((b, idx) => {
       const up = calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price);
-      return renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, up, b.payment_date, b.source);
+      return renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, up, b.payment_date, b.source, b.class_id, buildBatchClassOptions(b.class_id));
     }).join('');
   } else {
     // 未自定义时，用销售系统数据作为默认值预填充
@@ -2642,10 +2678,10 @@ function openRevenueBatchModal(studentId) {
     if (defaults.length > 0) {
       rowsDiv.innerHTML = defaults.map((d, idx) => {
         const up = calcPreciseUnitPrice(d.hours, d.book_fee, d.total_payment, 0);
-        return renderBatchRow(idx + 1, d.hours, d.book_fee, d.total_payment, up, d.payment_date, d.source);
+        return renderBatchRow(idx + 1, d.hours, d.book_fee, d.total_payment, up, d.payment_date, d.source, '', classOptionsHtml);
       }).join('');
     } else {
-      rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '', '年前缴费', 'manual');
+      rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '', '年前缴费', 'manual', '', classOptionsHtml);
     }
   }
   document.getElementById('revenueBatchModal').classList.add('show');
@@ -2661,27 +2697,32 @@ async function saveRevenueBatches() {
     const h = parseFloat(row.querySelector('.batch-hours').value) || 0;
     const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
     const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
+    const classIdRaw = row.dataset.classId !== undefined ? row.dataset.classId : (row.querySelector('.batch-class-select')?.value || '');
+    const classId = classIdRaw ? parseInt(classIdRaw) : null;
     const original = _revenue_batches.find(b => b.student_id === studentId && b.batch_order === (idx + 1));
     const originalUp = original ? original.unit_price : 0;
     const unitPrice = calcPreciseUnitPrice(h, bookFee, totalPayment, originalUp);
     let paymentDate = row.dataset.paymentDate || '';
     let source = row.dataset.source || '';
-    // 如果用户修改了销售同步的数值，或手动调整了顺序，就视为手动覆盖，避免下次同步又被覆盖
+    // 如果用户修改了销售同步的数值、调整了顺序、或修改了适用班级，就视为手动覆盖，避免下次同步又被覆盖
     if (source && source.startsWith('sales') && original) {
       const changed = Math.abs(h - (parseFloat(original.hours) || 0)) > 0.01 ||
         Math.abs(bookFee - (parseFloat(original.book_fee) || 0)) > 0.01 ||
-        Math.abs(totalPayment - (parseFloat(original.total_payment) || 0)) > 0.01;
+        Math.abs(totalPayment - (parseFloat(original.total_payment) || 0)) > 0.01 ||
+        (classId || null) !== (original.class_id || null);
       if (changed) source = 'manual';
     }
     if (_revenueBatchReordered) source = 'manual';
     if (!paymentDate) paymentDate = '年前缴费';
     if (!source) source = 'manual';
     if (h > 0 && (totalPayment > 0 || unitPrice > 0)) {
-      batches.push({
+      const batch = {
         student_id: studentId, batch_order: idx + 1,
         hours: h, book_fee: bookFee, total_payment: totalPayment, unit_price: unitPrice,
         payment_date: paymentDate, source: source
-      });
+      };
+      if (classId) batch.class_id = classId;
+      batches.push(batch);
     }
   });
 
@@ -2698,7 +2739,7 @@ async function saveRevenueBatches() {
     renderRevenue();
     showToast('缴费批次保存成功');
   } catch (e) {
-    alert('保存失败：' + (e.message || e) + '\n请确认已在 Supabase SQL Editor 执行 migrate_revenue_batches_v2.sql，新增 payment_date / source 字段。');
+    alert('保存失败：' + (e.message || e) + '\n请确认已在 Supabase SQL Editor 按顺序执行 migrate_revenue_batches_v2.sql（payment_date / source）和 migrate_revenue_batches_v3.sql（class_id）。');
   }
 }
 
