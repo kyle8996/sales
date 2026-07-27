@@ -778,13 +778,23 @@ async function syncRevenueBatchesFromSales() {
       }
     });
 
-    // 2) 已有的手动批次（ sales 中找不到的才保留 ）
+    // 2) 若用户已手动录入/调整过同日期同金额的批次，销售系统的对应记录不再重复生成，
+    //    以手动版本为准，避免自动同步破坏用户自定义顺序。
     const existing = _revenue_batches.filter(b => b.student_id === studentId).sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
+    const existingManualBatches = existing.filter(eb => !eb.source || eb.source === 'manual');
+    const shadowedSalesBatches = salesBatches.filter(sb => {
+      return !existingManualBatches.some(mb =>
+        (sb.payment_date || '') === (mb.payment_date || '') &&
+        Math.abs((parseFloat(sb.hours) || 0) - (parseFloat(mb.hours) || 0)) < 0.01 &&
+        Math.abs((parseFloat(sb.book_fee) || 0) - (parseFloat(mb.book_fee) || 0)) < 0.01 &&
+        Math.abs((parseFloat(sb.total_payment) || 0) - (parseFloat(mb.total_payment) || 0)) < 0.01
+      );
+    });
     const manualBatches = existing.filter(eb => {
       // 来源明确为手动的，直接保留
       if (!eb.source || eb.source === 'manual') return true;
       // 来源为 sales 但已不在当前 sales 数据里的，也保留（避免删除用户后续可能调整的销售记录）
-      return !salesBatches.some(sb2 => isSameBatch(sb2, eb));
+      return !shadowedSalesBatches.some(sb2 => isSameBatch(sb2, eb));
     }).map(eb => ({
       hours: parseFloat(eb.hours) || 0,
       book_fee: parseFloat(eb.book_fee) || 0,
@@ -794,9 +804,9 @@ async function syncRevenueBatchesFromSales() {
       unit_price: eb.unit_price
     }));
 
-    // 3) 合并、排序、去重
+    // 3) 合并、排序、去重（使用被手动记录 shadow 后的 salesBatches）
     const combined = [];
-    salesBatches.forEach(sb => {
+    shadowedSalesBatches.forEach(sb => {
       if (!combined.some(cb => isSameBatch(cb, sb))) combined.push(sb);
     });
     manualBatches.forEach(mb => {
@@ -831,7 +841,8 @@ async function syncRevenueBatchesFromSales() {
       if (!eb) return true;
       return !isSameBatch(tb, eb) ||
         (tb.payment_date || '') !== (eb.payment_date || '') ||
-        (tb.source || '') !== (eb.source || '');
+        (tb.source || '') !== (eb.source || '') ||
+        (tb.batch_order || 0) !== (eb.batch_order || 0);
     });
 
     if (changed) changes.push({ studentId, targetBatches });
@@ -2501,6 +2512,7 @@ function exportRevenue() {
 // 确收表缴费批次编辑
 // ══════════════════════════════════════════
 let _revenueBatchStudentId = null;
+let _revenueBatchReordered = false;
 
 function calcPreciseUnitPrice(hours, bookFee, totalPayment, fallback) {
   const net = (parseFloat(totalPayment) || 0) - (parseFloat(bookFee) || 0);
@@ -2531,7 +2543,11 @@ function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice, paymentDat
     '<input type="number" class="batch-book" step="0.01" min="0" placeholder="书费" value="' + (bookFee || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-total" step="0.01" min="0" placeholder="合计缴费" value="' + (totalPayment || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<div class="batch-unit-price">' + formatBatchUnitPrice(unitPrice) + '</div>' +
-    '<span class="batch-actions"><button class="btn btn-danger btn-xs" onclick="removeBatchRow(this)">删除</button></span>' +
+    '<span class="batch-actions">' +
+      '<button class="btn btn-gray btn-xs" onclick="moveBatchRow(this,-1)" title="上移">↑</button>' +
+      '<button class="btn btn-gray btn-xs" onclick="moveBatchRow(this,1)" title="下移">↓</button>' +
+      '<button class="btn btn-danger btn-xs" onclick="removeBatchRow(this)">删除</button>' +
+    '</span>' +
     '</div>';
 }
 
@@ -2568,10 +2584,29 @@ function removeBatchRow(btn) {
   renumberBatchRows();
 }
 
+function moveBatchRow(btn, dir) {
+  const row = btn.closest('.batch-row');
+  const rowsDiv = document.getElementById('revenueBatchRows');
+  if (dir === -1 && row.previousElementSibling) {
+    rowsDiv.insertBefore(row, row.previousElementSibling);
+  } else if (dir === 1 && row.nextElementSibling) {
+    rowsDiv.insertBefore(row.nextElementSibling, row);
+  }
+  _revenueBatchReordered = true;
+  // 手动调整顺序后，该学员所有批次视为手动控制，避免自动同步覆盖自定义顺序
+  rowsDiv.querySelectorAll('.batch-row').forEach(r => {
+    r.dataset.source = 'manual';
+    const dateEl = r.querySelector('.batch-date');
+    if (dateEl) dateEl.style.color = '#94a3b8';
+  });
+  renumberBatchRows();
+}
+
 function openRevenueBatchModal(studentId) {
   const student = _students.find(s => s.id === studentId);
   if (!student) return;
   _revenueBatchStudentId = studentId;
+  _revenueBatchReordered = false;
   document.getElementById('revenueBatchModalTitle').textContent = '编辑缴费批次 - ' + (student.name || '');
   document.getElementById('revenueBatchStudentId').value = studentId;
   const rowsDiv = document.getElementById('revenueBatchRows');
@@ -2631,13 +2666,14 @@ async function saveRevenueBatches() {
     const unitPrice = calcPreciseUnitPrice(h, bookFee, totalPayment, originalUp);
     let paymentDate = row.dataset.paymentDate || '';
     let source = row.dataset.source || '';
-    // 如果用户修改了销售同步的数值，就视为手动覆盖，避免下次同步又被 sales 数据覆盖
+    // 如果用户修改了销售同步的数值，或手动调整了顺序，就视为手动覆盖，避免下次同步又被覆盖
     if (source && source.startsWith('sales') && original) {
       const changed = Math.abs(h - (parseFloat(original.hours) || 0)) > 0.01 ||
         Math.abs(bookFee - (parseFloat(original.book_fee) || 0)) > 0.01 ||
         Math.abs(totalPayment - (parseFloat(original.total_payment) || 0)) > 0.01;
       if (changed) source = 'manual';
     }
+    if (_revenueBatchReordered) source = 'manual';
     if (!paymentDate) paymentDate = '年前缴费';
     if (!source) source = 'manual';
     if (h > 0 && (totalPayment > 0 || unitPrice > 0)) {
