@@ -769,12 +769,17 @@ async function syncRevenueBatchesFromSales() {
     const customer = _customers.find(c => {
       if (c.status !== '已报名') return false;
       if ((c.name || '').trim() !== name) return false;
-      // 同名多学员（常规班+暑假班）时，按 enrolled_class 精确匹配到对应 student.class_id
-      const custClassId = classNameToId.get((c.enrolled_class || '').trim());
-      if (custClassId && studentClassId) {
-        return custClassId === studentClassId;
+      // 1) 若 customer 已绑定 student_id，直接按 id 匹配（最准确，兼容转班）
+      if (c.student_id) return c.student_id === studentId;
+      // 2) 同名多学员（如常规班+暑假班）时，按 enrolled_class 精确匹配到当前 student.class_id
+      const sameNameCustomers = _customers.filter(cc => cc.status === '已报名' && (cc.name || '').trim() === name);
+      if (sameNameCustomers.length > 1) {
+        const custClassId = classNameToId.get((c.enrolled_class || '').trim());
+        if (custClassId && studentClassId) {
+          return custClassId === studentClassId;
+        }
       }
-      // 无班级信息时 fallback 到姓名匹配
+      // 3) 只有一个同名 customer 时，直接匹配（兼容转班后班级不一致）
       return true;
     });
     if (customer) {
