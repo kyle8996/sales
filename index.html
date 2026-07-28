@@ -818,11 +818,10 @@ async function syncRevenueBatchesFromSales() {
       return !existingManualBatches.some(mb => isSameBatch(sb, mb));
     });
     const manualBatches = existing.filter(eb => {
-      // 来源明确为手动的，直接保留
+      // 来源为空/手动的，始终保留（用户手工录入的批次不应被销售同步覆盖或删除）
       if (!eb.source || eb.source === 'manual') return true;
-      // 来源为 sales 但已不在当前 sales 数据里的，也保留（避免删除用户后续可能调整的销售记录）
-      // 注意：这里必须用原始 salesBatches 判断，不能用已被手动记录 shadow 后的 shadowedSalesBatches
-      return !salesBatches.some(sb2 => isSameBatch(sb2, eb));
+      // 来源为 sales-* 的：只在当前销售数据中仍存在时才保留；销售端已删除的应同步删除
+      return salesBatches.some(sb2 => isSameBatch(sb2, eb));
     }).map(eb => ({
       hours: parseFloat(eb.hours) || 0,
       book_fee: parseFloat(eb.book_fee) || 0,
