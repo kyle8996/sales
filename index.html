@@ -746,9 +746,16 @@ async function syncRevenueBatchesFromSales() {
   const changes = [];
 
   // 班级名称 -> class_id 映射，用于把 customer.enrolled_class 精确对应到 student.class_id
+  // 同时存简称（去掉括号内容），兼容 enrolled_class 写 "SH01" 而 classes.name 为 "SH01(暑假班)" 的情况
   const classNameToId = new Map();
   if (_classes && _classes.length) {
-    _classes.forEach(cl => { if (cl.name) classNameToId.set(cl.name.trim(), cl.id); });
+    _classes.forEach(cl => {
+      if (!cl.name) return;
+      const full = cl.name.trim();
+      classNameToId.set(full, cl.id);
+      const short = full.split(/[(（]/)[0].trim();
+      if (short && short !== full) classNameToId.set(short, cl.id);
+    });
   }
 
   for (const student of _students) {
