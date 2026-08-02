@@ -393,8 +393,10 @@ header .user-info{font-size:13px;color:#64748b}
           </label>
           <input type="text" id="revNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderRevenue()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
         </div>
-        <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() => { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
-        <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() => { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
+          <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>
+        </div>
       </div>
       <div id="revenueContainer"></div>
     </div>
