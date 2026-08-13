@@ -1265,9 +1265,12 @@ function renderSales() {
     const cPhone = (c.phone || '').trim();
     const cls = _classes.find(cl => (cl.name || '').trim() === (c.enrolled_class || '').trim());
     const clsId = cls ? cls.id : null;
-    const isConverted = (c.tags || '').includes('已转学员')
-      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)))
-      || _students.some(s => (s.name || '').trim() === cName && (s.phone || '').trim() === cPhone);
+    // 已转判断：优先按 customer.student_id 精确绑定，其次 tags，最后同名同班兜底
+    // 不再用"同名同电话"兜底，避免 K2003/SH02 这种同名不同班被误判为已转
+    const boundStudent = c.student_id ? _students.find(s => s.id === c.student_id) : null;
+    const isConverted = boundStudent
+      || (c.tags || '').includes('已转学员')
+      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)));
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
@@ -1870,8 +1873,9 @@ async function convertToStudent() {
   // 创建学员记录（仅用 students 表已有字段）
   const { data: allStudents } = await sb.from('students').select('id').order('id', { ascending: false }).limit(1);
   const maxId = (allStudents && allStudents.length > 0) ? allStudents[0].id : 0;
+  const newStudentId = maxId + 1;
   const { error } = await sb.from('students').insert({
-    id: maxId + 1,
+    id: newStudentId,
     name: c.name,
     class_id: parseInt(classId),
     phone: c.phone || null,
@@ -1883,10 +1887,11 @@ async function convertToStudent() {
   
   if (error) { showToast('转入失败: '+error.message, false); return; }
   
-  // 标记客户已转学员（避免重复添加标签）
+  // 标记客户已转学员，并把新学员 id 回写到 customer.student_id（后续精确匹配用）
   const newTags = (c.tags||'').includes('已转学员') ? (c.tags||'') : ((c.tags||'') + ' 已转学员').trim();
   await sb.from('customers').update({
     tags: newTags,
+    student_id: newStudentId,
     updated_at: new Date().toISOString()
   }).eq('id', cid);
   
