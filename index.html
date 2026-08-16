@@ -420,6 +420,7 @@ header .user-info{font-size:13px;color:#64748b}
     <div class="form-row">
       <label>年级<input type="text" id="custGrade"></label>
       <label>学校<input type="text" id="custSchool"></label>
+      <label>家庭住址<input type="text" id="custAddress"></label>
       <label>家长<input type="text" id="custParent"></label>
     </div>
     <div class="form-row">
@@ -1082,7 +1083,7 @@ function renderCustomers() {
   if (fSource !== 'all') list = list.filter(c => (c.source_primary||'') === fSource);
   if (fLevel !== 'all') list = list.filter(c => (c.level||'B') === fLevel);
   if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
-  if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
+  if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.address||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
 
   const isTrial = _currentSubTab === 'trial';
   const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead';
@@ -1098,6 +1099,7 @@ function renderCustomers() {
     '<th style="width:75px">二级渠道</th>' +
     '<th style="width:40px">级别</th>' +
     '<th style="width:80px">学校</th>' +
+    '<th style="width:120px">家庭住址</th>' +
     '<th style="width:85px">状态</th>' +
     (isTrial ? '' : '<th style="width:90px">' + (_currentSubTab === 'promised' ? '试听时间' : '最近跟进') + '</th>') +
     '<th style="width:55px">跟进人</th>' +
@@ -1174,6 +1176,7 @@ function renderCustomers() {
       '<td>' + (c.source_secondary||c.source||'') + '</td>' +
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
+      '<td style="text-align:left">' + (c.address||'') + '</td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
       (isTrial ? '' : '<td>' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</td>') +
       '<td>' + (c.owner||'') + '</td>' +
@@ -1183,7 +1186,7 @@ function renderCustomers() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  const colCount = isTrial ? 13 : 14;
+  const colCount = isTrial ? 14 : 15;
   document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">暂无客户</td></tr>';
 }
 
@@ -1590,6 +1593,7 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custAge').value = editableAge ? (c.age||'') : (calcAge(c.birth_date) || (c.age||''));
       document.getElementById('custGrade').value = c.grade||'';
       document.getElementById('custSchool').value = c.school||'';
+      document.getElementById('custAddress').value = c.address||'';
       document.getElementById('custParent').value = c.parent||'';
       document.getElementById('custPhone').value = c.phone||'';
       document.getElementById('custSourcePrimary').value = c.source_primary||'';
@@ -1614,7 +1618,7 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custUnitPrice').value = unitPriceDisplay(c.unit_price);
     }
   } else {
-    ['custName','custBirthDate','custAge','custGrade','custSchool','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass','custSourcePrimary','custSourceSecondary'].forEach(id => document.getElementById(id).value='');
+    ['custName','custBirthDate','custAge','custGrade','custSchool','custAddress','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass','custSourcePrimary','custSourceSecondary'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custLevel').value = fromModule === 'sales' ? 'A' : 'B';
     document.getElementById('custStatus').value = fromModule === 'sales' ? '已报名' : '未上门';
     document.getElementById('custOwner').value = 'Kyle';
@@ -1643,6 +1647,7 @@ async function saveCustomer() {
     age: document.getElementById('custAge').value,
     grade: document.getElementById('custGrade').value,
     school: document.getElementById('custSchool').value,
+    address: document.getElementById('custAddress').value,
     parent: document.getElementById('custParent').value,
     phone: document.getElementById('custPhone').value,
     source_primary: document.getElementById('custSourcePrimary').value,
