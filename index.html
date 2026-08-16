@@ -1255,9 +1255,12 @@ function renderSales() {
   // 已在教务系统的学员：优先按"姓名+班级"判断；同时用"姓名+电话"兜底，
   // 避免销售记录里的"报名班级"和教务实际班级不一致时重复显示"转为学员"
   const studentClassPairs = new Set();
+  const studentPhonePairs = new Set();
   _students.forEach(s => {
     const name = (s.name || '').trim();
+    const phone = (s.phone || '').trim();
     studentClassPairs.add(name + '|' + String(s.class_id || ''));
+    if (phone) studentPhonePairs.add(name + '|' + phone);
   });
 
   let html = '';
@@ -1266,10 +1269,10 @@ function renderSales() {
     const cPhone = (c.phone || '').trim();
     const cls = _classes.find(cl => (cl.name || '').trim() === (c.enrolled_class || '').trim());
     const clsId = cls ? cls.id : null;
-    // 已转判断：按 tags 标记 或 同名同班兜底
-    // 不再用"同名同电话"兜底，避免 K2003/SH02 这种同名不同班被误判为已转
+    // 已转判断：tags 标记 / 同名同班 / 同名同电话（兜底，兼容班级升级、转班后仍识别为已转）
     const isConverted = (c.tags || '').includes('已转学员')
-      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)));
+      || (clsId && studentClassPairs.has(cName + '|' + String(clsId)))
+      || (cPhone && studentPhonePairs.has(cName + '|' + cPhone));
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (c.enrollment_date||'') + '</td>' +
