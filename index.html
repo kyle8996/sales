@@ -2481,12 +2481,12 @@ function renderRevenue() {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
         classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
-          '<td>' + (rev.remainingValue > 0 ? rev.remainingValue.toFixed(1) : '0') + '</td>' +
+          '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValue > 0 ? rev.remainingValue.toFixed(1) : '0') + '</td>' +
           '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
-    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classRemainingTotal > 0 ? '，未消耗 ¥' + classRemainingTotal.toFixed(1) : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
     html += classRows;
   });
 
@@ -2495,7 +2495,7 @@ function renderRevenue() {
     '<td style="text-align:left" colspan="2">全部学员合计</td>' +
     months.map(m => '<td>' + monthlyTotals[m].toFixed(1) + '</td>').join('') +
     '<td>' + grandTotal.toFixed(1) + '</td>' +
-    '<td>' + remainingTotal.toFixed(1) + '</td>' +
+    '<td style="font-weight:700;color:#ea580c">' + remainingTotal.toFixed(1) + '</td>' +
     '<td colspan="2"></td>' +
     '</tr></tfoot></table></div>';
   html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
