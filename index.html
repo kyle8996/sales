@@ -2393,17 +2393,18 @@ function buildRevenueData() {
 
   // 全机构合计始终包含毕业学员，保持“金额照算”
   let grandTotal = 0;
-  let remainingTotal = 0;
+  let remainingTotalInt = 0; // 以“角”(0.1元)为整数累加，避免逐学员1位小数求和时的浮点漂移
   const monthlyTotals = {};
   months.forEach(m => monthlyTotals[m] = 0);
   _students.forEach(s => {
     const rev = studentClassRevs.get(s.id + '|' + s.class_id);
     if (rev && rev.hasPrice) {
       grandTotal += rev.totalRaw;
-      remainingTotal += rev.remainingValue || 0;
+      remainingTotalInt += Math.round((rev.remainingValue || 0) * 10);
       months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
     }
   });
+  const remainingTotal = remainingTotalInt / 10;
 
   // 仅看毕业学员开关：勾选只显示毕业学员，未勾选只显示在读学员
   const showGradOnly = document.getElementById('showGradRevenue')?.checked || false;
@@ -2466,12 +2467,12 @@ function renderRevenue() {
   classes.forEach(({ cls, students }) => {
     if (students.length === 0) return;
     let classTotal = 0;
-    let classRemainingTotal = 0;
+    let classRemainingInt = 0; // 以“角”为整数累加，避免浮点漂移
     let classRows = '';
     students.forEach(({ student, rev, isGrad }) => {
       if (rev.hasPrice) {
         classTotal += rev.total;
-        classRemainingTotal += rev.remainingValue || 0;
+        classRemainingInt += Math.round((rev.remainingValue || 0) * 10);
       }
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice' + (isGrad ? ' grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
@@ -2487,6 +2488,7 @@ function renderRevenue() {
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
+    const classRemainingTotal = classRemainingInt / 10;
     html += '<tr class="rev-class-row"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
     html += classRows;
   });
