@@ -2377,11 +2377,13 @@ function buildRevenueData() {
     const totalRaw = months.reduce((s, m) => s + monthRevenueRaw[m], 0);
     // 未消耗课时费用：剩余课时 = 缴费批次池经本年考勤消耗后尚未使用的课时（动态计算，不依赖可能过期的 remaining_hours 字段）
     // 按 FIFO，最早批次先被消耗，剩余课时自然落在最新批次，直接按各批次剩余课时 × 单价累加即可（自动兼容课单价前后不同）
-    let remainingValue = 0;
-    for (const b of pool) { remainingValue += b.remain * b.unit_price; }
-    // 直接四舍五入到 1 位小数（显示口径一致），避免先 *100 取整再 toFixed(1) 的浮点截断误差（如 7732.9545 误显为 7732.9）
-    remainingValue = Math.round(remainingValue * 10) / 10;
-    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue };
+    let remainingValueRaw = 0;
+    for (const b of pool) { remainingValueRaw += b.remain * b.unit_price; }
+    // 以「整数角」(0.1元) 为单位保存未消耗费用：直接从原始累加值取整，避免对“已舍入的显示值”二次 round 带来的浮点边界偏差
+    const remainingValueInt = Math.round(remainingValueRaw * 10);
+    // 显示用 1 位小数（= 整数角 / 10，与合计口径完全一致，逐学员之和必等于合计）
+    const remainingValue = remainingValueInt / 10;
+    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue, remainingValueInt };
   }
 
   // 预计算所有 (学员, 班级) 组合的确收（避免筛选前后重复计算）
@@ -2400,7 +2402,7 @@ function buildRevenueData() {
     const rev = studentClassRevs.get(s.id + '|' + s.class_id);
     if (rev && rev.hasPrice) {
       grandTotal += rev.totalRaw;
-      remainingTotalInt += Math.round((rev.remainingValue || 0) * 10);
+      remainingTotalInt += rev.remainingValueInt || 0;
       months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
     }
   });
@@ -2472,7 +2474,7 @@ function renderRevenue() {
     students.forEach(({ student, rev, isGrad }) => {
       if (rev.hasPrice) {
         classTotal += rev.total;
-        classRemainingInt += Math.round((rev.remainingValue || 0) * 10);
+        classRemainingInt += rev.remainingValueInt || 0;
       }
       if (!rev.hasPrice) {
         classRows += '<tr class="rev-noprice' + (isGrad ? ' grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left">' + student.name + '</td>' +
