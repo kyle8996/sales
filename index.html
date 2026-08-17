@@ -2379,7 +2379,8 @@ function buildRevenueData() {
     // 按 FIFO，最早批次先被消耗，剩余课时自然落在最新批次，直接按各批次剩余课时 × 单价累加即可（自动兼容课单价前后不同）
     let remainingValue = 0;
     for (const b of pool) { remainingValue += b.remain * b.unit_price; }
-    remainingValue = Math.round(remainingValue * 100) / 100;
+    // 直接四舍五入到 1 位小数（显示口径一致），避免先 *100 取整再 toFixed(1) 的浮点截断误差（如 7732.9545 误显为 7732.9）
+    remainingValue = Math.round(remainingValue * 10) / 10;
     return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue };
   }
 
