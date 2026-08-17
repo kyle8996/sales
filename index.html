@@ -1100,7 +1100,7 @@ function renderCustomers() {
     '<th style="width:40px">级别</th>' +
     '<th style="width:80px">学校</th>' +
     '<th style="width:120px">家庭住址</th>' +
-    '<th style="width:100px">标签</th>' +
+    '<th style="width:80px">标签</th>' +
     '<th style="width:85px">状态</th>' +
     (isTrial ? '' : '<th style="width:90px">' + (_currentSubTab === 'promised' ? '试听时间' : '最近跟进') + '</th>') +
     '<th style="width:55px">跟进人</th>' +
@@ -1178,7 +1178,7 @@ function renderCustomers() {
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
       '<td>' + (c.school||'') + '</td>' +
       '<td>' + (c.address||'') + '</td>' +
-      '<td>' + (c.tags||'') + '</td>' +
+      '<td style="white-space:normal;word-break:break-all;max-width:80px;text-align:left">' + (c.tags||'') + '</td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
       (isTrial ? '' : '<td>' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</td>') +
       '<td>' + (c.owner||'') + '</td>' +
