@@ -772,21 +772,22 @@ async function syncRevenueBatchesFromSales() {
 
     // 1) 销售系统推导出的批次
     const salesBatches = [];
-    const customer = _customers.find(c => {
+    // 同名多「学员记录」(students 表多条同名) 时，才按 enrolled_class 精确匹配到当前 student.class_id，
+    // 避免把不同学员的同名记录张冠李戴；同一学员升级/续费产生的多条 customer 全部计入本学员的缴费批次
+    const sameNameStudents = _students.filter(s => (s.name || '').trim() === name);
+    const multiStudent = sameNameStudents.length > 1;
+    _customers.filter(c => {
       if (c.status !== '已报名') return false;
       if ((c.name || '').trim() !== name) return false;
-      // 同名多学员（如常规班+暑假班）时，按 enrolled_class 精确匹配到当前 student.class_id
-      const sameNameCustomers = _customers.filter(cc => cc.status === '已报名' && (cc.name || '').trim() === name);
-      if (sameNameCustomers.length > 1) {
+      if (multiStudent) {
+        // 仅当 enrolled_class 能映射到具体班级时才精确匹配；映射不到(如“K1002升学”待排班)按容错仍计入
         const custClassId = classNameToId.get((c.enrolled_class || '').trim());
         if (custClassId && studentClassId) {
           return custClassId === studentClassId;
         }
       }
-      // 只有一个同名 customer 时，直接匹配（兼容转班后班级不一致）
       return true;
-    });
-    if (customer) {
+    }).forEach(customer => {
       const hours = parseFloat(customer.course_hours) || 0;
       const totalPayment = parseFloat(customer.total_payment) || 0;
       const bookFee = parseFloat(customer.book_fee) || 0;
@@ -797,7 +798,7 @@ async function syncRevenueBatchesFromSales() {
           source: 'sales-new'
         });
       }
-    }
+    });
     _renewals.filter(r => (r.student_name || '').trim() === name).forEach(r => {
       const hours = parseFloat(r.course_hours) || 0;
       const totalPayment = parseFloat(r.total_payment) || 0;
@@ -2288,6 +2289,17 @@ function buildRevenueData() {
 
   // 计算单个学员的月度确收（FIFO 按缴费批次匹配课单价）
   function getStudentBatches(student, classId) {
+    // 班级名称 -> class_id 映射（兜底分支匹配同名多学员时用）
+    const classNameToId = new Map();
+    if (_classes && _classes.length) {
+      _classes.forEach(cl => {
+        if (!cl.name) return;
+        const full = cl.name.trim();
+        classNameToId.set(full, cl.id);
+        const short = full.split(/[(（]/)[0].trim();
+        if (short && short !== full) classNameToId.set(short, cl.id);
+      });
+    }
     // revenue_batches 已包含销售系统同步的新招学员 + 在读续费 + 手动保留记录
     // class_id 为空表示通用批次，所有班级均可使用；否则仅当前班级可用
     const custom = _revenue_batches
@@ -2300,11 +2312,22 @@ function buildRevenueData() {
       }));
     if (custom.length > 0) return custom;
 
-    // 兜底：未同步过时直接读销售系统
+    // 兜底：未同步过时直接读销售系统（同样收集同名全部已报名 customer，避免升级/续费多笔只取一笔）
     const name = (student.name || '').trim();
-    const customer = _customers.find(c => c.status === '已报名' && (c.name || '').trim() === name);
+    const sameNameStudents2 = _students.filter(s => (s.name || '').trim() === name);
+    const multiStudent2 = sameNameStudents2.length > 1;
     const salesBatches = [];
-    if (customer) {
+    _customers.filter(c => {
+      if (c.status !== '已报名') return false;
+      if ((c.name || '').trim() !== name) return false;
+      if (multiStudent2) {
+        const custClassId = classNameToId.get((c.enrolled_class || '').trim());
+        if (custClassId && student.class_id) {
+          return custClassId === student.class_id;
+        }
+      }
+      return true;
+    }).forEach(customer => {
       const hours = parseFloat(customer.course_hours) || 0;
       const totalPayment = parseFloat(customer.total_payment) || 0;
       const bookFee = parseFloat(customer.book_fee) || 0;
@@ -2315,7 +2338,7 @@ function buildRevenueData() {
           date: (customer.enrollment_date || '').substring(0, 10)
         });
       }
-    }
+    });
     _renewals
       .filter(r => (r.student_name || '').trim() === name)
       .forEach(r => {
