@@ -2172,6 +2172,7 @@ async function saveSession() {
   closeModal('sessionModal');
   await loadAll();
   renderSessions();
+  renderTrialCalendar();
 }
 
 async function deleteSession(sid) {
@@ -2180,6 +2181,7 @@ async function deleteSession(sid) {
   await sb.from('trial_sessions').delete().eq('id', sid);
   await loadAll();
   renderSessions();
+  renderTrialCalendar();
   showToast('场次已删除');
 }
 
