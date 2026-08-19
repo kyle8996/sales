@@ -163,6 +163,9 @@ header .user-info{font-size:13px;color:#64748b}
 .batch-row-header{display:flex;gap:8px;align-items:center;padding:0 0 4px 50px;font-size:11px;color:#94a3b8}
 .batch-row-header span{flex:1;text-align:center}
 .batch-unit-price{flex:1;text-align:center;padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#334155;min-height:19px}
+.day-context-menu{position:fixed;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px 0;z-index:10000;min-width:140px;display:none;overflow:hidden}
+.day-context-menu .ctx-item{padding:8px 14px;font-size:13px;color:#334155;cursor:pointer;white-space:nowrap}
+.day-context-menu .ctx-item:hover{background:#f0f7ff;color:#2563eb}
 </style>
 </head>
 <body>
@@ -1948,7 +1951,7 @@ function renderTrialCalendar() {
 
     const sessions = _trialSessions.filter(s => s.session_date === ds).sort((a, b) => (a.start_time||'').localeCompare(b.start_time||''));
 
-    html += '<div class="month-day' + (isToday ? ' today' : '') + '">';
+    html += '<div class="month-day' + (isToday ? ' today' : '') + '" oncontextmenu="return handleDayContextMenu(event, \'' + ds + '\')">';
     html += '<h4 class="' + (isToday ? 'today-num' : isWeekend ? 'weekend-num' : '') + '">' + d + '</h4>';
 
     sessions.forEach(s => {
@@ -1998,6 +2001,39 @@ function renderTrialCalendar() {
 }
 
 let _sessionWeekStart = null; // 当前筛选周的周一
+let _contextMenuDate = null;  // 右键菜单当前选中的日期
+
+function handleDayContextMenu(event, dateStr) {
+  event.preventDefault();
+  event.stopPropagation();
+  _contextMenuDate = dateStr;
+  const menu = document.getElementById('dayContextMenu');
+  const x = Math.min(event.clientX + 4, window.innerWidth - 150);
+  const y = Math.min(event.clientY + 4, window.innerHeight - 70);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.style.display = 'block';
+
+  // 点击页面其他地方关闭菜单
+  const closeOnClick = function(e) {
+    if (!menu.contains(e.target)) {
+      menu.style.display = 'none';
+      document.removeEventListener('click', closeOnClick, true);
+    }
+  };
+  document.addEventListener('click', closeOnClick, true);
+  return false;
+}
+
+function closeDayContextMenu() {
+  document.getElementById('dayContextMenu').style.display = 'none';
+}
+
+function onContextMenuAddDemo() {
+  const date = _contextMenuDate;
+  closeDayContextMenu();
+  if (date) openSessionModal(null, date);
+}
 
 function getSessionWeekRange() {
   if (!_sessionWeekStart) {
@@ -2089,7 +2125,7 @@ function renderSessions() {
     '<tr><td colspan="7" class="empty-state">本周暂无试听场次（勾选"含过去"可查看历史）</td></tr>';
 }
 
-function openSessionModal(sid) {
+function openSessionModal(sid, defaultDate) {
   document.getElementById('sessionEditId').value = sid || '';
   document.getElementById('sessionModalTitle').textContent = sid ? '编辑试听场次' : '新增试听场次';
   if (sid) {
@@ -2104,7 +2140,7 @@ function openSessionModal(sid) {
     }
   } else {
     document.getElementById('sessionTitle').value = '';
-    document.getElementById('sessionDate').value = '';
+    document.getElementById('sessionDate').value = defaultDate || '';
     document.getElementById('sessionStart').value = '19:00';
     document.getElementById('sessionEnd').value = '20:00';
     document.getElementById('sessionType').value = '';
@@ -2966,5 +3002,11 @@ function getWeekStart(dateStr) {
   return toDateStr(monday);
 }
 </script>
+
+<!-- 试听月历右键菜单 -->
+<div id="dayContextMenu" class="day-context-menu" onmouseleave="closeDayContextMenu()">
+  <div class="ctx-item" onclick="onContextMenuAddDemo()">＋ 新建 Demo 场次</div>
+</div>
+
 </body>
 </html>
