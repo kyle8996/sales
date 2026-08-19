@@ -348,7 +348,7 @@ header .user-info{font-size:13px;color:#64748b}
       </h2>
       <div class="tbl"><table>
         <thead><tr>
-          <th>场次名称</th><th>日期</th><th>时间</th><th>类型</th><th>容量</th><th>已约</th><th>操作</th>
+          <th>场次名称</th><th>日期</th><th>时间</th><th>类型</th><th>Demo老师</th><th>容量</th><th>已约</th><th>操作</th>
         </tr></thead>
         <tbody id="sessionsTbody"></tbody>
       </table></div>
@@ -527,12 +527,13 @@ header .user-info{font-size:13px;color:#64748b}
     </div>
     <div class="form-row">
       <label>日期*<input type="date" id="sessionDate"></label>
-      <label>开始时间<input type="time" id="sessionStart" value="19:00"></label>
-      <label>结束时间<input type="time" id="sessionEnd" value="20:00"></label>
+      <label>开始时间<input type="time" id="sessionStart" value="19:00" onchange="autoFillSessionEnd()"></label>
+      <label>结束时间<input type="time" id="sessionEnd" value="20:30"></label>
     </div>
     <div class="form-row">
       <label>类型<input type="text" id="sessionType" placeholder="少儿/幼儿试听"></label>
-      <label>最大容量<input type="number" id="sessionCapacity" value="8" min="1"></label>
+      <label>最大容量<input type="number" id="sessionCapacity" value="2" min="1"></label>
+      <label>Demo 老师<select id="sessionTeacher"><option value="">未指定</option><option value="Dora">Dora</option><option value="Cindy">Cindy</option></select></label>
     </div>
     <div class="modal-actions">
       <button class="btn btn-gray" onclick="closeModal('sessionModal')">取消</button>
@@ -1966,7 +1967,7 @@ function renderTrialCalendar() {
         }
       });
       
-      html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + (s.max_capacity ? ' (' + sessCustomers.length + '/' + s.max_capacity + ')' : '') + '</div>';
+      html += '<div class="day-session"><div class="sess-title">🕐 ' + (s.start_time||'') + ' ' + (s.title||'') + (s.teacher ? ' · ' + s.teacher : '') + (s.max_capacity ? ' (' + sessCustomers.length + '/' + s.max_capacity + ')' : '') + '</div>';
       // 该场次下的学员
       sessCustomers.forEach(c => {
         const statusBadge = c.status === '已报名' ? '<span class="tag-converted">已报</span>' :
@@ -2114,6 +2115,7 @@ function renderSessions() {
       '<td>' + (s.session_date||'') + '</td>' +
       '<td>' + (s.start_time||'') + ' ~ ' + (s.end_time||'') + '</td>' +
       '<td>' + (s.class_type||'') + '</td>' +
+      '<td>' + (s.teacher||'') + '</td>' +
       '<td>' + (s.max_capacity||'') + '</td>' +
       '<td>' + booked + '</td>' +
       '<td>' +
@@ -2122,7 +2124,17 @@ function renderSessions() {
       '</td></tr>';
   });
   document.getElementById('sessionsTbody').innerHTML = html || 
-    '<tr><td colspan="7" class="empty-state">本周暂无试听场次（勾选"含过去"可查看历史）</td></tr>';
+    '<tr><td colspan="8" class="empty-state">本周暂无试听场次（勾选"含过去"可查看历史）</td></tr>';
+}
+
+function autoFillSessionEnd() {
+  const start = document.getElementById('sessionStart').value;
+  if (!start) return;
+  const [h, m] = start.split(':').map(Number);
+  let totalMin = h * 60 + m + 90; // 加 1.5 小时
+  const eh = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
+  const em = String(totalMin % 60).padStart(2, '0');
+  document.getElementById('sessionEnd').value = eh + ':' + em;
 }
 
 function openSessionModal(sid, defaultDate) {
@@ -2136,15 +2148,17 @@ function openSessionModal(sid, defaultDate) {
       document.getElementById('sessionStart').value = s.start_time||'';
       document.getElementById('sessionEnd').value = s.end_time||'';
       document.getElementById('sessionType').value = s.class_type||'';
-      document.getElementById('sessionCapacity').value = s.max_capacity||8;
+      document.getElementById('sessionCapacity').value = s.max_capacity||2;
+      document.getElementById('sessionTeacher').value = s.teacher||'';
     }
   } else {
     document.getElementById('sessionTitle').value = '';
     document.getElementById('sessionDate').value = defaultDate || '';
     document.getElementById('sessionStart').value = '19:00';
-    document.getElementById('sessionEnd').value = '20:00';
+    document.getElementById('sessionEnd').value = '20:30';
     document.getElementById('sessionType').value = '';
-    document.getElementById('sessionCapacity').value = '8';
+    document.getElementById('sessionCapacity').value = '2';
+    document.getElementById('sessionTeacher').value = '';
   }
   document.getElementById('sessionModal').classList.add('show');
 }
@@ -2159,7 +2173,8 @@ async function saveSession() {
     start_time: document.getElementById('sessionStart').value,
     end_time: document.getElementById('sessionEnd').value,
     class_type: document.getElementById('sessionType').value,
-    max_capacity: parseInt(document.getElementById('sessionCapacity').value)||8
+    max_capacity: parseInt(document.getElementById('sessionCapacity').value)||2,
+    teacher: document.getElementById('sessionTeacher').value || null
   };
   let err;
   if (editId) {
