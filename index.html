@@ -58,6 +58,12 @@ header .user-info{font-size:13px;color:#64748b}
 .tbl tr:hover td{background:#f8fafc}
 .tbl tfoot td{background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 8px;font-weight:600;color:#1e293b}
 .tbl tfoot .total-amount{color:#b45309;font-weight:700;font-size:14px}
+/* 自适应表格：取消横向滚动，列宽按百分比自动分配，内容省略并通过 title 悬停显示完整内容 */
+.fit-table{overflow-x:hidden}
+.fit-table table{table-layout:fixed;width:100%}
+.fit-table th,.fit-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fit-table th{font-size:11px;padding:10px 4px}
+.fit-table td{padding:9px 4px;font-size:12px}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .tag-signed{background:#dcfce7;color:#166534}
 .tag-trial{background:#fef3c7;color:#92400e}
@@ -221,25 +227,25 @@ header .user-info{font-size:13px;color:#64748b}
           <button class="btn btn-gray btn-sm" onclick="exportSales()">📥 导出</button>
         </div>
       </h2>
-      <div class="tbl"><table>
+      <div class="tbl fit-table"><table>
         <thead><tr>
-          <th style="width:50px">序号</th>
-          <th style="width:90px">报名日期</th>
-          <th style="text-align:left;width:80px">姓名</th>
-          <th style="width:90px">出生日期</th>
-          <th style="width:45px">年龄</th>
-          <th style="width:120px">电话</th>
-          <th style="width:55px">家长</th>
-          <th style="width:85px">一级渠道</th>
-          <th style="width:90px">二级渠道</th>
-          <th style="width:110px">学校</th>
-          <th style="width:110px">报名班级</th>
-          <th style="width:60px">跟进人</th>
-          <th style="width:60px">课时数</th>
-          <th style="width:65px">书费</th>
-          <th style="width:80px">合计缴费</th>
-          <th style="width:65px">课单价</th>
-          <th style="width:130px">操作</th>
+          <th style="width:4%">序号</th>
+          <th style="width:6%">报名日期</th>
+          <th style="text-align:left;width:6%">姓名</th>
+          <th style="width:6%">出生日期</th>
+          <th style="width:3%">年龄</th>
+          <th style="width:9%">电话</th>
+          <th style="width:4%">家长</th>
+          <th style="width:6%">一级渠道</th>
+          <th style="width:6%">二级渠道</th>
+          <th style="width:7%">学校</th>
+          <th style="width:7%">报名班级</th>
+          <th style="width:4%">跟进人</th>
+          <th style="width:4%">课时数</th>
+          <th style="width:4%">书费</th>
+          <th style="width:5%">合计缴费</th>
+          <th style="width:4%">课单价</th>
+          <th style="width:11%">操作</th>
         </tr></thead>
         <tbody id="salesTbody"></tbody>
         <tfoot id="salesTfoot"></tfoot>
@@ -1234,6 +1240,13 @@ function fillSalesFilters() {
   sMon.value = months.length > 0 ? (curMon || 'all') : 'all';
 }
 
+function cell(value, style) {
+  const v = value === undefined || value === null ? '' : String(value);
+  const esc = v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const styleAttr = style ? ' style="' + style + '"' : '';
+  return '<td' + styleAttr + ' title="' + esc + '">' + esc + '</td>';
+}
+
 function renderSales() {
   updateCounts();
   let list = _customers.filter(c => c.status === '已报名');
@@ -1282,23 +1295,23 @@ function renderSales() {
       || (clsId && studentClassPairs.has(cName + '|' + String(clsId)))
       || (cPhone && studentPhonePairs.has(cName + '|' + cPhone));
     html += '<tr>' +
-      '<td>' + (idx + 1) + '</td>' +
-      '<td>' + (c.enrollment_date||'') + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (c.name||'') + '</td>' +
-      '<td>' + (c.birth_date||'') + '</td>' +
-      '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
-      '<td>' + (c.phone||'') + '</td>' +
-      '<td>' + (c.parent||'') + '</td>' +
-      '<td>' + (c.source_primary||'') + '</td>' +
-      '<td>' + (c.source_secondary||c.source||'') + '</td>' +
-      '<td>' + (c.school||'') + '</td>' +
-      '<td>' + (c.enrolled_class||'') + '</td>' +
-      '<td>' + (c.owner||'') + '</td>' +
-      '<td>' + (c.course_hours||'') + '</td>' +
-      '<td>¥' + (c.book_fee != null ? Number(c.book_fee).toFixed(2) : '0.00') + '</td>' +
-      '<td>¥' + (c.total_payment != null ? Number(c.total_payment).toFixed(2) : '0.00') + '</td>' +
-      '<td>' + (c.unit_price != null ? '¥' + Math.round(Number(c.unit_price)) : '') + '</td>' +
-      '<td>' +
+      cell(idx + 1) +
+      cell(c.enrollment_date||'') +
+      cell(c.name||'', 'text-align:left;font-weight:600') +
+      cell(c.birth_date||'') +
+      cell(calcAge(c.birth_date)||(c.age||'')) +
+      cell(c.phone||'') +
+      cell(c.parent||'') +
+      cell(c.source_primary||'') +
+      cell(c.source_secondary||c.source||'') +
+      cell(c.school||'') +
+      cell(c.enrolled_class||'') +
+      cell(c.owner||'') +
+      cell(c.course_hours||'') +
+      cell('¥' + (c.book_fee != null ? Number(c.book_fee).toFixed(2) : '0.00')) +
+      cell('¥' + (c.total_payment != null ? Number(c.total_payment).toFixed(2) : '0.00')) +
+      cell(c.unit_price != null ? '¥' + Math.round(Number(c.unit_price)) : '') +
+      '<td title="操作">' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
         (isConverted
