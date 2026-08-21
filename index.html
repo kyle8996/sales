@@ -152,6 +152,7 @@ header .user-info{font-size:13px;color:#64748b}
 .rev-table th{text-align:center;padding:8px 4px;color:#64748b;font-weight:600;border-bottom:2px solid #e2e8f0;white-space:nowrap;background:#fff}
 .rev-table td{text-align:center;padding:7px 4px;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 .rev-table tr.rev-class-row td{background:#f1f5f9;font-weight:700;color:#334155;font-size:13px}
+.rev-table tr.rev-class-row.grad-class-row td{background:#e9d5ff;color:#6b21a8;box-shadow:inset 3px 0 0 #7c3aed}
 .rev-table tr.rev-noprice td{background:#fef2f2;color:#94a3b8}
 .rev-table tr.grad-row td{background:#f3e8ff !important;box-shadow:inset 3px 0 0 #7c3aed}
 .rev-table tr.rev-noprice.grad-row td{background:#f3e8ff !important;color:#475569 !important}
@@ -2610,7 +2611,8 @@ function renderRevenue() {
       }
     });
     const classRemainingTotal = classRemainingInt / 10;
-    html += '<tr class="rev-class-row"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
+    const isClassGrad = cls.status === '已毕业';
+    html += '<tr class="rev-class-row' + (isClassGrad ? ' grad-class-row' : '') + '"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + (isClassGrad ? ' <span style="display:inline-block;margin-left:8px;padding:2px 8px;background:#7c3aed;color:#fff;font-size:11px;border-radius:10px">已毕业</span>' : '') + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
     html += classRows;
   });
 
