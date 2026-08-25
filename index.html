@@ -1140,8 +1140,14 @@ function renderCustomers() {
     // 承诺上门按试听时间正序（即将上门在前）
     list.sort((a, b) => (a.trial_date||'').localeCompare(b.trial_date||''));
   } else {
-    // 未上门按客户添加日期倒序（最新在前）
-    list.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    // 未上门：A/B/C 级别升序，同级别按客户添加日期倒序（最新在前）
+    const levelOrder = { 'A': 0, 'B': 1, 'C': 2 };
+    list.sort((a, b) => {
+      const la = levelOrder[(a.level || 'B')] ?? 1;
+      const lb = levelOrder[(b.level || 'B')] ?? 1;
+      if (la !== lb) return la - lb;
+      return (b.created_at || '').localeCompare(a.created_at || '');
+    });
   }
 
   let html = '';
@@ -2937,6 +2943,28 @@ function exportTab() {
     if (fLevel !== 'all') list = list.filter(c => (c.level||'B') === fLevel);
     if (fOwner !== 'all') list = list.filter(c => c.owner === fOwner);
     if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch));
+
+    // 导出排序与页面显示保持一致
+    if (_currentSubTab === 'trial') {
+      list.sort((a, b) => {
+        const da = a.trial_date || '';
+        const db = b.trial_date || '';
+        if (!da && !db) return 0;
+        if (!da) return 1;
+        if (!db) return -1;
+        return db.localeCompare(da);
+      });
+    } else if (_currentSubTab === 'promised') {
+      list.sort((a, b) => (a.trial_date||'').localeCompare(b.trial_date||''));
+    } else {
+      const levelOrder = { 'A': 0, 'B': 1, 'C': 2 };
+      list.sort((a, b) => {
+        const la = levelOrder[(a.level || 'B')] ?? 1;
+        const lb = levelOrder[(b.level || 'B')] ?? 1;
+        if (la !== lb) return la - lb;
+        return (b.created_at || '').localeCompare(a.created_at || '');
+      });
+    }
 
     const headers = ['序号','姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
     const rows = list.map((c, idx) => {
