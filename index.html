@@ -573,6 +573,18 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
   </div>
 </div>
 
+<!-- 通用确认 Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" style="max-width:400px;text-align:center">
+    <h3 id="confirmModalTitle">确认操作</h3>
+    <p id="confirmModalMsg" style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:20px"></p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-gray" onclick="closeModal('confirmModal')">取消</button>
+      <button class="btn btn-danger" id="confirmModalOkBtn">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- 续费记录编辑 Modal -->
 <div class="modal-overlay" id="renewalModal">
   <div class="modal-box" style="max-width:600px">
@@ -2276,18 +2288,33 @@ async function saveSession() {
   renderTrialCalendar();
 }
 
+let _confirmModalCallback = null;
+function openConfirmModal(message, onOk, title, okText) {
+  _confirmModalCallback = onOk;
+  document.getElementById('confirmModalTitle').textContent = title || '确认操作';
+  document.getElementById('confirmModalMsg').textContent = message;
+  const okBtn = document.getElementById('confirmModalOkBtn');
+  okBtn.textContent = okText || '确定';
+  okBtn.onclick = function() {
+    closeModal('confirmModal');
+    if (typeof _confirmModalCallback === 'function') _confirmModalCallback();
+  };
+  document.getElementById('confirmModal').classList.add('show');
+}
+
 async function deleteSession(sid) {
   const s = _trialSessions.find(x => x.id === sid);
   if (!s) return;
   const booked = _trialSchedule.filter(ts => ts.trial_session_id === sid && ts.status === '已预约').length;
   let msg = '确定删除场次"' + (s.title||'') + '"' + (s.session_date ? '（' + s.session_date + '）' : '') + '？';
   if (booked > 0) msg += '\n\n⚠️ 该场次已有 ' + booked + ' 位预约客户，删除后这些预约记录将失效。';
-  if (!confirm(msg)) return;
-  await sb.from('trial_sessions').delete().eq('id', sid);
-  await refreshTrialData();
-  renderSessions();
-  renderTrialCalendar();
-  showToast('场次已删除');
+  openConfirmModal(msg, async () => {
+    await sb.from('trial_sessions').delete().eq('id', sid);
+    await refreshTrialData();
+    renderSessions();
+    renderTrialCalendar();
+    showToast('场次已删除');
+  }, '删除场次', '确定删除');
 }
 
 // ═══════════════════════════════════════
