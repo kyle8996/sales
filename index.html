@@ -17,31 +17,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .auth-box h1{font-size:20px;margin-bottom:8px;color:#1e40af}
 .auth-box p{font-size:13px;color:#64748b;margin-bottom:20px}
 .auth-box input{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;text-align:center;letter-spacing:4px;outline:none}
-.auth-box input:focus{border-color:#2563eb}
-.auth-box button{margin-top:16px;width:100%;padding:11px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
-.auth-box button:hover{background:#1d4ed8}
+.auth-box input:focus{border-color:#1d4ed8}
+.auth-box button{margin-top:16px;width:100%;padding:11px;border:none;border-radius:10px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.auth-box button:hover{background:#1e40af}
 .auth-err{color:#dc2626;font-size:12px;margin-top:8px;display:none}
-header{background:#fff;padding:12px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
-header h1{font-size:17px;color:#1e40af;white-space:nowrap}
+header{background:linear-gradient(90deg,#0f172a,#1e293b);padding:12px 24px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(15,23,42,.25)}
+header h1{font-size:17px;color:#fff;white-space:nowrap}
 header .tabs{display:flex;gap:4px;flex:1}
-header .tabs button{padding:8px 18px;border:none;background:transparent;border-radius:8px;font-size:14px;cursor:pointer;color:#64748b;transition:all .2s}
-header .tabs button:hover{background:#f1f5f9}
-header .tabs button.active{background:#2563eb;color:#fff;font-weight:600}
-header .user-info{font-size:13px;color:#64748b}
+header .tabs button{padding:8px 18px;border:none;background:transparent;border-radius:8px;font-size:14px;cursor:pointer;color:#cbd5e1;transition:all .2s}
+header .tabs button:hover{background:rgba(255,255,255,.08);color:#fff}
+header .tabs button.active{background:#1d4ed8;color:#fff;font-weight:600}
+header .user-info{font-size:13px;color:#e2e8f0}
+header .user-info button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#e2e8f0}
+header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .container{max-width:1600px;margin:0 auto;padding:16px 24px}
 .section{display:none}
 .section.active{display:block}
-.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.04);margin-bottom:16px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(15,23,42,.06);border:1px solid #eef2f6;margin-bottom:16px}
 .card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .subtabs{display:flex;gap:4px;margin-left:8px}
 .subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
-.subtabs button.active{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:600}
+.subtabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
 .toolbar label{font-size:12px;color:#64748b}
 .btn{padding:7px 14px;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500}
-.btn-primary{background:#2563eb;color:#fff}
-.btn-primary:hover{background:#1d4ed8}
+.btn-primary{background:#1d4ed8;color:#fff}
+.btn-primary:hover{background:#1e40af}
 .btn-success{background:#16a34a;color:#fff}
 .btn-success:hover{background:#15803d}
 .btn-gray{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
@@ -53,10 +55,10 @@ header .user-info{font-size:13px;color:#64748b}
 .tbl{overflow:auto;max-height:calc(100vh - 230px)}
 .tbl table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 .tbl thead{position:sticky;top:0;z-index:10}
-.tbl th{background:#f8fafc;padding:10px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:12px}
+.tbl th{background:#f8fafc;padding:10px 8px;text-align:center;font-weight:600;color:#475569;border-bottom:2px solid #cbd5e1;white-space:nowrap;font-size:12px}
 .tbl td{padding:9px 8px;text-align:center;border-bottom:1px solid #f1f5f9;white-space:nowrap}
 .tbl tr:hover td{background:#f8fafc}
-.tbl tfoot td{background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 8px;font-weight:600;color:#1e293b}
+.tbl tfoot td{background:#f8fafc;border-top:2px solid #cbd5e1;padding:10px 8px;font-weight:600;color:#1e293b}
 .tbl tfoot .total-amount{color:#b45309;font-weight:700;font-size:14px}
 /* 自适应表格：取消横向滚动，列宽按百分比自动分配，内容省略并通过 title 悬停显示完整内容 */
 .fit-table{overflow-x:hidden}
@@ -67,11 +69,11 @@ header .user-info{font-size:13px;color:#64748b}
 .fit-table tfoot td{white-space:normal;overflow:visible;text-overflow:clip;padding:10px 8px}
 .fit-table tfoot .total-amount{font-size:13px}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
-.tag-signed{background:#dcfce7;color:#166534}
-.tag-trial{background:#fef3c7;color:#92400e}
-.tag-lead{background:#e0e7ff;color:#3730a3}
-.tag-a{background:#fce7f3;color:#9d174d}
-.tag-b{background:#e0e7ff;color:#3730a3}
+.tag-signed{background:#ecfdf5;color:#047857}
+.tag-trial{background:#fffbeb;color:#b45309}
+.tag-lead{background:#eef4ff;color:#1e40af}
+.tag-a{background:#fdf2f8;color:#be185d}
+.tag-b{background:#eef4ff;color:#1e40af}
 .tag-c{background:#f1f5f9;color:#64748b}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
 .modal-overlay.show{display:flex}
@@ -80,7 +82,7 @@ header .user-info{font-size:13px;color:#64748b}
 .modal-box .form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .modal-box .form-row label{font-size:12px;color:#64748b;display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}
 .modal-box .form-row input,.modal-box .form-row select{padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none}
-.modal-box .form-row input:focus,.modal-box .form-row select:focus{border-color:#2563eb}
+.modal-box .form-row input:focus,.modal-box .form-row select:focus{border-color:#1d4ed8}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid #f1f5f9}
 .toast{position:fixed;top:20px;right:20px;padding:10px 20px;border-radius:10px;color:#fff;font-size:13px;z-index:9999;animation:slideIn .3s;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
 .toast-success{background:#16a34a}
@@ -92,11 +94,11 @@ header .user-info{font-size:13px;color:#64748b}
 .month-header-cell.weekend{color:#e26a6a}
 .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .month-day{border:1px solid #e2e8f0;border-radius:8px;min-height:90px;padding:5px;background:#fafbfc;position:relative}
-.month-day.today{border-color:#2563eb;background:#f0f7ff}
+.month-day.today{border-color:#1d4ed8;background:#eef4ff}
 .month-day.other-month{background:#f8fafc;opacity:.5}
 .month-day h4{font-size:11px;color:#64748b;margin-bottom:3px;font-weight:600}
 .month-day h4.weekend-num{color:#e26a6a}
-.month-day h4.today-num{color:#2563eb;font-weight:700}
+.month-day h4.today-num{color:#1d4ed8;font-weight:700}
 .month-nav{display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .month-nav b{font-size:16px;min-width:100px;text-align:center}
 .month-nav button{padding:4px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer}
@@ -104,13 +106,13 @@ header .user-info{font-size:13px;color:#64748b}
 /* 保留旧类以防兼容 */
 .week-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
 .week-day{border:1px solid #e2e8f0;border-radius:10px;min-height:180px;padding:8px;background:#fafbfc}
-.week-day.today{border-color:#2563eb;background:#f0f7ff}
+.week-day.today{border-color:#1d4ed8;background:#eef4ff}
 .week-day h4{font-size:12px;color:#64748b;margin-bottom:4px}
-.week-day h4 span{color:#2563eb;font-weight:700}
-.day-session{background:#e0f0ff;border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;border-left:3px solid #2563eb}
+.week-day h4 span{color:#1d4ed8;font-weight:700}
+.day-session{background:#e0f0ff;border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;border-left:3px solid #1d4ed8}
 .day-session .sess-title{font-weight:600;color:#1e40af;font-size:11px}
 .day-customer{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:4px 6px;margin-bottom:2px;font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer}
-.day-customer:hover{background:#f0f7ff}
+.day-customer:hover{background:#eef4ff}
 .day-customer .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .day-customer .dot.attended{background:#16a34a}
 .day-customer .dot.booked{background:#f59e0b}
@@ -121,7 +123,7 @@ header .user-info{font-size:13px;color:#64748b}
 .day-customer .tag-pending{display:inline-block;padding:1px 5px;border-radius:6px;font-size:9px;font-weight:600;background:#e0e7ff;color:#3730a3;margin-left:auto}
 .followup-timeline{max-height:300px;overflow-y:auto;margin-bottom:12px}
 .followup-item{padding:10px 12px;border-left:3px solid #e2e8f0;margin-bottom:8px;border-radius:0 8px 8px 0;background:#fafbfc}
-.followup-item:hover{background:#f0f7ff}
+.followup-item:hover{background:#eef4ff}
 .followup-item .fu-time{font-size:11px;color:#94a3b8}
 .followup-item .fu-content{font-size:13px;color:#334155;margin-top:2px}
 .followup-item .fu-meta{font-size:11px;color:#64748b;margin-top:3px;display:flex;gap:12px}
@@ -136,10 +138,10 @@ header .user-info{font-size:13px;color:#64748b}
 .reminder-highlight{background:#fef2f2!important}
 .reminder-warn{background:#fffbeb!important}
 .count-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;font-weight:600}
-.badge-signed{background:#dcfce7;color:#166534}
-.badge-trial{background:#fef3c7;color:#92400e}
+.badge-signed{background:#ecfdf5;color:#047857}
+.badge-trial{background:#fffbeb;color:#b45309}
 .badge-promised{background:#fff7ed;color:#c2410c}
-.badge-lead{background:#e0e7ff;color:#3730a3}
+.badge-lead{background:#eef4ff;color:#1e40af}
 .badge-renewal{background:#fce7f3;color:#9d174d}
 .session-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;background:#fff}
 .session-card .sess-info{flex:1}
@@ -167,14 +169,14 @@ header .user-info{font-size:13px;color:#64748b}
 .batch-row .batch-label .batch-name{font-weight:600;color:#334155}
 .batch-row .batch-label .batch-date{font-size:10px;color:#94a3b8;white-space:nowrap}
 .batch-row input[type=number]{flex:1;padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;outline:none}
-.batch-row input[type=number]:focus{border-color:#2563eb}
+.batch-row input[type=number]:focus{border-color:#1d4ed8}
 .batch-row .batch-actions{white-space:nowrap}
 .batch-row-header{display:flex;gap:8px;align-items:center;padding:0 0 4px 50px;font-size:11px;color:#94a3b8}
 .batch-row-header span{flex:1;text-align:center}
 .batch-unit-price{flex:1;text-align:center;padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#334155;min-height:19px}
 .day-context-menu{position:fixed;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px 0;z-index:10000;min-width:140px;display:none;overflow:hidden}
 .day-context-menu .ctx-item{padding:8px 14px;font-size:13px;color:#334155;cursor:pointer;white-space:nowrap}
-.day-context-menu .ctx-item:hover{background:#f0f7ff;color:#2563eb}
+.day-context-menu .ctx-item:hover{background:#eef4ff;color:#1d4ed8}
 </style>
 </head>
 <body>
@@ -2630,7 +2632,7 @@ function renderRevenue() {
     '<td style="font-weight:700;color:#ea580c">' + Math.round(remainingTotal) + '</td>' +
     '<td colspan="2"></td>' +
     '</tr></tfoot></table></div>';
-  html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#2563eb">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
+  html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#1d4ed8">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
 
   container.innerHTML = html;
   enableRevenueDragSort();
