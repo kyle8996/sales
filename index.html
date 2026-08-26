@@ -748,6 +748,20 @@ async function ensureTrialData() {
   } catch(e) { console.warn('ensureTrialData error:', e.message); }
 }
 
+// 强制重新拉取试听邀约数据（不受 _trialLoaded 短路影响），用于保存/删除后即时刷新
+async function refreshTrialData() {
+  const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  try {
+    const [ts, sess] = await Promise.all([
+      withTimeout(sb.from('trial_schedule').select('*')),
+      withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
+    ]);
+    if (ts.data) _trialSchedule = ts.data;
+    if (sess.data) _trialSessions = sess.data;
+    _trialLoaded = true;
+  } catch(e) { console.warn('refreshTrialData error:', e.message); }
+}
+
 // 重新拉取确收表依赖的数据（students/attendance/renewals/revenue_batches），确保跟随教务出勤变化
 async function refreshRevenueData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
@@ -990,7 +1004,7 @@ function switchTab(tab) {
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
-  if (tab === 'trials') { ensureTrialData().then(renderTrialCalendar); }
+  if (tab === 'trials') { refreshTrialData().then(renderTrialCalendar); }
   if (tab === 'reminders') renderReminders();
   if (tab === 'sales') { switchSalesSubTab(_salesSubTab); }
   if (tab === 'revenue') {
@@ -1905,6 +1919,7 @@ async function saveFollowup() {
   showToast('跟进已保存' + (newStatus ? '，状态已更新为"' + newStatus + '"' : ''));
   closeModal('followupModal');
   await loadAll();
+  if (trialSessionId || trialAttended) { await refreshTrialData(); }
   renderCustomers();
 }
 
@@ -2253,7 +2268,7 @@ async function saveSession() {
   if (err) { showToast('保存失败: '+err.message, false); return; }
   showToast(editId ? '场次已更新' : '场次已新增');
   closeModal('sessionModal');
-  await loadAll();
+  await refreshTrialData();
   renderSessions();
   renderTrialCalendar();
 }
@@ -2262,7 +2277,7 @@ async function deleteSession(sid) {
   const s = _trialSessions.find(x => x.id === sid);
   if (!confirm('确定删除场次"' + (s?.title||'') + '"？')) return;
   await sb.from('trial_sessions').delete().eq('id', sid);
-  await loadAll();
+  await refreshTrialData();
   renderSessions();
   renderTrialCalendar();
   showToast('场次已删除');
