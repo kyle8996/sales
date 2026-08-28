@@ -1805,7 +1805,7 @@ async function saveCustomer() {
 // ═══════════════════════════════════════
 // 跟进记录
 // ═══════════════════════════════════════
-function openFollowupModal(cid) {
+async function openFollowupModal(cid) {
   document.getElementById('fuCustomerId').value = cid;
   const c = _customers.find(x => x.id === cid);
   document.getElementById('fuModalTitle').textContent = '跟进记录 - ' + (c?.name||'');
@@ -1841,7 +1841,10 @@ function openFollowupModal(cid) {
     });
   }
   document.getElementById('followupTimeline').innerHTML = tl;
-  
+
+  // 试听场次属于懒加载数据，打开跟进弹窗前确保已拉取
+  await ensureTrialData();
+
   // 填充试听场次下拉（空着表示不预约）
   const sel = document.getElementById('fuTrialSession');
   sel.innerHTML = '<option value="">-- 可选试听场次 --</option>';
