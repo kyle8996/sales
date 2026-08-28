@@ -64,6 +64,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .fit-table{overflow-x:hidden}
 .fit-table table{table-layout:fixed;width:100%}
 .fit-table th,.fit-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fit-table td.action-cell{overflow:visible;white-space:nowrap;text-align:center}
 .fit-table th{font-size:11px;padding:10px 4px}
 .fit-table td{padding:9px 4px;font-size:12px}
 .fit-table tfoot td{white-space:normal;overflow:visible;text-overflow:clip;padding:10px 8px}
@@ -265,7 +266,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <th style="width:4%">书费</th>
           <th style="width:5%">合计缴费</th>
           <th style="width:4%">课单价</th>
-          <th style="width:10%">操作</th>
+          <th style="width:150px">操作</th>
         </tr></thead>
         <tbody id="salesTbody"></tbody>
         <tfoot id="salesTfoot"></tfoot>
@@ -1377,7 +1378,7 @@ function renderSales() {
       cell('¥' + (c.book_fee != null ? Number(c.book_fee).toFixed(2) : '0.00')) +
       cell('¥' + (c.total_payment != null ? Number(c.total_payment).toFixed(2) : '0.00')) +
       cell(c.unit_price != null ? '¥' + Math.round(Number(c.unit_price)) : '') +
-      '<td title="操作">' +
+      '<td title="操作" class="action-cell">' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
         (isConverted
