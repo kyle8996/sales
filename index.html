@@ -61,6 +61,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .tbl tbody tr:hover td{background:#eef4ff}
 .tbl tfoot td{background:#eef2f7;border-top:2px solid #cbd5e1;padding:10px 8px;font-weight:600;color:#1e293b}
 .tbl tfoot .total-amount{color:#b45309;font-weight:700;font-size:14px}
+/* 客户管理列表：允许列宽随内容伸缩，利用剩余空间减少截断 */
+#sec-customers .tbl table{table-layout:auto}
 /* 自适应表格：取消横向滚动，列宽按百分比自动分配，内容省略并通过 title 悬停显示完整内容 */
 .fit-table{overflow-x:hidden}
 .fit-table table{table-layout:fixed;width:100%}
@@ -1156,24 +1158,24 @@ function renderCustomers() {
   const isTrial = _currentSubTab === 'trial';
   const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead';
   document.getElementById('custThead').innerHTML = '<tr>' +
-    '<th style="width:50px">序号</th>' +
-    (isTrial ? '<th style="width:85px">上门日期</th>' : '') +
-    (showAddDate ? '<th style="width:85px">客户添加日期</th>' : '') +
-    '<th style="width:65px">姓名</th>' +
-    '<th style="width:36px">年龄</th>' +
-    '<th style="width:95px">电话</th>' +
-    '<th style="width:50px">家长</th>' +
-    '<th style="width:70px">一级渠道</th>' +
-    '<th style="width:75px">二级渠道</th>' +
-    '<th style="width:40px">级别</th>' +
-    '<th style="width:70px">学校</th>' +
-    '<th style="width:80px">家庭住址</th>' +
-      '<th style="width:70px">标签</th>' +
-      '<th style="width:80px">状态</th>' +
-      '<th style="width:80px">跟进提醒</th>' +
-    (isTrial ? '' : '<th style="width:85px">' + (_currentSubTab === 'promised' ? '试听时间' : '最近跟进') + '</th>') +
-    '<th style="width:55px">跟进人</th>' +
-    '<th style="width:80px">操作</th>' +
+    '<th style="min-width:50px">序号</th>' +
+    (isTrial ? '<th style="min-width:85px">上门日期</th>' : '') +
+    (showAddDate ? '<th style="min-width:85px">客户添加日期</th>' : '') +
+    '<th style="min-width:65px">姓名</th>' +
+    '<th style="min-width:36px">年龄</th>' +
+    '<th style="min-width:95px">电话</th>' +
+    '<th style="min-width:50px">家长</th>' +
+    '<th style="min-width:90px">一级渠道</th>' +
+    '<th style="min-width:100px">二级渠道</th>' +
+    '<th style="min-width:40px">级别</th>' +
+    '<th style="min-width:110px">学校</th>' +
+    '<th style="min-width:120px">家庭住址</th>' +
+      '<th style="min-width:140px">标签</th>' +
+      '<th style="min-width:80px">状态</th>' +
+      '<th style="min-width:80px">跟进提醒</th>' +
+    (isTrial ? '' : '<th style="min-width:140px">' + (_currentSubTab === 'promised' ? '试听时间' : '最近跟进') + '</th>') +
+    '<th style="min-width:55px">跟进人</th>' +
+    '<th style="min-width:80px">操作</th>' +
   '</tr>';
 
   // 已上门按上门日期倒序（最近在前）
@@ -1249,15 +1251,15 @@ function renderCustomers() {
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
-      '<td><div style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (c.source_primary||'') + '">' + (c.source_primary||'') + '</div></td>' +
-      '<td><div style="max-width:75px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (c.source_secondary||c.source||'') + '">' + (c.source_secondary||c.source||'') + '</div></td>' +
+      '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.source_primary||'') + '">' + (c.source_primary||'') + '</div></td>' +
+      '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.source_secondary||c.source||'') + '">' + (c.source_secondary||c.source||'') + '</div></td>' +
       '<td><span class="' + lvlTag + '">' + lvl + '</span></td>' +
-      '<td><div style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (c.school||'') + '">' + (c.school||'') + '</div></td>' +
-      '<td><div style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (c.address||'') + '">' + (c.address||'') + '</div></td>' +
-      '<td style="text-align:left"><div style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + cTags + '">' + cTags + '</div></td>' +
+      '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.school||'') + '">' + (c.school||'') + '</div></td>' +
+      '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.address||'') + '">' + (c.address||'') + '</div></td>' +
+      '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + cTags + '">' + cTags + '</div></td>' +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
       '<td>' + reminderBadgeHtml(remMap[c.id]) + '</td>' +
-      (isTrial ? '' : '<td><div style="max-width:85px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '">' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</div></td>') +
+      (isTrial ? '' : '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '">' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</div></td>') +
       '<td>' + (c.owner||'') + '</td>' +
       '<td style="white-space:nowrap">' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
