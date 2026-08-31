@@ -47,7 +47,9 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
 .ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
 #sec-sales .container{padding-bottom:80px}
-#sec-sales .card{position:sticky;top:98px;z-index:80;background:#fff;display:flex;flex-direction:column;max-height:calc(100vh - 110px);overflow:hidden;padding-bottom:10px}
+#sec-sales .card{position:fixed;top:98px;left:24px;right:24px;bottom:10px;z-index:80;background:#fff;display:flex;flex-direction:column;overflow:hidden;padding-bottom:10px}
+#sec-sales:not(.active) .card{display:none}
+#sec-sales .container{padding-bottom:0}
 #sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0}
 #sec-sales .tbl{flex:1;min-height:0;overflow:auto}
 #sec-sales .tbl thead{position:sticky;top:0;z-index:84}
