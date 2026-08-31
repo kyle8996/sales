@@ -160,6 +160,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .badge-promised{background:#fff7ed;color:#c2410c}
 .badge-lead{background:#eef4ff;color:#1e40af}
 .badge-renewal{background:#fce7f3;color:#9d174d}
+.badge-refund{background:#fee2e2;color:#b91c1c}
+.refund-tag{display:inline-block;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:6px}
 .session-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:6px;background:#fff}
 .session-card .sess-info{flex:1}
 .session-card .sess-date{font-size:13px;font-weight:600;color:#1e40af}
@@ -237,8 +239,9 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <div class="card" id="sales-new-card">
       <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
         <div class="subtabs">
-          <button class="active" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
-          <button onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
+          <button class="active" data-sub="new" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
+          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
+          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab-refund">退费学员</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="salesFilterSource" onchange="renderSales()"><option value="all">一级渠道</option></select>
@@ -281,8 +284,9 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <div class="card" id="sales-renewal-card" style="display:none">
       <h2>在读续费 <span class="count-badge badge-renewal" id="cnt-renewal">0</span>
         <div class="subtabs">
-          <button onclick="switchSalesSubTab('new')" id="salestab2-new">新招学员</button>
-          <button class="active" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal">在读续费</button>
+          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab2-new">新招学员</button>
+          <button class="active" data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal">在读续费</button>
+          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab2-refund">退费学员</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="renewalFilterClass" onchange="renderRenewals()"><option value="all">全部班级</option></select>
@@ -313,6 +317,39 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         </tr></thead>
         <tbody id="renewalTbody"></tbody>
         <tfoot id="renewalTfoot"></tfoot>
+      </table></div>
+    </div>
+    <!-- 退费学员 -->
+    <div class="card" id="sales-refund-card" style="display:none">
+      <h2>退费学员 <span class="count-badge badge-refund" id="cnt-refund">0</span>
+        <div class="subtabs">
+          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab3-new">新招学员</button>
+          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab3-renewal">在读续费</button>
+          <button class="active" data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab3-refund">退费学员</button>
+        </div>
+        <div class="toolbar" style="margin-left:auto">
+          <input type="text" id="refundFilterSearch" placeholder="搜索姓名/班级..." oninput="renderRefunds()" style="width:180px">
+          <button class="btn btn-primary btn-sm" onclick="openRefundModal()">＋ 新增退费</button>
+          <button class="btn btn-gray btn-sm" onclick="exportRefunds()">📥 导出</button>
+        </div>
+      </h2>
+      <div class="tbl"><table>
+        <thead><tr>
+          <th style="width:50px">序号</th>
+          <th style="text-align:left;width:70px">姓名</th>
+          <th style="width:90px">班级</th>
+          <th style="width:80px">合计缴费</th>
+          <th style="width:70px">书费(不退)</th>
+          <th style="width:60px">缴费课时</th>
+          <th style="width:60px">退课时数</th>
+          <th style="width:80px">退课时费</th>
+          <th style="width:70px">退书费</th>
+          <th style="width:90px">退费日期</th>
+          <th style="width:120px">备注</th>
+          <th style="width:140px">操作</th>
+        </tr></thead>
+        <tbody id="refundTbody"></tbody>
+        <tfoot id="refundTfoot"></tfoot>
       </table></div>
     </div>
   </div>
@@ -626,6 +663,40 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
   </div>
 </div>
 
+<!-- 退费登记 Modal -->
+<div class="modal-overlay" id="refundModal">
+  <div class="modal-box" style="max-width:620px">
+    <h3 id="refundModalTitle">新增退费记录</h3>
+    <input type="hidden" id="refundEditId">
+    <div class="form-row">
+      <label style="flex:1.4">学员姓名*<select id="refundName" onchange="onRefundNameChange()" style="width:100%"><option value="">-- 选择学员 --</option></select></label>
+      <label>所在班级<input type="text" id="refundClass" placeholder="如:K1001"></label>
+    </div>
+    <div class="form-row">
+      <label>合计缴费(¥)<input type="number" id="refundTotal" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
+      <label>书费(¥不退)<input type="number" id="refundBookFee" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
+      <label>缴费课时数<input type="number" id="refundCourseHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
+    </div>
+    <div class="form-row">
+      <label>退课时数*<input type="number" id="refundHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
+      <label>课单价(¥)<input type="text" id="refundUnitPrice" readonly style="background:#f1f5f9"></label>
+      <label>退课时费(¥)<input type="number" id="refundClassFee" value="0" min="0" step="0.01"></label>
+    </div>
+    <div class="form-row">
+      <label>退书费(¥)<input type="number" id="refundBookRefund" value="0" min="0" step="0.01"></label>
+      <label>退费日期*<input type="date" id="refundDate"></label>
+    </div>
+    <div class="form-row">
+      <label style="flex:1">备注<input type="text" id="refundNote" placeholder="如:家长申请退剩余课时"></label>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin:4px 0 10px">课单价 =（合计缴费 − 书费）÷ 缴费课时数，自动推算；退课时费 = 退课时数 × 课单价，可手动修改。书费默认不退（退书费填 0）。</p>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('refundModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRefund()">保存退费</button>
+    </div>
+  </div>
+</div>
+
 <!-- 确收表缴费批次编辑 Modal -->
 <div class="modal-overlay" id="revenueBatchModal">
   <div class="modal-box" style="max-width:720px">
@@ -666,7 +737,7 @@ if (!initSb()) document.addEventListener('DOMContentLoaded', initSb);
 // 当前统计年份（确收表 / 出勤过滤共用，避免跨年数据混入）
 const REVENUE_YEAR = new Date().getFullYear();
 
-let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [], _revenue_batches = [];
+let _customers = [], _followups = [], _trialSchedule = [], _trialSessions = [], _classes = [], _renewals = [], _students = [], _attendance = [], _revenue_batches = [], _refunds = [];
 let _revenueRefreshTimer = null;
 let _trialLoaded = false;
 let _currentSubTab = 'trial';
@@ -737,7 +808,8 @@ async function loadAll() {
     withTimeout(sb.from('followups').select('*').order('created_at', {ascending: false})),
     withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
     withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
-    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours'), 8000)
+    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours'), 8000),
+    withTimeout(sb.from('refunds').select('*').order('created_at', {ascending: false}))
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
@@ -745,6 +817,7 @@ async function loadAll() {
   _classes = get(2);
   _renewals = get(3);
   _students = get(4);
+  _refunds = get(5);
 
   // 写入缓存供下次秒开
   _cacheSet('customers', _customers);
@@ -1048,19 +1121,14 @@ function switchSubTab(sub) {
 
 function switchSalesSubTab(sub) {
   _salesSubTab = sub;
-  // 更新两个卡片中的子tab按钮状态
-  document.querySelectorAll('#sales-new-card .subtabs button, #sales-renewal-card .subtabs button').forEach(b => b.classList.remove('active'));
-  if (sub === 'new') {
-    document.querySelectorAll('#sales-new-card .subtabs button')[0].classList.add('active');
-    document.querySelectorAll('#sales-renewal-card .subtabs button')[0].classList.add('active');
-  } else {
-    document.querySelectorAll('#sales-new-card .subtabs button')[1].classList.add('active');
-    document.querySelectorAll('#sales-renewal-card .subtabs button')[1].classList.add('active');
-  }
+  // 更新三个卡片中的子tab按钮状态（按 data-sub 匹配）
+  document.querySelectorAll('#sec-sales .subtabs button').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
   document.getElementById('sales-new-card').style.display = sub === 'new' ? '' : 'none';
   document.getElementById('sales-renewal-card').style.display = sub === 'renewal' ? '' : 'none';
+  document.getElementById('sales-refund-card').style.display = sub === 'refund' ? '' : 'none';
   if (sub === 'new') { renderSales(); updateCounts(); }
   if (sub === 'renewal') renderRenewals();
+  if (sub === 'refund') renderRefunds();
 }
 
 function updateCounts() {
@@ -1070,6 +1138,8 @@ function updateCounts() {
   document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门' && !c.trial_date).length;
   const cntRenewal = document.getElementById('cnt-renewal');
   if (cntRenewal) cntRenewal.textContent = _renewals.length;
+  const cntRefund = document.getElementById('cnt-refund');
+  if (cntRefund) cntRefund.textContent = _refunds.length;
 }
 
 function switchTrialView(view) {
@@ -1677,6 +1747,198 @@ function exportRenewals() {
     r.book_fee||'', r.total_payment||'', r.unit_price||''
   ]);
   exportCSV(headers, rows, 'DK邻里在读续费_' + new Date().toISOString().substring(0,10) + '.csv');
+}
+
+// ═══════════════════════════════════════
+// 退费学员（销售管理第三个子Tab）
+// ═══════════════════════════════════════
+// 构建学员选单：优先用新招学员(已报名)，其次在读续费，按姓名去重
+function getEnrollmentOptions() {
+  const map = new Map();
+  _customers.filter(c => c.status === '已报名').forEach(c => {
+    const name = (c.name || '').trim();
+    if (!name) return;
+    if (!map.has(name)) map.set(name, {
+      name,
+      class_name: c.enrolled_class || '',
+      total_payment: parseFloat(c.total_payment) || 0,
+      book_fee: parseFloat(c.book_fee) || 0,
+      course_hours: parseFloat(c.course_hours) || 0
+    });
+  });
+  _renewals.forEach(r => {
+    const name = (r.student_name || '').trim();
+    if (!name) return;
+    if (!map.has(name)) map.set(name, {
+      name,
+      class_name: r.current_class || '',
+      total_payment: parseFloat(r.total_payment) || 0,
+      book_fee: parseFloat(r.book_fee) || 0,
+      course_hours: parseFloat(r.course_hours) || 0
+    });
+  });
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function renderRefunds() {
+  const cnt = document.getElementById('cnt-refund');
+  if (cnt) cnt.textContent = _refunds.length;
+  const q = (document.getElementById('refundFilterSearch')?.value || '').trim().toLowerCase();
+  const list = [..._refunds].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  const filtered = q ? list.filter(r => ((r.student_name || '') + (r.class_name || '')).toLowerCase().includes(q)) : list;
+  let html = '';
+  let sumClassFee = 0, sumBookFee = 0;
+  filtered.forEach((r, idx) => {
+    const classFee = parseFloat(r.refund_class_fee) || 0;
+    const bookFee = parseFloat(r.refund_book_fee) || 0;
+    sumClassFee += classFee; sumBookFee += bookFee;
+    html += '<tr>' +
+      '<td>' + (idx + 1) + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + '</td>' +
+      '<td>' + (r.class_name || '') + '</td>' +
+      '<td>¥' + fmtMoney(r.total_payment) + '</td>' +
+      '<td>¥' + fmtMoney(r.book_fee) + '</td>' +
+      '<td>' + (r.course_hours || '') + '</td>' +
+      '<td style="color:#b91c1c;font-weight:700">' + (r.remaining_hours || '') + '</td>' +
+      '<td style="color:#b91c1c;font-weight:700">¥' + fmtMoney(classFee) + '</td>' +
+      '<td>¥' + fmtMoney(bookFee) + '</td>' +
+      '<td>' + (r.refund_date || '') + '</td>' +
+      '<td style="text-align:left"><div style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (r.note || '') + '">' + (r.note || '') + '</div></td>' +
+      '<td class="action-cell"><button class="btn btn-sm btn-gray" onclick="openRefundModal(' + r.id + ')">编辑</button> ' +
+        '<button class="btn btn-sm btn-gray" onclick="deleteRefund(' + r.id + ')">删除</button></td>' +
+      '</tr>';
+  });
+  document.getElementById('refundTbody').innerHTML = html || '<tr><td colspan="12" class="empty-state">暂无退费学员</td></tr>';
+  document.getElementById('refundTfoot').innerHTML = '<tr>' +
+    '<td colspan="7" style="text-align:right;font-weight:600;color:#1e293b">退费合计</td>' +
+    '<td style="font-weight:700;color:#b91c1c">¥' + fmtMoney(sumClassFee) + '</td>' +
+    '<td style="font-weight:700;color:#b91c1c">¥' + fmtMoney(sumBookFee) + '</td>' +
+    '<td colspan="3"></td></tr>';
+}
+
+function openRefundModal(rid) {
+  document.getElementById('refundEditId').value = rid || '';
+  document.getElementById('refundModalTitle').textContent = rid ? '编辑退费记录' : '新增退费记录';
+  // 填充学员选单
+  const sel = document.getElementById('refundName');
+  const opts = getEnrollmentOptions();
+  sel.innerHTML = '<option value="">-- 选择学员 --</option>' + opts.map(o => '<option value="' + escHtml(o.name) + '">' + escHtml(o.name) + (o.class_name ? '（' + escHtml(o.class_name) + '）' : '') + '</option>').join('');
+  // 重置
+  ['refundClass','refundTotal','refundBookFee','refundCourseHours','refundHours','refundUnitPrice','refundClassFee','refundBookRefund','refundDate','refundNote'].forEach(id => {
+    const el = document.getElementById(id);
+    if (id === 'refundBookFee' || id === 'refundBookRefund' || id === 'refundClassFee') el.value = '0';
+    else if (id === 'refundDate') el.value = new Date().toISOString().substring(0,10);
+    else el.value = '';
+  });
+  if (rid) {
+    const r = _refunds.find(x => x.id === rid);
+    if (r) {
+      sel.value = r.student_name || '';
+      document.getElementById('refundClass').value = r.class_name || '';
+      document.getElementById('refundTotal').value = r.total_payment || 0;
+      document.getElementById('refundBookFee').value = r.book_fee || 0;
+      document.getElementById('refundCourseHours').value = r.course_hours || 0;
+      document.getElementById('refundHours').value = r.remaining_hours || 0;
+      document.getElementById('refundClassFee').value = r.refund_class_fee || 0;
+      document.getElementById('refundBookRefund').value = r.refund_book_fee || 0;
+      document.getElementById('refundDate').value = r.refund_date || '';
+      document.getElementById('refundNote').value = r.note || '';
+      onRefundCalcChange(true);
+    }
+  }
+  document.getElementById('refundModal').classList.add('show');
+}
+
+function onRefundNameChange() {
+  const name = document.getElementById('refundName').value;
+  const opt = getEnrollmentOptions().find(o => o.name === name);
+  if (opt) {
+    document.getElementById('refundClass').value = opt.class_name || '';
+    document.getElementById('refundTotal').value = opt.total_payment || 0;
+    document.getElementById('refundBookFee').value = opt.book_fee || 0;
+    document.getElementById('refundCourseHours').value = opt.course_hours || 0;
+  }
+  onRefundCalcChange();
+}
+
+function onRefundCalcChange(skipFee) {
+  const total = parseFloat(document.getElementById('refundTotal').value) || 0;
+  const book = parseFloat(document.getElementById('refundBookFee').value) || 0;
+  const hours = parseFloat(document.getElementById('refundCourseHours').value) || 0;
+  const refundHours = parseFloat(document.getElementById('refundHours').value) || 0;
+  const net = total - book;
+  const unit = hours > 0 ? net / hours : 0;
+  document.getElementById('refundUnitPrice').value = unit ? unit.toFixed(2) : '0';
+  if (!skipFee) {
+    const fee = refundHours * unit;
+    document.getElementById('refundClassFee').value = fee ? fee.toFixed(2) : '0';
+  }
+}
+
+async function saveRefund() {
+  const rid = document.getElementById('refundEditId').value;
+  const name = (document.getElementById('refundName').value || '').trim();
+  if (!name) { showToast('请选择学员', false); return; }
+  const refundHours = parseFloat(document.getElementById('refundHours').value) || 0;
+  if (refundHours <= 0) { showToast('请填写退课时数', false); return; }
+  const refundDate = document.getElementById('refundDate').value;
+  if (!refundDate) { showToast('请填写退费日期', false); return; }
+  const data = {
+    student_name: name,
+    class_name: document.getElementById('refundClass').value || '',
+    total_payment: parseFloat(document.getElementById('refundTotal').value) || 0,
+    book_fee: parseFloat(document.getElementById('refundBookFee').value) || 0,
+    course_hours: parseFloat(document.getElementById('refundCourseHours').value) || 0,
+    remaining_hours: refundHours,
+    refund_class_fee: parseFloat(document.getElementById('refundClassFee').value) || 0,
+    refund_book_fee: parseFloat(document.getElementById('refundBookRefund').value) || 0,
+    refund_date: refundDate,
+    note: document.getElementById('refundNote').value || ''
+  };
+  try {
+    if (rid) {
+      const { error } = await sb.from('refunds').update(data).eq('id', parseInt(rid));
+      if (error) throw error;
+      const idx = _refunds.findIndex(r => r.id === parseInt(rid));
+      if (idx >= 0) _refunds[idx] = { ..._refunds[idx], ...data };
+      showToast('退费记录已更新');
+    } else {
+      const { data: inserted, error } = await sb.from('refunds').insert([data]).select();
+      if (error) throw error;
+      if (inserted && inserted.length) _refunds.unshift(inserted[0]);
+      showToast('退费记录已保存');
+    }
+    closeModal('refundModal');
+    renderRefunds();
+    if (_currentTab === 'revenue') renderRevenue(); // 联动：未消耗课时费用扣减
+  } catch (e) {
+    showToast('保存失败: ' + e.message, false);
+  }
+}
+
+async function deleteRefund(rid) {
+  if (!confirm('确定删除该退费记录？删除后确收明细与教务剩余课时将不再扣减。')) return;
+  try {
+    const { error } = await sb.from('refunds').delete().eq('id', parseInt(rid));
+    if (error) throw error;
+    _refunds = _refunds.filter(r => r.id !== parseInt(rid));
+    renderRefunds();
+    if (_currentTab === 'revenue') renderRevenue();
+    showToast('已删除');
+  } catch (e) {
+    showToast('删除失败: ' + e.message, false);
+  }
+}
+
+function exportRefunds() {
+  const headers = ['序号','姓名','班级','合计缴费','书费(不退)','缴费课时','退课时数','退课时费','退书费','退费日期','备注'];
+  const list = [..._refunds].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  const rows = list.map((r, idx) => [
+    idx + 1, r.student_name || '', r.class_name || '', r.total_payment || '', r.book_fee || '',
+    r.course_hours || '', r.remaining_hours || '', r.refund_class_fee || '', r.refund_book_fee || '',
+    r.refund_date || '', r.note || ''
+  ]);
+  exportCSV(headers, rows, 'DK邻里退费学员_' + new Date().toISOString().substring(0,10) + '.csv');
 }
 
 function onBirthDateChange() {
@@ -2671,14 +2933,27 @@ function buildRevenueData() {
     // 按 FIFO，最早批次先被消耗，剩余课时自然落在最新批次，直接按各批次剩余课时 × 单价累加即可（自动兼容课单价前后不同）
     let remainingValueRaw = 0;
     for (const b of pool) { remainingValueRaw += b.remain * b.unit_price; }
+    // 退费联动：扣减该学员退课时费（按姓名匹配 refunds 表；每位学员仅扣一次，避免多班级重复扣减）
+    let rfFeeFull = 0, rfHoursFull = 0;
+    _refunds.forEach(rf => {
+      if ((rf.student_name || '').trim() === (student.name || '').trim()) {
+        rfFeeFull += parseFloat(rf.refund_class_fee) || 0;
+        rfHoursFull += parseFloat(rf.remaining_hours) || 0;
+      }
+    });
+    if (rfFeeFull > 0 && !_refundApplied.has(student.id)) {
+      _refundApplied.add(student.id);
+      remainingValueRaw -= rfFeeFull;
+    }
     // 以「整数角」(0.1元) 为单位保存未消耗费用：直接从原始累加值取整，避免对“已舍入的显示值”二次 round 带来的浮点边界偏差
     const remainingValueInt = Math.round(remainingValueRaw * 10);
     // 显示用 1 位小数（= 整数角 / 10，与合计口径完全一致，逐学员之和必等于合计）
     const remainingValue = remainingValueInt / 10;
-    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue, remainingValueInt };
+    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue, remainingValueInt, refundFee: rfFeeFull, refundHours: rfHoursFull };
   }
 
   // 预计算所有 (学员, 班级) 组合的确收（避免筛选前后重复计算）
+  const _refundApplied = new Set(); // 退费扣减去重：每位学员仅扣一次
   const studentClassRevs = new Map();
   _students.forEach(s => {
     const key = s.id + '|' + s.class_id;
@@ -2775,7 +3050,7 @@ function renderRevenue() {
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       } else {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
-        classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + '</td>' +
+        classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + (rev.refundFee > 0 ? '<span class="refund-tag">已退费¥' + fmtMoney(rev.refundFee) + '</span>' : '') + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
           '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValue > 0 ? rev.remainingValue.toFixed(1) : '0') + '</td>' +
           '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
@@ -3235,6 +3510,13 @@ function exportCSV(headers, rows, filename) {
 // 工具函数
 // ═══════════════════════════════════════
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function fmtMoney(v) {
+  const n = parseFloat(v) || 0;
+  return n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function showToast(msg, success=true) {
   const t = document.createElement('div');
   t.className = 'toast ' + (success ? 'toast-success' : 'toast-error');
