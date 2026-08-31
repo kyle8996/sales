@@ -38,7 +38,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .subtabs{display:flex;gap:4px;margin-left:8px}
 .subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
 .subtabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
-.ledger{position:sticky;top:56px;z-index:90;background:#f1f5f9;padding:10px 0 12px;margin-bottom:6px;border-bottom:1px solid #e2e8f0}
+.ledger{padding:10px 0 12px;margin-bottom:6px;border-bottom:1px solid #e2e8f0;background:transparent}
 .ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .ledger-title{font-size:15px;font-weight:600;color:#0C447C}
 .ledger-month select{font-size:13px;padding:5px 24px 5px 10px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23185FA5\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>') no-repeat right 8px center;appearance:none;-webkit-appearance:none;cursor:pointer}
@@ -47,8 +47,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
 .ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
 #sec-sales .container{padding-bottom:80px}
-#sec-sales .card{position:sticky;top:180px;z-index:85;background:#fff;display:flex;flex-direction:column;max-height:calc(100vh - 190px);overflow:hidden}
-#sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0;background:#fff}
+#sec-sales .card{position:sticky;top:98px;z-index:80;background:#fff;display:flex;flex-direction:column;max-height:calc(100vh - 110px);overflow:hidden;padding-bottom:10px}
+#sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0}
 #sec-sales .tbl{flex:1;min-height:0;overflow:auto}
 #sec-sales .tbl thead{position:sticky;top:0;z-index:84}
 #sec-sales .tbl tfoot{position:sticky;bottom:0;z-index:84;background:#f8fafc;font-weight:600}
@@ -250,92 +250,93 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <div class="section active" id="sec-sales">
   <div class="container">
-    <!-- 月度销售台账：置于子Tab上方，按所选月份实时统计 -->
-    <div class="ledger" id="salesLedger">
-      <div class="ledger-head">
-        <span class="ledger-title">月度销售台账</span>
-        <span class="ledger-month">
-          <select id="ledgerMonth" onchange="renderSalesLedger(this.value)">
-            <option value="2024-01">2024年01月</option>
-            <option value="2024-02">2024年02月</option>
-            <option value="2024-03">2024年03月</option>
-            <option value="2024-04">2024年04月</option>
-            <option value="2024-05">2024年05月</option>
-            <option value="2024-06">2024年06月</option>
-            <option value="2024-07">2024年07月</option>
-            <option value="2024-08">2024年08月</option>
-            <option value="2024-09">2024年09月</option>
-            <option value="2024-10">2024年10月</option>
-            <option value="2024-11">2024年11月</option>
-            <option value="2024-12">2024年12月</option>
-            <option value="2025-01">2025年01月</option>
-            <option value="2025-02">2025年02月</option>
-            <option value="2025-03">2025年03月</option>
-            <option value="2025-04">2025年04月</option>
-            <option value="2025-05">2025年05月</option>
-            <option value="2025-06">2025年06月</option>
-            <option value="2025-07">2025年07月</option>
-            <option value="2025-08">2025年08月</option>
-            <option value="2025-09">2025年09月</option>
-            <option value="2025-10">2025年10月</option>
-            <option value="2025-11">2025年11月</option>
-            <option value="2025-12">2025年12月</option>
-            <option value="2026-01">2026年01月</option>
-            <option value="2026-02">2026年02月</option>
-            <option value="2026-03">2026年03月</option>
-            <option value="2026-04">2026年04月</option>
-            <option value="2026-05">2026年05月</option>
-            <option value="2026-06">2026年06月</option>
-            <option value="2026-07">2026年07月</option>
-            <option value="2026-08">2026年08月</option>
-            <option value="2026-09">2026年09月</option>
-            <option value="2026-10">2026年10月</option>
-            <option value="2026-11">2026年11月</option>
-            <option value="2026-12">2026年12月</option>
-            <option value="2027-01">2027年01月</option>
-            <option value="2027-02">2027年02月</option>
-            <option value="2027-03">2027年03月</option>
-            <option value="2027-04">2027年04月</option>
-            <option value="2027-05">2027年05月</option>
-            <option value="2027-06">2027年06月</option>
-            <option value="2027-07">2027年07月</option>
-            <option value="2027-08">2027年08月</option>
-            <option value="2027-09">2027年09月</option>
-            <option value="2027-10">2027年10月</option>
-            <option value="2027-11">2027年11月</option>
-            <option value="2027-12">2027年12月</option>
-          </select>
-        </span>
-      </div>
-      <div class="ledger-grid">
-        <div class="ledger-card" style="--accent:#3b82f6">
-          <div class="ledger-label">本月新招人数</div>
-          <div class="ledger-value" id="ledgerNew">0 人</div>
-        </div>
-        <div class="ledger-card" style="--accent:#22c55e">
-          <div class="ledger-label">本月新招现金</div>
-          <div class="ledger-value" id="ledgerNewCash">¥0</div>
-        </div>
-        <div class="ledger-card" style="--accent:#8b5cf6">
-          <div class="ledger-label">本月续费人数</div>
-          <div class="ledger-value" id="ledgerRenew">0 人</div>
-        </div>
-        <div class="ledger-card" style="--accent:#06b6d4">
-          <div class="ledger-label">本月续费现金</div>
-          <div class="ledger-value" id="ledgerRenewCash">¥0</div>
-        </div>
-        <div class="ledger-card" style="--accent:#1d4ed8">
-          <div class="ledger-label">本月合计现金收入</div>
-          <div class="ledger-value" id="ledgerIncome">¥0</div>
-        </div>
-        <div class="ledger-card" style="--accent:#ef4444">
-          <div class="ledger-label">本月退费支出</div>
-          <div class="ledger-value" id="ledgerRefund">¥0</div>
-        </div>
-      </div>
-    </div>
     <!-- 子Tab：新招学员 / 在读续费 -->
     <div class="card" id="sales-new-card">
+      <!-- 月度销售台账：置于子Tab上方，按所选月份实时统计 -->
+      <div class="ledger" id="salesLedger">
+        <div class="ledger-head">
+          <span class="ledger-title">月度销售台账</span>
+          <span class="ledger-month">
+            <select id="ledgerMonth" onchange="renderSalesLedger(this.value)">
+              <option value="2024-01">2024年01月</option>
+              <option value="2024-02">2024年02月</option>
+              <option value="2024-03">2024年03月</option>
+              <option value="2024-04">2024年04月</option>
+              <option value="2024-05">2024年05月</option>
+              <option value="2024-06">2024年06月</option>
+              <option value="2024-07">2024年07月</option>
+              <option value="2024-08">2024年08月</option>
+              <option value="2024-09">2024年09月</option>
+              <option value="2024-10">2024年10月</option>
+              <option value="2024-11">2024年11月</option>
+              <option value="2024-12">2024年12月</option>
+              <option value="2025-01">2025年01月</option>
+              <option value="2025-02">2025年02月</option>
+              <option value="2025-03">2025年03月</option>
+              <option value="2025-04">2025年04月</option>
+              <option value="2025-05">2025年05月</option>
+              <option value="2025-06">2025年06月</option>
+              <option value="2025-07">2025年07月</option>
+              <option value="2025-08">2025年08月</option>
+              <option value="2025-09">2025年09月</option>
+              <option value="2025-10">2025年10月</option>
+              <option value="2025-11">2025年11月</option>
+              <option value="2025-12">2025年12月</option>
+              <option value="2026-01">2026年01月</option>
+              <option value="2026-02">2026年02月</option>
+              <option value="2026-03">2026年03月</option>
+              <option value="2026-04">2026年04月</option>
+              <option value="2026-05">2026年05月</option>
+              <option value="2026-06">2026年06月</option>
+              <option value="2026-07">2026年07月</option>
+              <option value="2026-08">2026年08月</option>
+              <option value="2026-09">2026年09月</option>
+              <option value="2026-10">2026年10月</option>
+              <option value="2026-11">2026年11月</option>
+              <option value="2026-12">2026年12月</option>
+              <option value="2027-01">2027年01月</option>
+              <option value="2027-02">2027年02月</option>
+              <option value="2027-03">2027年03月</option>
+              <option value="2027-04">2027年04月</option>
+              <option value="2027-05">2027年05月</option>
+              <option value="2027-06">2027年06月</option>
+              <option value="2027-07">2027年07月</option>
+              <option value="2027-08">2027年08月</option>
+              <option value="2027-09">2027年09月</option>
+              <option value="2027-10">2027年10月</option>
+              <option value="2027-11">2027年11月</option>
+              <option value="2027-12">2027年12月</option>
+            </select>
+          </span>
+        </div>
+        <div class="ledger-grid">
+          <div class="ledger-card" style="--accent:#3b82f6">
+            <div class="ledger-label">本月新招人数</div>
+            <div class="ledger-value" id="ledgerNew">0 人</div>
+          </div>
+          <div class="ledger-card" style="--accent:#22c55e">
+            <div class="ledger-label">本月新招现金</div>
+            <div class="ledger-value" id="ledgerNewCash">¥0</div>
+          </div>
+          <div class="ledger-card" style="--accent:#8b5cf6">
+            <div class="ledger-label">本月续费人数</div>
+            <div class="ledger-value" id="ledgerRenew">0 人</div>
+          </div>
+          <div class="ledger-card" style="--accent:#06b6d4">
+            <div class="ledger-label">本月续费现金</div>
+            <div class="ledger-value" id="ledgerRenewCash">¥0</div>
+          </div>
+          <div class="ledger-card" style="--accent:#1d4ed8">
+            <div class="ledger-label">本月合计现金收入</div>
+            <div class="ledger-value" id="ledgerIncome">¥0</div>
+          </div>
+          <div class="ledger-card" style="--accent:#ef4444">
+            <div class="ledger-label">本月退费支出</div>
+            <div class="ledger-value" id="ledgerRefund">¥0</div>
+          </div>
+        </div>
+      </div>
+
       <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
         <div class="subtabs">
           <button class="active" data-sub="new" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
