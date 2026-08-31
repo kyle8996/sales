@@ -39,17 +39,15 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
 .subtabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
 .ledger{position:sticky;top:56px;z-index:90;background:#f1f5f9;padding:10px 0 12px;margin-bottom:6px;border-bottom:1px solid #e2e8f0}
-.ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .ledger-title{font-size:15px;font-weight:600;color:#0C447C}
 .ledger-month input[type=month]{font-size:13px;padding:4px 8px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff}
-.ledger-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,190px));gap:12px;justify-content:center}
-.ledger-card{background:#fff;border:0.5px solid #e2e8f0;border-radius:10px;padding:0.65rem 0.85rem 0.8rem;overflow:hidden}
-.ledger-top{height:3px;border-radius:10px 10px 0 0;margin:-0.65rem -0.85rem 8px}
-.ledger-label{font-size:12px;color:#64748b;margin:0 0 4px}
-.ledger-value{font-size:21px;font-weight:600;margin:0}
-@media (max-width:760px){.ledger-grid{grid-template-columns:repeat(2,minmax(140px,180px));}}
-#sec-sales .card{position:sticky;top:175px;z-index:80;background:#fff}
-#sec-sales .tbl{max-height:calc(100vh - 255px)}
+.ledger-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}
+.ledger-card{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:10px;padding:12px 14px;border-left:4px solid var(--accent,#1d4ed8);box-shadow:0 2px 6px rgba(15,23,42,.2)}
+.ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
+.ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
+#sec-sales .card h2{position:sticky;top:180px;z-index:85;background:#fff;margin:0;padding:10px 0}
+#sec-sales .tbl{max-height:calc(100vh - 260px)}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
 .toolbar label{font-size:12px;color:#64748b}
@@ -256,25 +254,29 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         </span>
       </div>
       <div class="ledger-grid">
-        <div class="ledger-card">
-          <div class="ledger-top" style="background:#0F6E56"></div>
-          <div class="ledger-label">本月现金收入</div>
-          <div class="ledger-value" id="ledgerIncome" style="color:#0F6E56">¥0</div>
-        </div>
-        <div class="ledger-card">
-          <div class="ledger-top" style="background:#A32D2D"></div>
-          <div class="ledger-label">本月退费支出</div>
-          <div class="ledger-value" id="ledgerRefund" style="color:#A32D2D">¥0</div>
-        </div>
-        <div class="ledger-card">
-          <div class="ledger-top" style="background:#185FA5"></div>
+        <div class="ledger-card" style="--accent:#3b82f6">
           <div class="ledger-label">本月新招人数</div>
-          <div class="ledger-value" id="ledgerNew" style="color:#185FA5">0 人</div>
+          <div class="ledger-value" id="ledgerNew">0 人</div>
         </div>
-        <div class="ledger-card">
-          <div class="ledger-top" style="background:#534AB7"></div>
+        <div class="ledger-card" style="--accent:#22c55e">
+          <div class="ledger-label">本月新招现金</div>
+          <div class="ledger-value" id="ledgerNewCash">¥0</div>
+        </div>
+        <div class="ledger-card" style="--accent:#8b5cf6">
           <div class="ledger-label">本月续费人数</div>
-          <div class="ledger-value" id="ledgerRenew" style="color:#534AB7">0 人</div>
+          <div class="ledger-value" id="ledgerRenew">0 人</div>
+        </div>
+        <div class="ledger-card" style="--accent:#06b6d4">
+          <div class="ledger-label">本月续费现金</div>
+          <div class="ledger-value" id="ledgerRenewCash">¥0</div>
+        </div>
+        <div class="ledger-card" style="--accent:#1d4ed8">
+          <div class="ledger-label">本月合计现金收入</div>
+          <div class="ledger-value" id="ledgerIncome">¥0</div>
+        </div>
+        <div class="ledger-card" style="--accent:#ef4444">
+          <div class="ledger-label">本月退费支出</div>
+          <div class="ledger-value" id="ledgerRefund">¥0</div>
         </div>
       </div>
     </div>
@@ -1167,24 +1169,26 @@ function switchSubTab(sub) {
 function renderSalesLedger(ym) {
   if (!ym) { const now = new Date(); ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); }
   const inp = document.getElementById('ledgerMonth'); if (inp) inp.value = ym;
-  let income = 0, newCnt = 0;
-  for (const c of _customers) {
-    if (c.status === '已报名' && (c.enrollment_date || '').startsWith(ym)) { newCnt++; income += parseFloat(c.total_payment) || 0; }
-  }
-  let renewCnt = 0;
-  for (const r of _renewals) {
-    if ((r.payment_date || '').startsWith(ym)) { renewCnt++; income += parseFloat(r.total_payment) || 0; }
-  }
-  let refund = 0;
-  for (const r of _refunds) {
-    if ((r.refund_date || '').startsWith(ym)) refund += (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0);
-  }
+  // 新招：按姓名去重算人数，金额求和
+  const newCustomers = _customers.filter(c => c.status === '已报名' && (c.enrollment_date || '').startsWith(ym));
+  const newNames = new Set(newCustomers.map(c => (c.name || '').trim()).filter(Boolean));
+  const newCash = newCustomers.reduce((s, c) => s + (parseFloat(c.total_payment) || 0), 0);
+  // 续费：按姓名去重算人数，金额求和
+  const renewRecords = _renewals.filter(r => (r.payment_date || '').startsWith(ym));
+  const renewNames = new Set(renewRecords.map(r => (r.student_name || '').trim()).filter(Boolean));
+  const renewCash = renewRecords.reduce((s, r) => s + (parseFloat(r.total_payment) || 0), 0);
+  // 退费
+  const refund = _refunds.filter(r => (r.refund_date || '').startsWith(ym))
+    .reduce((s, r) => s + (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0), 0);
+  const totalIncome = newCash + renewCash;
   const fmt = n => '¥' + Number(n).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2});
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('ledgerIncome', fmt(income));
+  set('ledgerNew', newNames.size + ' 人');
+  set('ledgerNewCash', fmt(newCash));
+  set('ledgerRenew', renewNames.size + ' 人');
+  set('ledgerRenewCash', fmt(renewCash));
+  set('ledgerIncome', fmt(totalIncome));
   set('ledgerRefund', fmt(refund));
-  set('ledgerNew', newCnt + ' 人');
-  set('ledgerRenew', renewCnt + ' 人');
 }
 
 function switchSalesSubTab(sub) {
