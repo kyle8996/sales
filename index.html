@@ -2055,7 +2055,13 @@ async function saveCustomer() {
   } else {
     ({error: err} = await sb.from('customers').insert(data));
   }
-  if (err) { showToast('保存失败: '+err.message, false); return; }
+  if (err) {
+    let msg = err.message || '';
+    if (msg.includes('invalid input syntax for type integer')) {
+      msg = '课时数/金额字段当前为整数类型，无法保存小数。请在 Supabase SQL Editor 执行 fix_numeric_columns.sql 后重试。';
+    }
+    showToast('保存失败: '+msg, false); return;
+  }
   showToast(editId ? '已更新' : '已新增');
   closeModal('custModal');
   await loadAll();
