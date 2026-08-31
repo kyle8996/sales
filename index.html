@@ -38,16 +38,18 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .subtabs{display:flex;gap:4px;margin-left:8px}
 .subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
 .subtabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
-.ledger{margin-bottom:16px;}
-.ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.ledger-title{font-size:15px;font-weight:600;color:#0C447C;}
-.ledger-month input[type=month]{font-size:13px;padding:4px 8px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff;}
-.ledger-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
-.ledger-card{background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem 1.1rem 1.1rem;overflow:hidden;}
-.ledger-top{height:3px;border-radius:12px 12px 0 0;margin:-1rem -1.1rem 12px;}
-.ledger-label{font-size:13px;color:#64748b;margin:0 0 6px;}
-.ledger-value{font-size:27px;font-weight:500;margin:0;}
-@media (max-width:760px){.ledger-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.ledger{position:sticky;top:56px;z-index:90;background:#f1f5f9;padding:10px 0 12px;margin-bottom:6px;border-bottom:1px solid #e2e8f0}
+.ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.ledger-title{font-size:15px;font-weight:600;color:#0C447C}
+.ledger-month input[type=month]{font-size:13px;padding:4px 8px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff}
+.ledger-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,190px));gap:12px;justify-content:center}
+.ledger-card{background:#fff;border:0.5px solid #e2e8f0;border-radius:10px;padding:0.65rem 0.85rem 0.8rem;overflow:hidden}
+.ledger-top{height:3px;border-radius:10px 10px 0 0;margin:-0.65rem -0.85rem 8px}
+.ledger-label{font-size:12px;color:#64748b;margin:0 0 4px}
+.ledger-value{font-size:21px;font-weight:600;margin:0}
+@media (max-width:760px){.ledger-grid{grid-template-columns:repeat(2,minmax(140px,180px));}}
+#sec-sales .card{position:sticky;top:175px;z-index:80;background:#fff}
+#sec-sales .tbl{max-height:calc(100vh - 255px)}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
 .toolbar label{font-size:12px;color:#64748b}
