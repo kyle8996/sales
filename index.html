@@ -38,6 +38,16 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .subtabs{display:flex;gap:4px;margin-left:8px}
 .subtabs button{padding:5px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#64748b}
 .subtabs button.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600}
+.ledger{margin-bottom:16px;}
+.ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.ledger-title{font-size:15px;font-weight:600;color:#0C447C;}
+.ledger-month input[type=month]{font-size:13px;padding:4px 8px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff;}
+.ledger-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.ledger-card{background:#fff;border:0.5px solid #e2e8f0;border-radius:12px;padding:1rem 1.1rem 1.1rem;overflow:hidden;}
+.ledger-top{height:3px;border-radius:12px 12px 0 0;margin:-1rem -1.1rem 12px;}
+.ledger-label{font-size:13px;color:#64748b;margin:0 0 6px;}
+.ledger-value{font-size:27px;font-weight:500;margin:0;}
+@media (max-width:760px){.ledger-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
 .toolbar label{font-size:12px;color:#64748b}
@@ -235,6 +245,37 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <div class="section" id="sec-sales">
   <div class="container">
+    <!-- 月度销售台账：置于子Tab上方，按所选月份实时统计 -->
+    <div class="ledger" id="salesLedger">
+      <div class="ledger-head">
+        <span class="ledger-title">月度销售台账</span>
+        <span class="ledger-month">
+          <input type="month" id="ledgerMonth" value="" onchange="renderSalesLedger(this.value)">
+        </span>
+      </div>
+      <div class="ledger-grid">
+        <div class="ledger-card">
+          <div class="ledger-top" style="background:#0F6E56"></div>
+          <div class="ledger-label">本月现金收入</div>
+          <div class="ledger-value" id="ledgerIncome" style="color:#0F6E56">¥0</div>
+        </div>
+        <div class="ledger-card">
+          <div class="ledger-top" style="background:#A32D2D"></div>
+          <div class="ledger-label">本月退费支出</div>
+          <div class="ledger-value" id="ledgerRefund" style="color:#A32D2D">¥0</div>
+        </div>
+        <div class="ledger-card">
+          <div class="ledger-top" style="background:#185FA5"></div>
+          <div class="ledger-label">本月新招人数</div>
+          <div class="ledger-value" id="ledgerNew" style="color:#185FA5">0 人</div>
+        </div>
+        <div class="ledger-card">
+          <div class="ledger-top" style="background:#534AB7"></div>
+          <div class="ledger-label">本月续费人数</div>
+          <div class="ledger-value" id="ledgerRenew" style="color:#534AB7">0 人</div>
+        </div>
+      </div>
+    </div>
     <!-- 子Tab：新招学员 / 在读续费 -->
     <div class="card" id="sales-new-card">
       <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
@@ -825,6 +866,8 @@ async function loadAll() {
   _cacheSet('classes', _classes);
   _cacheSet('renewals', _renewals);
   _cacheSet('students', _students);
+  // 月度销售台账：数据更新后即时刷新（也覆盖各保存/删除路径的 loadAll 重载）
+  renderSalesLedger();
 }
 
 // 懒加载：试听邀约相关数据（仅首次打开该 Tab 时拉取）
@@ -1117,6 +1160,29 @@ function switchSubTab(sub) {
   document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
   document.getElementById('subtab-'+sub).classList.add('active');
   renderCustomers();
+}
+
+function renderSalesLedger(ym) {
+  if (!ym) { const now = new Date(); ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); }
+  const inp = document.getElementById('ledgerMonth'); if (inp) inp.value = ym;
+  let income = 0, newCnt = 0;
+  for (const c of _customers) {
+    if (c.status === '已报名' && (c.enrollment_date || '').startsWith(ym)) { newCnt++; income += parseFloat(c.total_payment) || 0; }
+  }
+  let renewCnt = 0;
+  for (const r of _renewals) {
+    if ((r.payment_date || '').startsWith(ym)) { renewCnt++; income += parseFloat(r.total_payment) || 0; }
+  }
+  let refund = 0;
+  for (const r of _refunds) {
+    if ((r.refund_date || '').startsWith(ym)) refund += (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0);
+  }
+  const fmt = n => '¥' + Number(n).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('ledgerIncome', fmt(income));
+  set('ledgerRefund', fmt(refund));
+  set('ledgerNew', newCnt + ' 人');
+  set('ledgerRenew', renewCnt + ' 人');
 }
 
 function switchSalesSubTab(sub) {
@@ -1692,6 +1758,7 @@ async function saveRenewal() {
   }
   closeModal('renewalModal');
   renderRenewals();
+  renderSalesLedger();
   if (_currentTab === 'revenue') refreshRevenueData();
 }
 
@@ -1730,6 +1797,7 @@ async function deleteRenewal(rid) {
     await syncRenewalToStudentHours(phone, studentName, -hours);
   }
   renderRenewals();
+  renderSalesLedger();
 }
 
 function exportRenewals() {
@@ -1910,6 +1978,7 @@ async function saveRefund() {
     }
     closeModal('refundModal');
     renderRefunds();
+    renderSalesLedger();
     if (_currentTab === 'revenue') renderRevenue(); // 联动：未消耗课时费用扣减
   } catch (e) {
     showToast('保存失败: ' + e.message, false);
@@ -1923,6 +1992,7 @@ async function deleteRefund(rid) {
     if (error) throw error;
     _refunds = _refunds.filter(r => r.id !== parseInt(rid));
     renderRefunds();
+    renderSalesLedger();
     if (_currentTab === 'revenue') renderRevenue();
     showToast('已删除');
   } catch (e) {
