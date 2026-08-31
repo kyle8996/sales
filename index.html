@@ -231,8 +231,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <header style="display:none" id="appHeader">
   <h1>📊 销售业务系统</h1>
   <div class="tabs">
-    <button onclick="switchTab('sales')">销售管理</button>
-    <button class="active" onclick="switchTab('customers')">客户管理</button>
+    <button class="active" onclick="switchTab('sales')">销售管理</button>
+    <button onclick="switchTab('customers')">客户管理</button>
     <button onclick="switchTab('trials')">试听邀约</button>
     <button onclick="switchTab('reminders')">跟进提醒<span class="nav-badge" id="reminderBadge" style="display:none">0</span></button>
     <button onclick="switchTab('revenue')">确收明细</button>
@@ -248,7 +248,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 1: 销售管理 -->
 <!-- ================================================================= -->
-<div class="section" id="sec-sales">
+<div class="section active" id="sec-sales">
   <div class="container">
     <!-- 月度销售台账：置于子Tab上方，按所选月份实时统计 -->
     <div class="ledger" id="salesLedger">
@@ -457,7 +457,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 2: 客户管理 -->
 <!-- ================================================================= -->
-<div class="section active" id="sec-customers">
+<div class="section" id="sec-customers">
   <div class="container">
     <div class="card">
       <h2>客户列表
@@ -1180,7 +1180,7 @@ async function initApp() {
     fillFilters();
     fillSalesFilters();
     goThisMonth();
-    switchTab('customers');
+    switchTab('sales');
   } catch(e) {
     console.error('initApp error:', e);
     alert('系统加载失败：' + (e.message || e) + '\n请刷新重试，如持续出现请联系管理员。');
