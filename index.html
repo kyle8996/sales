@@ -41,7 +41,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger{padding:10px 0 12px;margin-bottom:6px;border-bottom:1px solid #e2e8f0;background:transparent}
 .ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .ledger-title{font-size:15px;font-weight:600;color:#0C447C}
-.ledger-month select{font-size:13px;padding:5px 24px 5px 10px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23185FA5\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>') no-repeat right 8px center;appearance:none;-webkit-appearance:none;cursor:pointer}
+.ledger-month select{font-size:13px;padding:5px 24px 5px 10px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23185FA5\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>') no-repeat right 8px center;appearance:none;-webkit-appearance:none;cursor:pointer}.ledger-month select+select{margin-left:8px}.ledger-month #ledgerYear{width:78px}.ledger-month #ledgerMonth{width:68px}
 .ledger-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}
 .ledger-card{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:10px;padding:12px 14px;border-left:4px solid var(--accent,#1d4ed8);box-shadow:0 2px 6px rgba(15,23,42,.2)}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
@@ -259,55 +259,26 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         <div class="ledger-head">
           <span class="ledger-title">月度销售台账</span>
           <span class="ledger-month">
-            <select id="ledgerMonth" onchange="renderSalesLedger(this.value)">
-              <option value="2024-01">2024年01月</option>
-              <option value="2024-02">2024年02月</option>
-              <option value="2024-03">2024年03月</option>
-              <option value="2024-04">2024年04月</option>
-              <option value="2024-05">2024年05月</option>
-              <option value="2024-06">2024年06月</option>
-              <option value="2024-07">2024年07月</option>
-              <option value="2024-08">2024年08月</option>
-              <option value="2024-09">2024年09月</option>
-              <option value="2024-10">2024年10月</option>
-              <option value="2024-11">2024年11月</option>
-              <option value="2024-12">2024年12月</option>
-              <option value="2025-01">2025年01月</option>
-              <option value="2025-02">2025年02月</option>
-              <option value="2025-03">2025年03月</option>
-              <option value="2025-04">2025年04月</option>
-              <option value="2025-05">2025年05月</option>
-              <option value="2025-06">2025年06月</option>
-              <option value="2025-07">2025年07月</option>
-              <option value="2025-08">2025年08月</option>
-              <option value="2025-09">2025年09月</option>
-              <option value="2025-10">2025年10月</option>
-              <option value="2025-11">2025年11月</option>
-              <option value="2025-12">2025年12月</option>
-              <option value="2026-01">2026年01月</option>
-              <option value="2026-02">2026年02月</option>
-              <option value="2026-03">2026年03月</option>
-              <option value="2026-04">2026年04月</option>
-              <option value="2026-05">2026年05月</option>
-              <option value="2026-06">2026年06月</option>
-              <option value="2026-07">2026年07月</option>
-              <option value="2026-08">2026年08月</option>
-              <option value="2026-09">2026年09月</option>
-              <option value="2026-10">2026年10月</option>
-              <option value="2026-11">2026年11月</option>
-              <option value="2026-12">2026年12月</option>
-              <option value="2027-01">2027年01月</option>
-              <option value="2027-02">2027年02月</option>
-              <option value="2027-03">2027年03月</option>
-              <option value="2027-04">2027年04月</option>
-              <option value="2027-05">2027年05月</option>
-              <option value="2027-06">2027年06月</option>
-              <option value="2027-07">2027年07月</option>
-              <option value="2027-08">2027年08月</option>
-              <option value="2027-09">2027年09月</option>
-              <option value="2027-10">2027年10月</option>
-              <option value="2027-11">2027年11月</option>
-              <option value="2027-12">2027年12月</option>
+            <select id="ledgerYear" onchange="renderSalesLedger()">
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+            <select id="ledgerMonth" onchange="renderSalesLedger()">
+              <option value="01">1月</option>
+              <option value="02">2月</option>
+              <option value="03">3月</option>
+              <option value="04">4月</option>
+              <option value="05">5月</option>
+              <option value="06">6月</option>
+              <option value="07">7月</option>
+              <option value="08">8月</option>
+              <option value="09" selected>9月</option>
+              <option value="10">10月</option>
+              <option value="11">11月</option>
+              <option value="12">12月</option>
             </select>
           </span>
         </div>
@@ -1224,8 +1195,21 @@ function switchSubTab(sub) {
 }
 
 function renderSalesLedger(ym) {
-  if (!ym) { const now = new Date(); ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); }
-  const inp = document.getElementById('ledgerMonth'); if (inp) inp.value = ym;
+  const yearSel = document.getElementById('ledgerYear');
+  const monthSel = document.getElementById('ledgerMonth');
+  if (!ym) {
+    if (yearSel && monthSel && yearSel.value && monthSel.value) {
+      ym = yearSel.value + '-' + monthSel.value;
+    } else {
+      const now = new Date();
+      ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    }
+  }
+  if (yearSel && monthSel) {
+    const [y, m] = ym.split('-');
+    yearSel.value = y;
+    monthSel.value = m;
+  }
   // 新招：按姓名去重算人数，金额求和
   const newCustomers = _customers.filter(c => c.status === '已报名' && (c.enrollment_date || '').startsWith(ym));
   const newNames = new Set(newCustomers.map(c => (c.name || '').trim()).filter(Boolean));
