@@ -69,6 +69,9 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .btn-danger:hover{background:#fecaca}
 .btn-xs{padding:3px 8px;font-size:11px}
 .btn-sm{padding:5px 12px;font-size:12px}
+.gift-select{font-size:13px;color:#1e293b;background:transparent;border:none;padding:4px 18px 4px 4px;border-radius:6px;cursor:pointer;text-align:center;appearance:none;-webkit-appearance:none;-moz-appearance:none;outline:none;min-width:44px;background-image:url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%2364748b\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>');background-repeat:no-repeat;background-position:right 4px center}
+.gift-select:hover,.gift-select:focus{background-color:#f1f5f9}
+.gift-select option{text-align:center}
 .tbl{overflow:auto;max-height:calc(100vh - 230px)}
 .tbl table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 .tbl thead{position:sticky;top:0;z-index:10}
@@ -1502,7 +1505,7 @@ function cell(value, style) {
 
 function giftSelect(kind, id, val) {
   const cur = (val === '是' || val === '否') ? val : '否';
-  return '<select onchange="setGiftReceived(\'' + kind + '\',' + id + ',this.value)">' +
+  return '<select class="gift-select" onchange="setGiftReceived(\'' + kind + '\',' + id + ',this.value)">' +
     '<option value="否"' + (cur === '否' ? ' selected' : '') + '>否</option>' +
     '<option value="是"' + (cur === '是' ? ' selected' : '') + '>是</option>' +
     '</select>';
