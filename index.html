@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <!-- v2026.06.18-001 -->
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+<html lang="zh-CN" data-page-node-id="vBr9rHzgqZeg5qeOmvKJcD">
+<head data-page-node-id="9xIVgcdBY6ABHxOPahOXGP">
+<meta charset="UTF-8" data-page-node-id="MJ8WaEg5S4ww5lUlGTZ81Q">
+<meta name="viewport" content="width=device-width,initial-scale=1.0" data-page-node-id="vmUUA4zuWH4Hyc1k4LQAoJ">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" data-page-node-id="INF86y0HJo7QcV34F9svBJ">
+<meta http-equiv="Pragma" content="no-cache" data-page-node-id="jMHU5s6DGZQRXyDcCGQl7y">
+<meta http-equiv="Expires" content="0" data-page-node-id="gJEgjXj3LhTTWZLpYSHGUX">
 <title>DK邻里少儿英语 · 销售业务系统</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -72,6 +72,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .gift-select{font-size:13px;color:#1e293b;background:transparent;border:none;padding:4px 18px 4px 4px;border-radius:6px;cursor:pointer;text-align:center;appearance:none;-webkit-appearance:none;-moz-appearance:none;outline:none;min-width:44px;background-image:url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%2364748b\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>');background-repeat:no-repeat;background-position:right 4px center}
 .gift-select:hover,.gift-select:focus{background-color:#f1f5f9}
 .gift-select option{text-align:center}
+.gift-name-input{width:100%;font-size:13px;color:#1e293b;background:transparent;border:none;padding:4px 6px;border-radius:6px;outline:none;text-align:center}
+.gift-name-input:hover,.gift-name-input:focus{background-color:#f1f5f9}
 .tbl{overflow:auto;max-height:calc(100vh - 230px)}
 .tbl table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 .tbl thead{position:sticky;top:0;z-index:10}
@@ -219,32 +221,32 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .day-context-menu .ctx-item:hover{background:#eef4ff;color:#1d4ed8}
 </style>
 </head>
-<body>
+<body data-page-node-id="CWySBxJxL0ucTJsMOqik0J">
 
 <!-- Auth -->
-<div class="auth-overlay" id="authOverlay">
-  <div class="auth-box">
-    <h1>DK邻里少儿英语</h1>
-    <p>销售业务系统</p>
-    <input type="password" id="authInput" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')doAuth()">
-    <button onclick="doAuth()">进入系统</button>
-    <div class="auth-err" id="authErr">密码错误</div>
+<div class="auth-overlay" id="authOverlay" data-page-node-id="Q8c9m0EjcIeeFj91S5pQiy">
+  <div class="auth-box" data-page-node-id="uKbDxdciYNknU1Vk9GVDfU">
+    <h1 data-page-node-id="qqrzbYGTBQ7uukdOHW6e8I">DK邻里少儿英语</h1>
+    <p data-page-node-id="u40vxfPeiK8dGV5r3immxn">销售业务系统</p>
+    <input type="password" id="authInput" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')doAuth()" data-page-node-id="s58nyWcrFb0ZqTC6xhtn7n">
+    <button onclick="doAuth()" data-page-node-id="6QxHnQXbB9skz8HjLLFt1m">进入系统</button>
+    <div class="auth-err" id="authErr" data-page-node-id="0KNM182Gl8DKPfBB0g89FA">密码错误</div>
   </div>
 </div>
 
 <!-- Header -->
-<header style="display:none" id="appHeader">
-  <h1>📊 销售业务系统</h1>
-  <div class="tabs">
-    <button class="active" onclick="switchTab('sales')">销售管理</button>
-    <button onclick="switchTab('customers')">客户管理</button>
-    <button onclick="switchTab('trials')">试听邀约</button>
-    <button onclick="switchTab('reminders')">跟进提醒<span class="nav-badge" id="reminderBadge" style="display:none">0</span></button>
-    <button onclick="switchTab('revenue')">确收明细</button>
+<header style="display:none" id="appHeader" data-page-node-id="yT2yRX5I5Mvpn5qnTHP1C6">
+  <h1 data-page-node-id="uS1vUMzJbKHyWLGk568IPy">📊 销售业务系统</h1>
+  <div class="tabs" data-page-node-id="ahKaR8MoLLHccFFHNRnyVn">
+    <button class="active" onclick="switchTab('sales')" data-page-node-id="KR7o5ekYaf1LBk8uPxgC39">销售管理</button>
+    <button onclick="switchTab('customers')" data-page-node-id="12b4MdZsGbJrcOT92U74m2">客户管理</button>
+    <button onclick="switchTab('trials')" data-page-node-id="H3Exx18HH8sugTMeXwkjms">试听邀约</button>
+    <button onclick="switchTab('reminders')" data-page-node-id="BBwWGHXalWMvieEDQw9IyB">跟进提醒<span class="nav-badge" id="reminderBadge" style="display:none" data-page-node-id="gRfmehJSNmLaNObKcUO2z2">0</span></button>
+    <button onclick="switchTab('revenue')" data-page-node-id="Gt4DbYoZT7yuEyLyXaqYNZ">确收明细</button>
   </div>
-  <span class="user-info" style="margin-left:auto">
-    <button class="btn btn-gray btn-xs" onclick="exportTab()">📥 导出</button>
-    <button class="btn btn-gray btn-xs" onclick="localStorage.removeItem('sales_auth');location.reload()">🔒 退出</button>
+  <span class="user-info" style="margin-left:auto" data-page-node-id="TD1u3P6xRzvwWtdWjCObsC">
+    <button class="btn btn-gray btn-xs" onclick="exportTab()" data-page-node-id="nm4odqoHRyesNOH5mCD0eZ">📥 导出</button>
+    <button class="btn btn-gray btn-xs" onclick="localStorage.removeItem('sales_auth');location.reload()" data-page-node-id="ONhp3AopZLII0QY6arfE7C">🔒 退出</button>
   </span>
 </header>
 
@@ -253,181 +255,182 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 1: 销售管理 -->
 <!-- ================================================================= -->
-<div class="section active" id="sec-sales">
-  <div class="container">
+<div class="section active" id="sec-sales" data-page-node-id="Or5MrBPXoqTj0N2DlpdDdk">
+  <div class="container" data-page-node-id="I4iEjlP1HhZtrVBFCrEjrz">
     <!-- 子Tab：新招学员 / 在读续费 -->
-    <div class="card" id="sales-new-card">
+    <div class="card" id="sales-new-card" data-page-node-id="O2hysF0pibKCcYbjJSPGjD">
       <!-- 月度销售台账：置于子Tab上方，按所选月份实时统计 -->
-      <div class="ledger" id="salesLedger">
-        <div class="ledger-head">
-          <span class="ledger-title">月度销售台账</span>
-          <span class="ledger-month">
-            <select id="ledgerYear" onchange="renderSalesLedger()">
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
+      <div class="ledger" id="salesLedger" data-page-node-id="9mtu8o4rzae98xgoBVdfhv">
+        <div class="ledger-head" data-page-node-id="EZznNBcXo3GBgDq2vaDQzE">
+          <span class="ledger-title" data-page-node-id="eqJkAmOC9a5XQ3ijGeDzuK">月度销售台账</span>
+          <span class="ledger-month" data-page-node-id="ygnrFaok2HSkD5x8GlRikg">
+            <select id="ledgerYear" onchange="renderSalesLedger()" data-page-node-id="HNTu4inwG9mvAtWD75d0yc">
+              <option value="2024" data-page-node-id="iSczSKCWP0Mec2HQUPUffN">2024</option>
+              <option value="2025" data-page-node-id="MdG5SazLqdhr88YfX6FVJd">2025</option>
+              <option value="2026" selected data-page-node-id="Rc900DUMxIHxXYnLyYtitG">2026</option>
+              <option value="2027" data-page-node-id="PreCUVAclqWfuJ7xO8ZCbC">2027</option>
+              <option value="2028" data-page-node-id="qu1IyqzmXlPkDwWCYXNVXS">2028</option>
             </select>
-            <select id="ledgerMonth" onchange="renderSalesLedger()">
-              <option value="01">1月</option>
-              <option value="02">2月</option>
-              <option value="03">3月</option>
-              <option value="04">4月</option>
-              <option value="05">5月</option>
-              <option value="06">6月</option>
-              <option value="07">7月</option>
-              <option value="08">8月</option>
-              <option value="09" selected>9月</option>
-              <option value="10">10月</option>
-              <option value="11">11月</option>
-              <option value="12">12月</option>
+            <select id="ledgerMonth" onchange="renderSalesLedger()" data-page-node-id="J5jkPevGVx6cv4Knw14wOd">
+              <option value="01" data-page-node-id="TpCaD3vmfhIJlYTpqRIQq1">1月</option>
+              <option value="02" data-page-node-id="3jbVXIToUgWgOWAUJG2Ob1">2月</option>
+              <option value="03" data-page-node-id="Yc68jyLMXHdUTguvRPKjVb">3月</option>
+              <option value="04" data-page-node-id="WgsNR423jBeKyDwnBUQHBE">4月</option>
+              <option value="05" data-page-node-id="wBdeDRRoE2mkPRDzg4ivhK">5月</option>
+              <option value="06" data-page-node-id="P7UBWRSwS6R0io9wvdXAN2">6月</option>
+              <option value="07" data-page-node-id="uHGlZn6YuNB8s4OjDCoUTJ">7月</option>
+              <option value="08" data-page-node-id="j7xrsQUY3DnDNQ1s9U8yi1">8月</option>
+              <option value="09" selected data-page-node-id="n6BLXZ72NHDlxUOAHkQFdZ">9月</option>
+              <option value="10" data-page-node-id="xMxzt9B7oMhtAcPwgE1VGt">10月</option>
+              <option value="11" data-page-node-id="Ctmggvbvhvnpbk5G6OV2bh">11月</option>
+              <option value="12" data-page-node-id="3qPZpWCEQEvG6WcYF3DLGj">12月</option>
             </select>
           </span>
         </div>
-        <div class="ledger-grid">
-          <div class="ledger-card" style="--accent:#3b82f6">
-            <div class="ledger-label">本月新招人数</div>
-            <div class="ledger-value" id="ledgerNew">0 人</div>
+        <div class="ledger-grid" data-page-node-id="oHU05s2rygCgcgBwddgbpm">
+          <div class="ledger-card" style="--accent:#3b82f6" data-page-node-id="9S74peiyDLtYVm3xijqnTt">
+            <div class="ledger-label" data-page-node-id="8CweNhAJtjggvjVJhDngDq">本月新招人数</div>
+            <div class="ledger-value" id="ledgerNew" data-page-node-id="q2PACT9b8tJaG8zvymoGRP">0 人</div>
           </div>
-          <div class="ledger-card" style="--accent:#22c55e">
-            <div class="ledger-label">本月新招现金</div>
-            <div class="ledger-value" id="ledgerNewCash">¥0</div>
+          <div class="ledger-card" style="--accent:#22c55e" data-page-node-id="2S9U7imjixL516hG2GDspY">
+            <div class="ledger-label" data-page-node-id="6UcNbV92SbtENDqPF4gLWT">本月新招现金</div>
+            <div class="ledger-value" id="ledgerNewCash" data-page-node-id="cHgW4Uv0BRgJf38I9Spq0v">¥0</div>
           </div>
-          <div class="ledger-card" style="--accent:#8b5cf6">
-            <div class="ledger-label">本月续费人数</div>
-            <div class="ledger-value" id="ledgerRenew">0 人</div>
+          <div class="ledger-card" style="--accent:#8b5cf6" data-page-node-id="onh34cYJTYgAK1eNOiMAsY">
+            <div class="ledger-label" data-page-node-id="nA4DIN3xpj8xbjGhXzoo03">本月续费人数</div>
+            <div class="ledger-value" id="ledgerRenew" data-page-node-id="ga2MwBoHaqMok0LSxVWVCQ">0 人</div>
           </div>
-          <div class="ledger-card" style="--accent:#06b6d4">
-            <div class="ledger-label">本月续费现金</div>
-            <div class="ledger-value" id="ledgerRenewCash">¥0</div>
+          <div class="ledger-card" style="--accent:#06b6d4" data-page-node-id="bqIhvu7Ou1K9xxOIUeQuWZ">
+            <div class="ledger-label" data-page-node-id="F4n64qTh0rAUI8G5haB0Uk">本月续费现金</div>
+            <div class="ledger-value" id="ledgerRenewCash" data-page-node-id="zKrARegbocGCqJAjFNl19J">¥0</div>
           </div>
-          <div class="ledger-card" style="--accent:#1d4ed8">
-            <div class="ledger-label">本月合计现金收入</div>
-            <div class="ledger-value" id="ledgerIncome">¥0</div>
+          <div class="ledger-card" style="--accent:#1d4ed8" data-page-node-id="JCYLPP4Hy4W6gvIHbwc5c7">
+            <div class="ledger-label" data-page-node-id="X3nqsHvRwgdlLkmYjv97qv">本月合计现金收入</div>
+            <div class="ledger-value" id="ledgerIncome" data-page-node-id="TaFoeHCD4lRDYi7BLGmXG6">¥0</div>
           </div>
-          <div class="ledger-card" style="--accent:#ef4444">
-            <div class="ledger-label">本月退费支出</div>
-            <div class="ledger-value" id="ledgerRefund">¥0</div>
+          <div class="ledger-card" style="--accent:#ef4444" data-page-node-id="tViLKqrr3MuTpFutgwKTSM">
+            <div class="ledger-label" data-page-node-id="E06i8OeJa4OA9jyFGNv5W3">本月退费支出</div>
+            <div class="ledger-value" id="ledgerRefund" data-page-node-id="CxCOIHoaSmEwat1BCfZCPM">¥0</div>
           </div>
         </div>
       </div>
 
-      <h2>新招学员 <span class="count-badge badge-signed" id="cnt-signed">0</span>
-        <div class="subtabs">
-          <button class="active" data-sub="new" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
-          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
-          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab-refund">退费学员</button>
+      <h2 data-page-node-id="LonwkxhahgZyENnW5SPaHq">新招学员 <span class="count-badge badge-signed" id="cnt-signed" data-page-node-id="GmSpF1sXIuK1LzbHu7O1iS">0</span>
+        <div class="subtabs" data-page-node-id="G258SW9Jm9tn9j5mZ1IJQR">
+          <button class="active" data-sub="new" onclick="switchSalesSubTab('new')" id="salestab-new" data-page-node-id="ZnJmYycjdGDk50Eob2AqNy">新招学员</button>
+          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab-renewal" data-page-node-id="3kqoqeu4NilkyqBs3LWjd1">在读续费</button>
+          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab-refund" data-page-node-id="vx2xxDrGjivqMg5HUE5sn3">退费学员</button>
         </div>
-        <div class="toolbar" style="margin-left:auto">
-          <select id="salesFilterSource" onchange="renderSales()"><option value="all">一级渠道</option></select>
-          <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
-          <select id="salesFilterClass" onchange="renderSales()"><option value="all">全部班级</option></select>
-          <select id="salesFilterMonth" onchange="renderSales()"><option value="all">全部月份</option></select>
-          <select id="salesFilterDemoTeacher" onchange="renderSales()"><option value="all">Demo老师</option><option value="Dora">Dora</option><option value="Cindy">Cindy</option><option value="无Demo">无Demo</option></select>
-          <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderSales()" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openCustomerModal(null,'sales')">＋ 新增学员</button>
-          <button class="btn btn-gray btn-sm" onclick="exportSales()">📥 导出</button>
+        <div class="toolbar" style="margin-left:auto" data-page-node-id="Va46xkjwCKJjb8HvJzIfJe">
+          <select id="salesFilterSource" onchange="renderSales()" data-page-node-id="n2xF5O5CFLRuxtKUIDSdLC"><option value="all" data-page-node-id="IntgpkaHHwJBVucXoRqCXE">一级渠道</option></select>
+          <select id="salesFilterOwner" onchange="renderSales()" data-page-node-id="k4YRCo1eYwgvEEUNIuUMqc"><option value="all" data-page-node-id="4lshtx8R2Ad5mZpntd5VQV">全部跟进人</option></select>
+          <select id="salesFilterClass" onchange="renderSales()" data-page-node-id="xE6kyACdvUwCxJ64jEc8vn"><option value="all" data-page-node-id="Q0Wwy0UJE72jVItNT8unF4">全部班级</option></select>
+          <select id="salesFilterMonth" onchange="renderSales()" data-page-node-id="WrJQIKcDgDTKa2urP9W7xq"><option value="all" data-page-node-id="EUME8XcTbyFsrtcWOR7oey">全部月份</option></select>
+          <select id="salesFilterDemoTeacher" onchange="renderSales()" data-page-node-id="opD9fk8SGu0NpcZq2J7tOJ"><option value="all" data-page-node-id="RIAwUlQalJzOiXKiv00FhS">Demo老师</option><option value="Dora" data-page-node-id="y1JLYdXhBKlhkXXFUQLWih">Dora</option><option value="Cindy" data-page-node-id="U504xaQZdsVZ9uw4uYhNYS">Cindy</option><option value="无Demo" data-page-node-id="lR3YsZPq13lFGH8fXhxJ5G">无Demo</option></select>
+          <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderSales()" style="width:180px" data-page-node-id="0U8nrLNYBDhRehSy0eqJFj">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal(null,'sales')" data-page-node-id="LSCU6ZCnTTsDVvOGwIa2rL">＋ 新增学员</button>
+          <button class="btn btn-gray btn-sm" onclick="exportSales()" data-page-node-id="bq8a7ooXkLtVMNU33OWVgW">📥 导出</button>
         </div>
       </h2>
-      <div class="tbl fit-table"><table>
-        <thead><tr>
-          <th style="width:4%">序号</th>
-          <th style="width:6%">报名日期</th>
-          <th style="text-align:left;width:6%">姓名</th>
-          <th style="width:6%">出生日期</th>
-          <th style="width:3%">年龄</th>
-          <th style="width:8%">电话</th>
-          <th style="width:4%">家长</th>
-          <th style="width:5%">一级渠道</th>
-          <th style="width:5%">二级渠道</th>
-          <th style="width:5%">学校</th>
-          <th style="width:6%">家庭住址</th>
-          <th style="width:5%">Demo老师</th>
-          <th style="width:6%">报名班级</th>
-          <th style="width:4%">跟进人</th>
-          <th style="width:4%">课时数</th>
-          <th style="width:4%">书费</th>
-          <th style="width:5%">合计缴费</th>
-          <th style="width:4%">课单价</th>
-          <th style="width:90px">是否领取报名礼物</th>
-          <th style="width:150px">操作</th>
+      <div class="tbl fit-table" data-page-node-id="X2vZfFwgkmHPPWQUPlknDS"><table data-page-node-id="h84Cq1EtBWksMvSHQmT2yZ">
+        <thead data-page-node-id="CO861a5YlDMSuY3UtPgdvu"><tr data-page-node-id="xP6n74AGupNuLD9ywiQsxB">
+          <th style="width:4%" data-page-node-id="ss7GYektijDyTvnYibKu9w">序号</th>
+          <th style="width:6%" data-page-node-id="tXmxZcwBHoYQMB5HQ4JccU">报名日期</th>
+          <th style="text-align:left;width:6%" data-page-node-id="UEsvNO8Xj5HTc0MTgTzVPH">姓名</th>
+          <th style="width:6%" data-page-node-id="XoOlBD71fuRMZ68jak8yl5">出生日期</th>
+          <th style="width:3%" data-page-node-id="JG2tj5SCNZgEiBMfSDgI0N">年龄</th>
+          <th style="width:8%" data-page-node-id="TYT3lbViMlq7MdLsqFBAtU">电话</th>
+          <th style="width:4%" data-page-node-id="lEcP6IPP7uiHVBZGfhOaul">家长</th>
+          <th style="width:5%" data-page-node-id="RVrEZQuadG5EW4pnRmlDJk">一级渠道</th>
+          <th style="width:5%" data-page-node-id="k1eeeYDfbxWMVWFXLeTfFN">二级渠道</th>
+          <th style="width:5%" data-page-node-id="8x8TCJcTkvXcQgStnsuhKl">学校</th>
+          <th style="width:6%" data-page-node-id="ixlVoQhK7DXAKgzLxpxmFS">家庭住址</th>
+          <th style="width:5%" data-page-node-id="wHTuMHL0J8GzWb7Vm0gc4p">Demo老师</th>
+          <th style="width:6%" data-page-node-id="UlyCtRY9DXfrEmoOZJ4pxd">报名班级</th>
+          <th style="width:4%" data-page-node-id="TM1Ltv5SrTdpzlyuiDa5eZ">跟进人</th>
+          <th style="width:4%" data-page-node-id="M8stUczxSPBbTJLsANtodK">课时数</th>
+          <th style="width:4%" data-page-node-id="TVWcISWUmQGWuzqRqMvY7Y">书费</th>
+          <th style="width:5%" data-page-node-id="MXcW7Rv7pMNNlfVjwSgdal">合计缴费</th>
+          <th style="width:4%" data-page-node-id="sRZr4yGlB5WZFakK81lofN">课单价</th>
+          <th style="width:90px" data-page-node-id="T3IMlYnIYTYIBurAt4Uatf">是否领取报名礼物</th>
+          <th style="width:110px" data-page-node-id="a1b2c3d4e5f6g7h8i9j0k1l">报名礼物名称</th>
+          <th style="width:150px" data-page-node-id="0ZnwAqNN77dxfGBmVXlDxA">操作</th>
         </tr></thead>
-        <tbody id="salesTbody"></tbody>
-        <tfoot id="salesTfoot"></tfoot>
+        <tbody id="salesTbody" data-page-node-id="zmxS2V3Lfjtvd1N9q8fbgf"></tbody>
+        <tfoot id="salesTfoot" data-page-node-id="c2XXk7PzrKeeXRfetTvNrp"></tfoot>
       </table></div>
     </div>
     <!-- 在读续费 -->
-    <div class="card" id="sales-renewal-card" style="display:none">
-      <h2>在读续费 <span class="count-badge badge-renewal" id="cnt-renewal">0</span>
-        <div class="subtabs">
-          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab2-new">新招学员</button>
-          <button class="active" data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal">在读续费</button>
-          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab2-refund">退费学员</button>
+    <div class="card" id="sales-renewal-card" style="display:none" data-page-node-id="42PWsFS9GZvNZZIoAUaQwE">
+      <h2 data-page-node-id="IUxXtQYd4mDiB4S9Uh24Er">在读续费 <span class="count-badge badge-renewal" id="cnt-renewal" data-page-node-id="tr8YPMoYBL93BrSDKhRxkC">0</span>
+        <div class="subtabs" data-page-node-id="nTG1DF3Qkyqyz10qPfxS79">
+          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab2-new" data-page-node-id="R6LmwVEN9TOA14r3rfZFWt">新招学员</button>
+          <button class="active" data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal" data-page-node-id="mzSonJyQiIyc6igza7GhaP">在读续费</button>
+          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab2-refund" data-page-node-id="rN42EAzmRvLQqxuSXLkqkJ">退费学员</button>
         </div>
-        <div class="toolbar" style="margin-left:auto">
-          <select id="renewalFilterClass" onchange="renderRenewals()"><option value="all">全部班级</option></select>
-          <select id="renewalFilterMonth" onchange="renderRenewals()"><option value="all">全部月份</option></select>
-          <input type="text" id="renewalFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderRenewals()" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openRenewalModal()">＋ 新增续费</button>
-          <button class="btn btn-gray btn-sm" onclick="exportRenewals()">📥 导出</button>
+        <div class="toolbar" style="margin-left:auto" data-page-node-id="fjb2xL0lDNJcJsg5vk01kJ">
+          <select id="renewalFilterClass" onchange="renderRenewals()" data-page-node-id="BVKReVTQ788HURrJxGgSF8"><option value="all" data-page-node-id="NGnTGC71nA9Lxdyaxa2pmV">全部班级</option></select>
+          <select id="renewalFilterMonth" onchange="renderRenewals()" data-page-node-id="jMAZ1acXOtHpp5lFkuBD0u"><option value="all" data-page-node-id="LbXuoOXwoRg5c1cOfnAcz7">全部月份</option></select>
+          <input type="text" id="renewalFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderRenewals()" style="width:180px" data-page-node-id="CQbX0gEZ2lYPMeC5nanztH">
+          <button class="btn btn-primary btn-sm" onclick="openRenewalModal()" data-page-node-id="wwaHWFLgcS0o4RJubINJ5f">＋ 新增续费</button>
+          <button class="btn btn-gray btn-sm" onclick="exportRenewals()" data-page-node-id="9Bhrdbvr2GK6Rv0kkV2Xty">📥 导出</button>
         </div>
       </h2>
-      <div class="tbl"><table>
-        <thead><tr>
-          <th style="width:50px">序号</th>
-          <th style="width:80px">缴费日期</th>
-          <th style="text-align:left;width:70px">姓名</th>
-          <th style="width:80px">出生日期</th>
-          <th style="width:40px">年龄</th>
-          <th style="width:110px">电话</th>
-          <th style="width:50px">家长</th>
-          <th style="width:90px">所在学校</th>
-          <th style="width:90px">家庭住址</th>
-          <th style="width:80px">所在班级</th>
-          <th style="width:60px">缴费类型</th>
-          <th style="width:55px">课时数</th>
-          <th style="width:60px">书费</th>
-          <th style="width:70px">合计缴费</th>
-          <th style="width:60px">课单价</th>
-          <th style="width:90px">是否领取报名礼物</th>
-          <th style="width:140px">操作</th>
+      <div class="tbl" data-page-node-id="1zP92NGETQ3xU75B2pQwBb"><table data-page-node-id="ZYpkxm0wR5RT0Ix83d1o3W">
+        <thead data-page-node-id="thIhhx3FBAP13WMSsHE7Oa"><tr data-page-node-id="3ajBAeswEavTu9AGosa148">
+          <th style="width:50px" data-page-node-id="iU6EW3TcBdEKlvx7nrlEa2">序号</th>
+          <th style="width:80px" data-page-node-id="9CsJ83j3QpoKnRGcBolvKL">缴费日期</th>
+          <th style="text-align:left;width:70px" data-page-node-id="zt7DR2DgbsqpFp0XUyKk3m">姓名</th>
+          <th style="width:80px" data-page-node-id="p7Qf9k9TCeDpPwRI7g6yt2">出生日期</th>
+          <th style="width:40px" data-page-node-id="w1DYOj0FqmGXUnlgzb4Hxz">年龄</th>
+          <th style="width:110px" data-page-node-id="ho1cm6jjKYVRdSLKztNXoV">电话</th>
+          <th style="width:50px" data-page-node-id="oV76VzlDmxvCCowGb3Uk7O">家长</th>
+          <th style="width:90px" data-page-node-id="x6t6NmkdvyjWZlvk3xD0yI">所在学校</th>
+          <th style="width:90px" data-page-node-id="B9tkfzEGVeIOiIyoMnQA3C">家庭住址</th>
+          <th style="width:80px" data-page-node-id="ehf979Sv0ftWcHuxwTyocy">所在班级</th>
+          <th style="width:60px" data-page-node-id="27uIQRrrKw8giOdEIctjoD">缴费类型</th>
+          <th style="width:55px" data-page-node-id="oJsjlaupSLmTrBCoCH2S7l">课时数</th>
+          <th style="width:60px" data-page-node-id="OFgPkryJndoEmYapMOAgGi">书费</th>
+          <th style="width:70px" data-page-node-id="WJ2cvr9lKf8mzT5ZwYiWcJ">合计缴费</th>
+          <th style="width:60px" data-page-node-id="EkC7qyroX2IFK0kMEcDepG">课单价</th>
+          <th style="width:90px" data-page-node-id="9Gf6ETGqjfHeRZZRnLiIUr">是否领取报名礼物</th>
+          <th style="width:140px" data-page-node-id="hIoEsZOEvaLfsSo3oPtQ4p">操作</th>
         </tr></thead>
-        <tbody id="renewalTbody"></tbody>
-        <tfoot id="renewalTfoot"></tfoot>
+        <tbody id="renewalTbody" data-page-node-id="ruFZWAm4hyRXlDHT3R6khB"></tbody>
+        <tfoot id="renewalTfoot" data-page-node-id="ygKBpHYZREasQE5ShHvUBk"></tfoot>
       </table></div>
     </div>
     <!-- 退费学员 -->
-    <div class="card" id="sales-refund-card" style="display:none">
-      <h2>退费学员 <span class="count-badge badge-refund" id="cnt-refund">0</span>
-        <div class="subtabs">
-          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab3-new">新招学员</button>
-          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab3-renewal">在读续费</button>
-          <button class="active" data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab3-refund">退费学员</button>
+    <div class="card" id="sales-refund-card" style="display:none" data-page-node-id="LdHA544zIrg5PSsRRjgWBk">
+      <h2 data-page-node-id="SSbTOOkAwiOY2S69d6ohnd">退费学员 <span class="count-badge badge-refund" id="cnt-refund" data-page-node-id="gSCJDtrGOsGAGI6mWhQj3f">0</span>
+        <div class="subtabs" data-page-node-id="r4mCPMnRCObIylBmM7yFbe">
+          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab3-new" data-page-node-id="tEBXQ8GGISsrjZaGtzm7L0">新招学员</button>
+          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab3-renewal" data-page-node-id="it4sKF3pBjZlPeWSqZC5xC">在读续费</button>
+          <button class="active" data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab3-refund" data-page-node-id="nLn1zsP1DMe5rgKdDx9nU5">退费学员</button>
         </div>
-        <div class="toolbar" style="margin-left:auto">
-          <input type="text" id="refundFilterSearch" placeholder="搜索姓名/班级..." oninput="renderRefunds()" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openRefundModal()">＋ 新增退费</button>
-          <button class="btn btn-gray btn-sm" onclick="exportRefunds()">📥 导出</button>
+        <div class="toolbar" style="margin-left:auto" data-page-node-id="qAzCSUnOJvS8DShYsEuEWo">
+          <input type="text" id="refundFilterSearch" placeholder="搜索姓名/班级..." oninput="renderRefunds()" style="width:180px" data-page-node-id="7yqyIBesUZcC7kM7vMyhtD">
+          <button class="btn btn-primary btn-sm" onclick="openRefundModal()" data-page-node-id="gndCLrlBYMVy9Hp4WaOFGQ">＋ 新增退费</button>
+          <button class="btn btn-gray btn-sm" onclick="exportRefunds()" data-page-node-id="SkwdAvLsMXSAmNrsntKG5I">📥 导出</button>
         </div>
       </h2>
-      <div class="tbl"><table>
-        <thead><tr>
-          <th style="width:50px">序号</th>
-          <th style="text-align:left;width:70px">姓名</th>
-          <th style="width:90px">班级</th>
-          <th style="width:80px">合计缴费</th>
-          <th style="width:70px">书费(不退)</th>
-          <th style="width:60px">缴费课时</th>
-          <th style="width:60px">退课时数</th>
-          <th style="width:80px">退课时费</th>
-          <th style="width:70px">退书费</th>
-          <th style="width:90px">退费日期</th>
-          <th style="width:120px">备注</th>
-          <th style="width:140px">操作</th>
+      <div class="tbl" data-page-node-id="56wlylF5GaonR8aTCTis0R"><table data-page-node-id="bUByALYj8n1tc7EmZqwZyG">
+        <thead data-page-node-id="bK8cPZ63gYqre6wksnsnF4"><tr data-page-node-id="eo9KzlTLUkZN8FuW1NNFrJ">
+          <th style="width:50px" data-page-node-id="QzaWHHwQGTEAlf5Gh2hDH5">序号</th>
+          <th style="text-align:left;width:70px" data-page-node-id="EnGNeLF90sRhqf7VJvGBQX">姓名</th>
+          <th style="width:90px" data-page-node-id="F6GpSREFTDkSMKSkmkCoaX">班级</th>
+          <th style="width:80px" data-page-node-id="ABBb9uhSIC2YypkUFLotdK">合计缴费</th>
+          <th style="width:70px" data-page-node-id="Qq4HxfB9pLHzfHoycyi62Y">书费(不退)</th>
+          <th style="width:60px" data-page-node-id="FUm8iROBA513kdZexDZQxY">缴费课时</th>
+          <th style="width:60px" data-page-node-id="qQp6DelomTiOFsqdySdN8u">退课时数</th>
+          <th style="width:80px" data-page-node-id="ApJ6HqEBcysZig5SlwXBjd">退课时费</th>
+          <th style="width:70px" data-page-node-id="1C0YWdRHaZ3EFc9FEHAU0Q">退书费</th>
+          <th style="width:90px" data-page-node-id="C8DBaHqrWIqEOxjLebPf9R">退费日期</th>
+          <th style="width:120px" data-page-node-id="vZkABw9Ev8HsIp2xXEVkNw">备注</th>
+          <th style="width:140px" data-page-node-id="vAbXRCHmjMlL99d00qBuOW">操作</th>
         </tr></thead>
-        <tbody id="refundTbody"></tbody>
-        <tfoot id="refundTfoot"></tfoot>
+        <tbody id="refundTbody" data-page-node-id="zfXTLqZN2UYnWJzKVDefhj"></tbody>
+        <tfoot id="refundTfoot" data-page-node-id="KFXKSMHXzs71JEXJRVbyJ8"></tfoot>
       </table></div>
     </div>
   </div>
@@ -436,26 +439,26 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 2: 客户管理 -->
 <!-- ================================================================= -->
-<div class="section" id="sec-customers">
-  <div class="container">
-    <div class="card">
-      <h2>客户列表
-        <div class="subtabs">
-          <button class="active" onclick="switchSubTab('trial')" id="subtab-trial">已上门未报名<span class="count-badge badge-trial" id="cnt-trial">0</span></button>
-          <button onclick="switchSubTab('promised')" id="subtab-promised">承诺上门<span class="count-badge badge-promised" id="cnt-promised">0</span></button>
-          <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
+<div class="section" id="sec-customers" data-page-node-id="biNU3fIUsRDWHtcFACctzS">
+  <div class="container" data-page-node-id="xVeVBJfMqtC40szVlIOd8p">
+    <div class="card" data-page-node-id="BYxIo49nNlH0gbvsNrLOAT">
+      <h2 data-page-node-id="9nrCEvD76JalLwOZ9ut5rd">客户列表
+        <div class="subtabs" data-page-node-id="pcyHCyrzEJb6BH3VUt6yoS">
+          <button class="active" onclick="switchSubTab('trial')" id="subtab-trial" data-page-node-id="MWq1EzdZL0SnHuvipuBgpQ">已上门未报名<span class="count-badge badge-trial" id="cnt-trial" data-page-node-id="gPlf9pzWhxUwq8Wz2x01Ws">0</span></button>
+          <button onclick="switchSubTab('promised')" id="subtab-promised" data-page-node-id="X0enowfMRnPgTW4EaG1z0k">承诺上门<span class="count-badge badge-promised" id="cnt-promised" data-page-node-id="99cgEMiifZScBwLXrx08UY">0</span></button>
+          <button onclick="switchSubTab('lead')" id="subtab-lead" data-page-node-id="jTuWKDbqbG9Dup7Ui3EKqu">未上门<span class="count-badge badge-lead" id="cnt-lead" data-page-node-id="WYmze6OsojdIRj5yY7C7Bo">0</span></button>
         </div>
-        <div class="toolbar" style="margin-left:auto">
-          <select id="custFilterSource" onchange="renderCustomers()"><option value="all">一级渠道</option></select>
-          <select id="custFilterLevel" onchange="renderCustomers()"><option value="all">客户级别</option></select>
-          <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
-          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
-          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
+        <div class="toolbar" style="margin-left:auto" data-page-node-id="T2LU75AoQiWanJHiyBBQPI">
+          <select id="custFilterSource" onchange="renderCustomers()" data-page-node-id="tI11SQPgDYpRISDAHSREnC"><option value="all" data-page-node-id="OhF2EtWcMnWr8nJN3a8rV7">一级渠道</option></select>
+          <select id="custFilterLevel" onchange="renderCustomers()" data-page-node-id="fgDbAVoD6ODuvKVRgHxpVV"><option value="all" data-page-node-id="BheR2cEsB8ILen7Uw2JBis">客户级别</option></select>
+          <select id="custFilterOwner" onchange="renderCustomers()" data-page-node-id="kTBT3nGQHAHWHoQmTi4Gup"><option value="all" data-page-node-id="piwz1Bofl8eGFIUe6f94sf">全部跟进人</option></select>
+          <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px" data-page-node-id="Zu5NbwfqHzUDBmFAuRtFzs">
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()" data-page-node-id="Dj9zYfPKFvyTiguWHD0b9T">＋ 新增客户</button>
         </div>
       </h2>
-      <div class="tbl"><table>
-        <thead id="custThead"><tr></tr></thead>
-        <tbody id="custTbody"></tbody>
+      <div class="tbl" data-page-node-id="stg3kb3UxDNI9quNdoIxsh"><table data-page-node-id="0MMDz5KaCdZfcmFerEQkYj">
+        <thead id="custThead" data-page-node-id="kNCtLbSPtkAkbfVKVOcaDJ"><tr data-page-node-id="ym685kiLlHCaSMFcLFCxGE"></tr></thead>
+        <tbody id="custTbody" data-page-node-id="nJ0pXF9K5wX2LJ6E0cfZl4"></tbody>
       </table></div>
     </div>
   </div>
@@ -463,42 +466,42 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 
 <!-- ================================================================= -->
 <!-- Tab 3: 试听邀约 -->
-<div class="section" id="sec-trials">
-  <div class="container">
+<div class="section" id="sec-trials" data-page-node-id="QpArK5RwxbRC7OxefsiWOX">
+  <div class="container" data-page-node-id="Ypuk95zqPTN9gLlYtMJoaB">
     <!-- 月历视图 -->
-    <div class="card">
-      <h2>试听月历
-        <div class="month-nav" id="monthNav">
-          <button onclick="shiftMonth(-1)">&#8249;</button>
-          <b id="monthLabel"></b>
-          <button onclick="shiftMonth(1)">&#8250;</button>
-          <button class="btn btn-gray btn-sm" onclick="goThisMonth()">本月</button>
+    <div class="card" data-page-node-id="m9SKxZQ52sdox6V5XteZ5o">
+      <h2 data-page-node-id="lho5GKldQYfbhx24dEroI2">试听月历
+        <div class="month-nav" id="monthNav" data-page-node-id="UsyhQ7CoO047s2DykWYAF6">
+          <button onclick="shiftMonth(-1)" data-page-node-id="S9BGFfZLX7DUnm047igXcq">&#8249;</button>
+          <b id="monthLabel" data-page-node-id="smddG1W0kPDLgQBZUCc7A0"></b>
+          <button onclick="shiftMonth(1)" data-page-node-id="0pyAMoyCmx8MeWcABvysPC">&#8250;</button>
+          <button class="btn btn-gray btn-sm" onclick="goThisMonth()" data-page-node-id="samgKcN1Eb3tQRdqRyjnVw">本月</button>
         </div>
-        <button class="btn btn-success btn-sm" onclick="switchTrialView('sessions')" style="margin-left:auto">📋 排课管理</button>
+        <button class="btn btn-success btn-sm" onclick="switchTrialView('sessions')" style="margin-left:auto" data-page-node-id="Cj498AJF6mtfiB44JSRfYa">📋 排课管理</button>
       </h2>
-      <div id="trialCalendar"></div>
+      <div id="trialCalendar" data-page-node-id="ZJcP7p86aY9pJsfTuLC1dN"></div>
     </div>
     <!-- 排课管理 -->
-    <div class="card" id="sessionsCard" style="display:none">
-      <h2>体验课排课
-        <div class="month-nav" id="sessionWeekNav" style="margin-left:8px">
-          <button onclick="shiftSessionWeek(-1)">&#8249;</button>
-          <b id="sessionWeekLabel"></b>
-          <button onclick="shiftSessionWeek(1)">&#8250;</button>
-          <button class="btn btn-gray btn-sm" onclick="goSessionThisWeek()">本周</button>
-          <input type="date" id="sessionStartDate" style="margin-left:6px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;cursor:pointer" title="选择周起始日期" onchange="setSessionStartDate(this.value)">
-          <label style="margin-left:6px;font-size:11px;color:#64748b;font-weight:400;cursor:pointer;display:flex;align-items:center;gap:3px">
-            <input type="checkbox" id="sessionShowPast" onchange="renderSessions()"> 含过去
+    <div class="card" id="sessionsCard" style="display:none" data-page-node-id="gsgNDPppMGunMsjAIwS8uD">
+      <h2 data-page-node-id="B0zPr4xoKY29yC87O3CwrE">体验课排课
+        <div class="month-nav" id="sessionWeekNav" style="margin-left:8px" data-page-node-id="cX1VHRwbzj2mx13FDsG8EB">
+          <button onclick="shiftSessionWeek(-1)" data-page-node-id="acDPI5Vxe37geuFBVicgA0">&#8249;</button>
+          <b id="sessionWeekLabel" data-page-node-id="ETxEpDdw9whSSaEsg3IyvY"></b>
+          <button onclick="shiftSessionWeek(1)" data-page-node-id="8HHA3URJQaputWlFZMbQmy">&#8250;</button>
+          <button class="btn btn-gray btn-sm" onclick="goSessionThisWeek()" data-page-node-id="qLu6T4F9zXoxrLX40XnxoT">本周</button>
+          <input type="date" id="sessionStartDate" style="margin-left:6px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;cursor:pointer" title="选择周起始日期" onchange="setSessionStartDate(this.value)" data-page-node-id="j9Puw6K7F2QDgNZXdUPhOH">
+          <label style="margin-left:6px;font-size:11px;color:#64748b;font-weight:400;cursor:pointer;display:flex;align-items:center;gap:3px" data-page-node-id="5tnTEo5UlXck2oRkc5T81p">
+            <input type="checkbox" id="sessionShowPast" onchange="renderSessions()" data-page-node-id="dJCxsVFNVd7IWcu4sN0lGF"> 含过去
           </label>
         </div>
-        <button class="btn btn-gray btn-sm" onclick="switchTrialView('calendar')" style="margin-left:4px">📅 返回周历</button>
-        <button class="btn btn-primary btn-sm" onclick="openSessionModal()" style="margin-left:auto">＋ 新增场次</button>
+        <button class="btn btn-gray btn-sm" onclick="switchTrialView('calendar')" style="margin-left:4px" data-page-node-id="1zkaFoOLVEBpbESqgN6lJz">📅 返回周历</button>
+        <button class="btn btn-primary btn-sm" onclick="openSessionModal()" style="margin-left:auto" data-page-node-id="c2lGNXiEkrFNwITGPRqtwU">＋ 新增场次</button>
       </h2>
-      <div class="tbl"><table>
-        <thead><tr>
-          <th>场次名称</th><th>日期</th><th>时间</th><th>类型</th><th>Demo老师</th><th>容量</th><th>已约</th><th>操作</th>
+      <div class="tbl" data-page-node-id="B5TbuxIZMd4mo61GT2R4Na"><table data-page-node-id="ounFz5pR1TZFtNQcJHkla1">
+        <thead data-page-node-id="cr4IQ9IYABt31zSPzH6C3s"><tr data-page-node-id="B6rREsZ1ZRo9eFpD05UGF7">
+          <th data-page-node-id="8B0KMGEGy4TAgR6XdCwpBw">场次名称</th><th data-page-node-id="bXxYeeiM2LwU0nGqlkpFym">日期</th><th data-page-node-id="cUJtEuPiS8FnFRucm31qBf">时间</th><th data-page-node-id="mxxaDMK2h7pS2ePLRDgEfF">类型</th><th data-page-node-id="ZXEYtILTF7MANBvoXtcm1Q">Demo老师</th><th data-page-node-id="hQ9TCJe0Ek83zwHX16zzsU">容量</th><th data-page-node-id="WrHq6Gd0EZ5nTUnSAmxPcn">已约</th><th data-page-node-id="YZrc7dszZzfZtgChngRFFP">操作</th>
         </tr></thead>
-        <tbody id="sessionsTbody"></tbody>
+        <tbody id="sessionsTbody" data-page-node-id="y8rXHkTncjdBBD4G1DWCc9"></tbody>
       </table></div>
     </div>
   </div>
@@ -507,21 +510,21 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 4: 跟进提醒 -->
 <!-- ================================================================= -->
-<div class="section" id="sec-reminders">
-  <div class="container">
-    <div class="card">
-      <h2>跟进提醒 <span style="font-size:12px;color:#94a3b8;font-weight:400">仅显示需要提醒跟进的客户</span></h2>
-      <div class="tbl"><table>
-        <thead><tr>
-          <th style="width:50px">序号</th>
-          <th style="text-align:left">学员姓名</th>
-          <th>上次跟进</th>
-          <th>跟进人</th>
-          <th>下次跟进</th>
-          <th>提醒状态</th>
-          <th>操作</th>
+<div class="section" id="sec-reminders" data-page-node-id="zaYiwK5XQ3uIfr9CCBpwUr">
+  <div class="container" data-page-node-id="NgCUNooJ6199PRp1M3TXUq">
+    <div class="card" data-page-node-id="B3Um16A1QgZjOKdHSYrlJZ">
+      <h2 data-page-node-id="48KBMBNsGMobs39CGOgktc">跟进提醒 <span style="font-size:12px;color:#94a3b8;font-weight:400" data-page-node-id="I3lnte2icTOmvV7XJqN3sv">仅显示需要提醒跟进的客户</span></h2>
+      <div class="tbl" data-page-node-id="my3foRl9q2LZ4p52X941at"><table data-page-node-id="6NXinODs1LaQCb7zhG0Xqs">
+        <thead data-page-node-id="72ffAG77MyOpF6cSvrjaHu"><tr data-page-node-id="4IIiFyHdBLAoP8C9NhEu6L">
+          <th style="width:50px" data-page-node-id="DEEx7ctibdJ7yBBSrnXIBb">序号</th>
+          <th style="text-align:left" data-page-node-id="7KNFKJkwn9L1bIzoomvWmH">学员姓名</th>
+          <th data-page-node-id="FGIn0dU4duoX70DxFb2UyG">上次跟进</th>
+          <th data-page-node-id="tFXjA2Yew3MEeUicuvd5L7">跟进人</th>
+          <th data-page-node-id="pEKBekelg11CV2xHxLHlJk">下次跟进</th>
+          <th data-page-node-id="rJ8vOdq6L0d6YJjIWYpHyH">提醒状态</th>
+          <th data-page-node-id="ioZenTnBAFCC2Lg3ItrkxG">操作</th>
         </tr></thead>
-        <tbody id="reminderTbody"></tbody>
+        <tbody id="reminderTbody" data-page-node-id="2DpPFDQR1fTySP3q3cc53j"></tbody>
       </table></div>
     </div>
   </div>
@@ -530,26 +533,26 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 <!-- Tab 5: 确收表 -->
 <!-- ================================================================= -->
-<div class="section" id="sec-revenue">
-  <div class="container">
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <h2 style="margin:0">确收明细 · 确认课时费收入</h2>
-          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#7c3aed;font-weight:600;cursor:pointer">
-            <input type="checkbox" id="showGradRevenue" onchange="renderRevenue()"> 🎓 仅看毕业学员
+<div class="section" id="sec-revenue" data-page-node-id="LYcuZrZk9J7prEGRMo7TGC">
+  <div class="container" data-page-node-id="HqVPfHp4eEx92WLh5Lgtr5">
+    <div class="card" data-page-node-id="dwZBh1JcNCC2Vd53GyjcDQ">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap" data-page-node-id="IojnvJYHxwl1I0BJ6B67Ub">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap" data-page-node-id="9GOsBKL7dtwfg6iYw4AKl9">
+          <h2 style="margin:0" data-page-node-id="rJNcxjsbRtB7gY49PD4grv">确收明细 · 确认课时费收入</h2>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#7c3aed;font-weight:600;cursor:pointer" data-page-node-id="1xXBq6AfqE8kQRmDxd7QnT">
+            <input type="checkbox" id="showGradRevenue" onchange="renderRevenue()" data-page-node-id="UrTxPBJfkDR8AAmDJuR2XD"> 🎓 仅看毕业学员
           </label>
-          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#0891b2;font-weight:600;cursor:pointer">
-            <input type="checkbox" id="showGradClass" onchange="renderRevenue()"> 🏫 显示毕业班级
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#0891b2;font-weight:600;cursor:pointer" data-page-node-id="640s2RgyvJ6Nono2GxUX5l">
+            <input type="checkbox" id="showGradClass" onchange="renderRevenue()" data-page-node-id="EO2O2B6Nlsxp9PU4zXmaH2"> 🏫 显示毕业班级
           </label>
-          <input type="text" id="revNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderRevenue()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
+          <input type="text" id="revNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderRevenue()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px" data-page-node-id="P2Ww1hT75HNqcjjcQkO6CH">
         </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() => { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
-          <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()">🔄 刷新数据</button>
+        <div style="display:flex;gap:8px" data-page-node-id="e8GkGW0bVASaBu9oJdS6Jk">
+          <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() = data-page-node-id="9ifuzfirWPy7tRgtO27fCh"> { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
+          <button class="btn btn-gray btn-sm" onclick="refreshRevenueData()" data-page-node-id="DTrPiXgoHXS0xikGdITqgy">🔄 刷新数据</button>
         </div>
       </div>
-      <div id="revenueContainer"></div>
+      <div id="revenueContainer" data-page-node-id="7g4bBRlMKSTwgRgydvEl4N"></div>
     </div>
   </div>
 </div>
@@ -559,236 +562,236 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <!-- ================================================================= -->
 
 <!-- 客户编辑 Modal -->
-<div class="modal-overlay" id="custModal">
-  <div class="modal-box">
-    <h3 id="custModalTitle">新增客户</h3>
-    <input type="hidden" id="custEditId">
-    <div class="form-row">
-      <label>学员姓名*<input type="text" id="custName"></label>
-      <label>出生日期<input type="date" id="custBirthDate" onchange="onBirthDateChange()"></label>
-      <label>年龄<input type="text" id="custAge" readonly style="background:#f1f5f9"></label>
+<div class="modal-overlay" id="custModal" data-page-node-id="niKLul8nUml9rjuek3H34U">
+  <div class="modal-box" data-page-node-id="JcGbDgZKP3v46FEYopL5nd">
+    <h3 id="custModalTitle" data-page-node-id="YRuhkLPfXxEKYFDfVcV519">新增客户</h3>
+    <input type="hidden" id="custEditId" data-page-node-id="94Lvf32JYpADYNtnZcYLo3">
+    <div class="form-row" data-page-node-id="4zaCFGOD8gAUISjurrMUNH">
+      <label data-page-node-id="iUcsJbkZgIp3ZuzCEhZk1H">学员姓名*<input type="text" id="custName" data-page-node-id="k1URHYkjqGaTKHbUnZcsVR"></label>
+      <label data-page-node-id="V3pXpcHKUWIFJjDxiKD7bX">出生日期<input type="date" id="custBirthDate" onchange="onBirthDateChange()" data-page-node-id="4MeZ9MonPG3elHDHbYyDer"></label>
+      <label data-page-node-id="JHo2sxW2hLSCfp2MQz4QEL">年龄<input type="text" id="custAge" readonly style="background:#f1f5f9" data-page-node-id="5DgBinHnMSlfJQAMJTQJnU"></label>
     </div>
-    <div class="form-row">
-      <label>年级<input type="text" id="custGrade"></label>
-      <label>学校<input type="text" id="custSchool"></label>
-      <label>家庭住址<input type="text" id="custAddress"></label>
-      <label>家长<input type="text" id="custParent"></label>
+    <div class="form-row" data-page-node-id="jtYsyjCwvJn6J23O1HfELj">
+      <label data-page-node-id="zICRY7YZly21mM5JjqxEFG">年级<input type="text" id="custGrade" data-page-node-id="xxCgK1xPAXN1VtfZlAk5Kb"></label>
+      <label data-page-node-id="YihIzmOBAiAu4UwHQ8YIcw">学校<input type="text" id="custSchool" data-page-node-id="C7bIgxeeEIW9n9m9oAPlqx"></label>
+      <label data-page-node-id="cVFmhriULoDRpB6WMAidio">家庭住址<input type="text" id="custAddress" data-page-node-id="ejwnEYEBd3uOgKVnCMfZS1"></label>
+      <label data-page-node-id="qZ1lZsloE9DXHxwIpcMGug">家长<input type="text" id="custParent" data-page-node-id="iugS91pR5C6W47DAyjP7T5"></label>
     </div>
-    <div class="form-row">
-      <label>电话<input type="text" id="custPhone"></label>
-      <label>一级渠道<input type="text" id="custSourcePrimary" list="sourcePrimaryList" placeholder="如: 线上/线下/合作"><datalist id="sourcePrimaryList"><option value="线上"><option value="线下"><option value="合作渠道"><option value="转介绍"><option value="其他"></datalist></label>
-      <label>二级渠道<input type="text" id="custSourceSecondary" list="sourceSecondaryList" placeholder="如: 大众点评/地推/Walkin"><datalist id="sourceSecondaryList"><option value="口碑推荐"><option value="Walkin"><option value="在读二宝"><option value="群内添加"><option value="扫码添加"><option value="大众点评"><option value="地推"><option value="转介绍"><option value="在读推荐"><option value="其他"></datalist></label>
-      <label>客户级别<select id="custLevel"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option></select></label>
+    <div class="form-row" data-page-node-id="ptmzayOym3xnUnIuvLi8sn">
+      <label data-page-node-id="HgOZmtsksvJAQT8hDunVBS">电话<input type="text" id="custPhone" data-page-node-id="tx5nxoUS1gzuxQvyISYyQg"></label>
+      <label data-page-node-id="SGAMA7fUSUnodAKTDfMMsF">一级渠道<input type="text" id="custSourcePrimary" list="sourcePrimaryList" placeholder="如: 线上/线下/合作" data-page-node-id="0RWZJfof0y8oH56nQO8Ona"><datalist id="sourcePrimaryList" data-page-node-id="2NGIR6BC88XF0ABD59ixxq"><option value="线上" data-page-node-id="eNEbv6qLCyG0o9yqjWHlFk"><option value="线下" data-page-node-id="PVQQi11VJ8RXMLH77o2qlt"><option value="合作渠道" data-page-node-id="n6W8q38MlLXX10Rbq6Xnj8"><option value="转介绍" data-page-node-id="wOJoAkVkriVNTDwz2PxTlo"><option value="其他" data-page-node-id="TOWKsz5DaCf7Z4YrZT4hqo"></datalist></label>
+      <label data-page-node-id="NdguLadQIgrbe5MEBpVEOM">二级渠道<input type="text" id="custSourceSecondary" list="sourceSecondaryList" placeholder="如: 大众点评/地推/Walkin" data-page-node-id="StqOqMXxhPixwAwPlvp7M2"><datalist id="sourceSecondaryList" data-page-node-id="HPZ6DQRWBn4LCzlsrHEFn7"><option value="口碑推荐" data-page-node-id="FGks2BGQ8vYtiNaPhPPetw"><option value="Walkin" data-page-node-id="HfIxOVyMeDJmgpupDk1Oqs"><option value="在读二宝" data-page-node-id="8at57H3gSSt37kbPGirE1q"><option value="群内添加" data-page-node-id="AuEpgh2NLgiePOOszJRgaG"><option value="扫码添加" data-page-node-id="xkXNZJCcwMxWk2183gdBrj"><option value="大众点评" data-page-node-id="ooOcsUJ4SymsPhiJC1dW7u"><option value="地推" data-page-node-id="NRNuMBjDyqsrctZPSBQLSv"><option value="转介绍" data-page-node-id="LKySHMwpEdGqOGZC0FoB7C"><option value="在读推荐" data-page-node-id="i2NxeyRjs5nvuLCopqHYYR"><option value="其他" data-page-node-id="bnQE2N9boLqJyBYTsjsTbq"></datalist></label>
+      <label data-page-node-id="3SNEhXGB8JWnhrTatFFk00">客户级别<select id="custLevel" data-page-node-id="1xDWbDm2dVDH09A9OcJXsl"><option value="A" data-page-node-id="5uZbgbnEMsu8IR2ACy4rbL">A</option><option value="B" selected data-page-node-id="QuM7kJKwpbNmFW6E3dDnfK">B</option><option value="C" data-page-node-id="CP3PGeE3PXEwTfmoCoXB9u">C</option></select></label>
     </div>
-    <div class="form-row">
-      <label>状态<select id="custStatus">
-        <option value="未上门">未上门</option>
-        <option value="已上门未报名">已上门未报名</option>
-        <option value="已报名">已报名</option>
+    <div class="form-row" data-page-node-id="QISgYCRa1EbC9lLoGzBjV8">
+      <label data-page-node-id="rIyANRhkyKUrLPovvCGu7p">状态<select id="custStatus" data-page-node-id="X0P5U2XwuaW8Yhak1uv6rv">
+        <option value="未上门" data-page-node-id="NLkw39dmbg9pFiXpajsSqn">未上门</option>
+        <option value="已上门未报名" data-page-node-id="3R5fYT6f2ofXC3z5QofE2D">已上门未报名</option>
+        <option value="已报名" data-page-node-id="QBdy9G5W7MXa66rIN2wzWZ">已报名</option>
       </select></label>
-      <label>报名日期<input type="date" id="custEnrollDate"></label>
-      <label>报名班级<input type="text" id="custEnrollClass" placeholder="如:K1001"></label>
+      <label data-page-node-id="1TSzRZz9CNqrZI3txp6XIs">报名日期<input type="date" id="custEnrollDate" data-page-node-id="3BQEtCERXZoPqflcCQ4DIy"></label>
+      <label data-page-node-id="OG6oQ4EomnIMqbIuRr5gbq">报名班级<input type="text" id="custEnrollClass" placeholder="如:K1001" data-page-node-id="ZwacyFoDFwZZhh3WdY6VCZ"></label>
     </div>
-    <div class="form-row">
-      <label>课时数<input type="number" id="custCourseHours" value="0" min="0" step="0.5" onchange="onCustCalcChange()" oninput="onCustCalcChange()" style="width:80px"></label>
-      <label>书费(¥)<input type="number" id="custBookFee" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()"></label>
-      <label>合计缴费(¥)<input type="number" id="custTotalPayment" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()"></label>
-      <label>课单价(¥)<input type="text" id="custUnitPrice" readonly style="background:#f1f5f9;width:80px"></label>
+    <div class="form-row" data-page-node-id="uBxQ4QUM9CZHpSavDTL1Hv">
+      <label data-page-node-id="mN3T3jftfZAtfZZv9ReNfy">课时数<input type="number" id="custCourseHours" value="0" min="0" step="0.5" onchange="onCustCalcChange()" oninput="onCustCalcChange()" style="width:80px" data-page-node-id="1w6uVbCMUc3awbziveVLz9"></label>
+      <label data-page-node-id="DElHIJoo2gH4nCNcMTtdkJ">书费(¥)<input type="number" id="custBookFee" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()" data-page-node-id="5DLdU4fDZFZBfnXcAucUmg"></label>
+      <label data-page-node-id="l5wZJqITFmtM55sJZQtSDZ">合计缴费(¥)<input type="number" id="custTotalPayment" value="0" min="0" step="0.01" onchange="onCustCalcChange()" oninput="onCustCalcChange()" data-page-node-id="NytSFPovCzrAGdgrlGDPHY"></label>
+      <label data-page-node-id="0aiVfITdS7sIDabHZHPeuG">课单价(¥)<input type="text" id="custUnitPrice" readonly style="background:#f1f5f9;width:80px" data-page-node-id="t5hf7lWtOVJs4vl6N9Tg98"></label>
     </div>
-    <div class="form-row">
-      <label>试听时间<input type="date" id="custTrialDate"></label>
-      <label>Demo老师<select id="custDemoTeacher"><option value="">无Demo</option><option value="Dora">Dora</option><option value="Cindy">Cindy</option></select></label>
-      <label>跟进人<select id="custOwner"><option value="Kyle">Kyle</option><option value="Dora">Dora</option></select></label>
-      <label>标签<input type="text" id="custTags" placeholder="备注标签"></label>
+    <div class="form-row" data-page-node-id="Ljq071YYZfYRjmxNkyCcve">
+      <label data-page-node-id="YoYsCiuSH4bFLyLuF8Nm1Q">试听时间<input type="date" id="custTrialDate" data-page-node-id="zFeIAKbZ29asS0jDtlOcCF"></label>
+      <label data-page-node-id="1mAZrwRDhIGCNIDJ8eBxXH">Demo老师<select id="custDemoTeacher" data-page-node-id="wrWtgPjbbsf2y4UEnHurw2"><option value="" data-page-node-id="dDJjAmhxrEk1Nyk3USgici">无Demo</option><option value="Dora" data-page-node-id="OqibFf7CTAqE7Pt5H2b96Z">Dora</option><option value="Cindy" data-page-node-id="2urE28p74GOoAURgWEpuQB">Cindy</option></select></label>
+      <label data-page-node-id="mMIFtDjWjjmfg6ViaRJsvn">跟进人<select id="custOwner" data-page-node-id="lTIbZV3KkLJJq9aRirgTap"><option value="Kyle" data-page-node-id="wJ5gdjEYC4ufB72L69ioff">Kyle</option><option value="Dora" data-page-node-id="wDwG70wEVfemKB4sxFqAlV">Dora</option></select></label>
+      <label data-page-node-id="JfjeTJ08VISHStoB6XNIDw">标签<input type="text" id="custTags" placeholder="备注标签" data-page-node-id="8ALmjWiYbsGK9GKr8RaxOx"></label>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('custModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveCustomer()">保存</button>
+    <div class="modal-actions" data-page-node-id="cOGeaRSM8tWteOrYL1NcmK">
+      <button class="btn btn-gray" onclick="closeModal('custModal')" data-page-node-id="Ew6bZBdUeU9vZdIpUSBlmL">取消</button>
+      <button class="btn btn-primary" onclick="saveCustomer()" data-page-node-id="spVxfwzCEEuMyfALDHi4Qi">保存</button>
     </div>
   </div>
 </div>
 
 <!-- 跟进记录 Modal -->
-<div class="modal-overlay" id="followupModal">
-  <div class="modal-box">
-    <h3 id="fuModalTitle">跟进记录</h3>
-    <div id="followupTimeline" class="followup-timeline"><div class="empty-state">暂无跟进记录</div></div>
-    <div class="form-row">
-      <label style="flex:3">跟进内容<textarea id="fuContent" rows="3" style="padding:8px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;resize:vertical"></textarea></label>
+<div class="modal-overlay" id="followupModal" data-page-node-id="irG7co79Vhqq6EC4qZQOl0">
+  <div class="modal-box" data-page-node-id="ZLIqO9AjBkGnzRyibsQC8K">
+    <h3 id="fuModalTitle" data-page-node-id="MqLrfxvPbsW5saC92eOlHT">跟进记录</h3>
+    <div id="followupTimeline" class="followup-timeline" data-page-node-id="H4Lgcj4D8XiOcdJWKhNDnF"><div class="empty-state" data-page-node-id="zsp38IB7HZ0E0dunpHl7ox">暂无跟进记录</div></div>
+    <div class="form-row" data-page-node-id="6WUuvJsaSHwc1DLkXtaR1j">
+      <label style="flex:3" data-page-node-id="PvpnEDEc1ExEvEJp9ABPNN">跟进内容<textarea id="fuContent" rows="3" style="padding:8px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;resize:vertical"></textarea></label>
     </div>
-    <div class="form-row">
-      <label>邀约试听场次<select id="fuTrialSession"><option value="">暂不邀约</option></select></label>
+    <div class="form-row" data-page-node-id="9IXxmsiU7ORQphSz3hkANe">
+      <label data-page-node-id="4EIfxOMcx7lSjubfcxeeHe">邀约试听场次<select id="fuTrialSession" data-page-node-id="D3vI3VNc6AewrA0i7r2BuW"><option value="" data-page-node-id="5oTQlTT562owbK9wro7MvI">暂不邀约</option></select></label>
     </div>
-    <div class="form-row">
-      <div class="check-row">
-        <input type="checkbox" id="fuTrialAttended">
-        <span>客户已到试听（自动流转到"已上门未报名"）</span>
+    <div class="form-row" data-page-node-id="MAPxYzHLf9PYGVwdxIfZmv">
+      <div class="check-row" data-page-node-id="AqBLZ02xWzSKopAkD8WcPK">
+        <input type="checkbox" id="fuTrialAttended" data-page-node-id="4CJRgQQKGZFdxrHJxujY22">
+        <span data-page-node-id="frH7Y6XAvp14yUKUQA3EIr">客户已到试听（自动流转到"已上门未报名"）</span>
       </div>
     </div>
-    <div class="form-row">
-      <div class="check-row">
-        <input type="checkbox" id="fuPayment">
-        <span>客户已缴费（自动流转到"已报名"）</span>
+    <div class="form-row" data-page-node-id="nZAFnu6xQyTYoBVCE0dKsb">
+      <div class="check-row" data-page-node-id="EdaXGtsLtFPRKwg4czWc3C">
+        <input type="checkbox" id="fuPayment" data-page-node-id="5sHkzaK0tKnSXER46cQPjJ">
+        <span data-page-node-id="C5bbAt5s89F1oqNoKZLNij">客户已缴费（自动流转到"已报名"）</span>
       </div>
     </div>
-    <div class="form-row">
-      <div class="check-row">
-        <input type="checkbox" id="fuNeedReminder" onchange="document.getElementById('nextFollowupRow').style.display=this.checked?'':'none'">
-        <span>需要提醒跟进（出现在跟进提醒列表）</span>
+    <div class="form-row" data-page-node-id="ddO6WsGo3gWmMhFVG6A5Wf">
+      <div class="check-row" data-page-node-id="xEmpfDJc4funlGrN7PDn7y">
+        <input type="checkbox" id="fuNeedReminder" onchange="document.getElementById('nextFollowupRow').style.display=this.checked?'':'none'" data-page-node-id="xPTyONGLsMQyS0AGzHwvsr">
+        <span data-page-node-id="BB0rjPBrlJNRrDBH6xqNHo">需要提醒跟进（出现在跟进提醒列表）</span>
       </div>
     </div>
-    <div class="form-row" id="nextFollowupRow" style="display:none">
-      <label style="flex:1">下次跟进日期
-        <input type="date" id="fuNextDate" style="width:100%">
+    <div class="form-row" id="nextFollowupRow" style="display:none" data-page-node-id="lJRQAxfIf27agfwUOilbJJ">
+      <label style="flex:1" data-page-node-id="Y5gWX8kUvNmfN0FqSfdtOR">下次跟进日期
+        <input type="date" id="fuNextDate" style="width:100%" data-page-node-id="7gmJziGPzkFSgNwscWI1wF">
       </label>
-      <label style="flex:1">下次跟进备注
-        <input type="text" id="fuNextNote" placeholder="如：8月初联系、暑假前再联系…" style="width:100%">
+      <label style="flex:1" data-page-node-id="57oTx0WQh9MD1neTNomaRR">下次跟进备注
+        <input type="text" id="fuNextNote" placeholder="如：8月初联系、暑假前再联系…" style="width:100%" data-page-node-id="xeIjMbEsmjGP256CbpDYia">
       </label>
     </div>
-    <input type="hidden" id="fuCustomerId">
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('followupModal')">关闭</button>
-      <button class="btn btn-primary" onclick="saveFollowup()">保存跟进</button>
+    <input type="hidden" id="fuCustomerId" data-page-node-id="EraO86wNUISoTB2BIsDmea">
+    <div class="modal-actions" data-page-node-id="uH9FOAZWfcHeoic9oD3qcv">
+      <button class="btn btn-gray" onclick="closeModal('followupModal')" data-page-node-id="lgm9A7rgcvAX5nDX2Vs04Y">关闭</button>
+      <button class="btn btn-primary" onclick="saveFollowup()" data-page-node-id="4MmEY4WlIDm2IDb39XQ9r9">保存跟进</button>
     </div>
   </div>
 </div>
 
 <!-- 转为学员 Modal -->
-<div class="modal-overlay" id="convertModal">
-  <div class="modal-box" style="max-width:400px">
-    <h3>🎓 转为正式学员</h3>
-    <p style="font-size:13px;color:#64748b;margin-bottom:12px" id="convertInfo"></p>
-    <div class="form-row">
-      <label>选择班级<select id="convertClass"></select></label>
-      <label>缴费课时<input type="number" id="convertHours" value="64" min="1" style="width:100px"></label>
+<div class="modal-overlay" id="convertModal" data-page-node-id="gnyLlL4NznFzwLUiNTGMFB">
+  <div class="modal-box" style="max-width:400px" data-page-node-id="AUMyBSHLACVFtICaKSe9aD">
+    <h3 data-page-node-id="waJOv7dKyppE1rRnYB7JiR">🎓 转为正式学员</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px" id="convertInfo" data-page-node-id="GSw5xMDBA9Bw0OHDHHKuVk"></p>
+    <div class="form-row" data-page-node-id="yeu0GqJpyqoHnao5CxksPE">
+      <label data-page-node-id="1exn1TemFi10AXM1FffaCB">选择班级<select id="convertClass" data-page-node-id="YGTTOVqPLI1QNbW1SMnAq9"></select></label>
+      <label data-page-node-id="KlIVMXYRWpbCJSon8bhhwH">缴费课时<input type="number" id="convertHours" value="64" min="1" style="width:100px" data-page-node-id="SDbXZTBwDkxtTbmcHQ9hpr"></label>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('convertModal')">取消</button>
-      <button class="btn btn-primary" onclick="convertToStudent()">确认转为学员</button>
+    <div class="modal-actions" data-page-node-id="LEC74xRCVvj92VBpXu9p6W">
+      <button class="btn btn-gray" onclick="closeModal('convertModal')" data-page-node-id="MiV0cYCtSHlhaBHktdvZUc">取消</button>
+      <button class="btn btn-primary" onclick="convertToStudent()" data-page-node-id="OegN5gAMI6NmqIzAsy6MLu">确认转为学员</button>
     </div>
   </div>
 </div>
 
 <!-- 试听场次编辑 Modal -->
-<div class="modal-overlay" id="sessionModal">
-  <div class="modal-box" style="max-width:420px">
-    <h3 id="sessionModalTitle">新增试听场次</h3>
-    <input type="hidden" id="sessionEditId">
-    <div class="form-row">
-      <label>场次名称*<input type="text" id="sessionTitle" placeholder="如：周六少儿试听专场"></label>
+<div class="modal-overlay" id="sessionModal" data-page-node-id="exrpF8zzsDFhHRQVtTsyWV">
+  <div class="modal-box" style="max-width:420px" data-page-node-id="2FdDjsHhfeCCePf8gmGmy5">
+    <h3 id="sessionModalTitle" data-page-node-id="0HPFmSuiZdQCEeYpKt17TY">新增试听场次</h3>
+    <input type="hidden" id="sessionEditId" data-page-node-id="pDYfTM7nV3hwpHDHUMOWIa">
+    <div class="form-row" data-page-node-id="ZyLcnyDUcdGM0YGgi0ic3k">
+      <label data-page-node-id="BGT19evBu3FNDsgaSp2Ug2">场次名称*<input type="text" id="sessionTitle" placeholder="如：周六少儿试听专场" data-page-node-id="L0OVmrGvQ03b8pnIacsX4W"></label>
     </div>
-    <div class="form-row">
-      <label>日期*<input type="date" id="sessionDate"></label>
-      <label>开始时间<input type="time" id="sessionStart" value="19:00" onchange="autoFillSessionEnd()"></label>
-      <label>结束时间<input type="time" id="sessionEnd" value="20:30"></label>
+    <div class="form-row" data-page-node-id="vGA5GpwjtMK5ZxIKETODNU">
+      <label data-page-node-id="l09Iwli1NyeAQ3dOFCo7zH">日期*<input type="date" id="sessionDate" data-page-node-id="th2pbHHFElHGHwCEPM34BS"></label>
+      <label data-page-node-id="mPV6aq6dFB60EqvSkfbtf5">开始时间<input type="time" id="sessionStart" value="19:00" onchange="autoFillSessionEnd()" data-page-node-id="ugLQiCDi9vPjADQHOMgH3l"></label>
+      <label data-page-node-id="Y0yAm1NjYRGYvOPJ0P4NQy">结束时间<input type="time" id="sessionEnd" value="20:30" data-page-node-id="meeCunYDSFTIGDlnh9SVzG"></label>
     </div>
-    <div class="form-row">
-      <label>类型<input type="text" id="sessionType" placeholder="少儿/幼儿试听"></label>
-      <label>最大容量<input type="number" id="sessionCapacity" value="2" min="1"></label>
-      <label>Demo 老师<select id="sessionTeacher"><option value="">未指定</option><option value="Dora">Dora</option><option value="Cindy">Cindy</option></select></label>
+    <div class="form-row" data-page-node-id="rSuhHCVtyUtbufc0vul1xk">
+      <label data-page-node-id="u0B04Mao4GSqnGzviXXrfu">类型<input type="text" id="sessionType" placeholder="少儿/幼儿试听" data-page-node-id="l34eGZn6OLQm7U0uTAtlUY"></label>
+      <label data-page-node-id="zJwRErTyM24bqUG8SXktep">最大容量<input type="number" id="sessionCapacity" value="2" min="1" data-page-node-id="e5jIelP27dZOp2CNhh6kDm"></label>
+      <label data-page-node-id="w0pk0gnJEpzn5PWM75GJtC">Demo 老师<select id="sessionTeacher" data-page-node-id="jSP1GPuQerHAm0lE6xlT5q"><option value="" data-page-node-id="WDlyFsnxhlCZAcwntn5jmr">未指定</option><option value="Dora" data-page-node-id="btjEVY5PkaEsJUNbu8XsFe">Dora</option><option value="Cindy" data-page-node-id="eH8c3HuaXGeFQBprzJJu5J">Cindy</option></select></label>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('sessionModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveSession()">保存</button>
+    <div class="modal-actions" data-page-node-id="reA3KdbZFSUNWtWNx1KISY">
+      <button class="btn btn-gray" onclick="closeModal('sessionModal')" data-page-node-id="66jbBv7nnyxGhqxmWrVIEK">取消</button>
+      <button class="btn btn-primary" onclick="saveSession()" data-page-node-id="0SC6GMzbXpcXxQfdfgNIDz">保存</button>
     </div>
   </div>
 </div>
 
 <!-- 通用确认 Modal -->
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal-box" style="max-width:400px;text-align:center">
-    <h3 id="confirmModalTitle">确认操作</h3>
-    <p id="confirmModalMsg" style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:20px"></p>
-    <div class="modal-actions" style="justify-content:center">
-      <button class="btn btn-gray" onclick="closeModal('confirmModal')">取消</button>
-      <button class="btn btn-danger" id="confirmModalOkBtn">确定</button>
+<div class="modal-overlay" id="confirmModal" data-page-node-id="6K2CsrHYgcZXOgCbIORG4t">
+  <div class="modal-box" style="max-width:400px;text-align:center" data-page-node-id="BRlNpBgoPTSSGkU8QuCHOs">
+    <h3 id="confirmModalTitle" data-page-node-id="Td3pL7oG2uI81VyF7Uu2dt">确认操作</h3>
+    <p id="confirmModalMsg" style="font-size:13px;color:#334155;line-height:1.6;white-space:pre-wrap;margin-bottom:20px" data-page-node-id="iFwC3ukAmswOWsfq3VStIR"></p>
+    <div class="modal-actions" style="justify-content:center" data-page-node-id="qCVpfHVqPhqU54JhXAZ9bw">
+      <button class="btn btn-gray" onclick="closeModal('confirmModal')" data-page-node-id="85y3pqtNFrfHfw4cRZ1p9E">取消</button>
+      <button class="btn btn-danger" id="confirmModalOkBtn" data-page-node-id="TPrdHEqlLJHornVopMaWRG">确定</button>
     </div>
   </div>
 </div>
 
 <!-- 续费记录编辑 Modal -->
-<div class="modal-overlay" id="renewalModal">
-  <div class="modal-box" style="max-width:600px">
-    <h3 id="renewalModalTitle">新增续费记录</h3>
-    <input type="hidden" id="renewalEditId">
-    <div class="form-row">
-      <label>姓名*<input type="text" id="renewalName"></label>
-      <label>出生日期<input type="date" id="renewalBirthDate" onchange="onRenewalBirthChange()"></label>
-      <label>年龄<input type="text" id="renewalAge" readonly style="background:#f1f5f9;width:60px"></label>
+<div class="modal-overlay" id="renewalModal" data-page-node-id="FRRNclkQURhCHLCMcIHnPT">
+  <div class="modal-box" style="max-width:600px" data-page-node-id="AEsfP2eSKuNoh1MuXA1s8S">
+    <h3 id="renewalModalTitle" data-page-node-id="yZ3T9cXfgRUf4IsyrTZ04G">新增续费记录</h3>
+    <input type="hidden" id="renewalEditId" data-page-node-id="M3KeWgcwymh2GPHo3myQCj">
+    <div class="form-row" data-page-node-id="sZSdpIXfNeaf3ozQChdQWV">
+      <label data-page-node-id="URN9BoIdbzVMsEQndTTyJo">姓名*<input type="text" id="renewalName" data-page-node-id="AlsEaOgLPsfwgxzDyf1dQy"></label>
+      <label data-page-node-id="Xum1tfUlMd0slDaeaypeLx">出生日期<input type="date" id="renewalBirthDate" onchange="onRenewalBirthChange()" data-page-node-id="uAV5l4AfBCESYAJdpVZS8c"></label>
+      <label data-page-node-id="jEGaCHsgNnMFVwZNahCoUu">年龄<input type="text" id="renewalAge" readonly style="background:#f1f5f9;width:60px" data-page-node-id="xRx0EQDh3R43L0f8J5MKSJ"></label>
     </div>
-    <div class="form-row">
-      <label>电话<input type="text" id="renewalPhone"></label>
-      <label>家长姓名<input type="text" id="renewalParent"></label>
-      <label>所在学校<input type="text" id="renewalSchool"></label>
+    <div class="form-row" data-page-node-id="pAQH3tUep2LTdRHiZNLRAN">
+      <label data-page-node-id="EMukhGjYCA12UkBaFUKuuX">电话<input type="text" id="renewalPhone" data-page-node-id="ekN4ALVybfufPu3S0zJ1r6"></label>
+      <label data-page-node-id="7YvC7p8AwFwEIShON70Bzh">家长姓名<input type="text" id="renewalParent" data-page-node-id="BYItYCwVaAoRvmWo8poVLX"></label>
+      <label data-page-node-id="O8qc6XiCqNlcgHaRjD83gl">所在学校<input type="text" id="renewalSchool" data-page-node-id="k7HeDLKSWyvB9UI3SGFcRj"></label>
     </div>
-    <div class="form-row">
-      <label>所在班级*<input type="text" id="renewalClass" placeholder="如:K1001"></label>
-      <label>缴费日期*<input type="date" id="renewalPayDate"></label>
-      <label>缴费类型<input type="text" id="renewalType" placeholder="如:续费/转介绍" style="width:120px"></label>
+    <div class="form-row" data-page-node-id="HKeezgcFAbVzCH2wR5D96k">
+      <label data-page-node-id="Bf8ONku0yzIeBRtwixIlGJ">所在班级*<input type="text" id="renewalClass" placeholder="如:K1001" data-page-node-id="P8ccinJG7s2RoDYaAgElwW"></label>
+      <label data-page-node-id="c5OBpm4q3wakvylXQIO5Fi">缴费日期*<input type="date" id="renewalPayDate" data-page-node-id="RnT7gxUfDHxEkt68K0wJP6"></label>
+      <label data-page-node-id="J9qcbWpVllls5ClhtY7bYc">缴费类型<input type="text" id="renewalType" placeholder="如:续费/转介绍" style="width:120px" data-page-node-id="7eJSOoFAyJtq30GhLPGHz7"></label>
     </div>
-    <div class="form-row">
-      <label>课时数<input type="number" id="renewalHours" value="0" min="0" step="0.5" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px"></label>
+    <div class="form-row" data-page-node-id="o63Nlv12PZACHUx8zC6gku">
+      <label data-page-node-id="6gWw6LNIiJ9dO6qnzxf7lz">课时数<input type="number" id="renewalHours" value="0" min="0" step="0.5" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" style="width:80px" data-page-node-id="CUhrwQsT2dUY9BEWDxo6Eu"></label>
     </div>
-    <div class="form-row">
-      <label>书费(¥)<input type="number" id="renewalBookFee" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()"></label>
-      <label>合计缴费(¥)*<input type="number" id="renewalTotal" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()"></label>
-      <label>课单价(¥)<input type="text" id="renewalUnitPrice" readonly style="background:#f1f5f9"></label>
+    <div class="form-row" data-page-node-id="iFzyjbgIb9V60KEdMRXxMi">
+      <label data-page-node-id="waz0rhPGxfB33Z3ZYsnlYl">书费(¥)<input type="number" id="renewalBookFee" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" data-page-node-id="qKmQkyrxWbPgPrLO7Po21y"></label>
+      <label data-page-node-id="9fyCTk9UHdGoCTBS1dQnxp">合计缴费(¥)*<input type="number" id="renewalTotal" value="0" min="0" step="0.01" onchange="onRenewalCalcChange()" oninput="onRenewalCalcChange()" data-page-node-id="GlvaQTlbU7gduaLojwzj0D"></label>
+      <label data-page-node-id="0AUOFEB3HL2cbNK5lxEUVr">课单价(¥)<input type="text" id="renewalUnitPrice" readonly style="background:#f1f5f9" data-page-node-id="EE2VigyCuYamfWzRXKoObl"></label>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('renewalModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveRenewal()">保存</button>
+    <div class="modal-actions" data-page-node-id="X9h44Ot0yZUJphj2ObPEJn">
+      <button class="btn btn-gray" onclick="closeModal('renewalModal')" data-page-node-id="gX2yfJHey5NW1aUStuLhJi">取消</button>
+      <button class="btn btn-primary" onclick="saveRenewal()" data-page-node-id="U4vHiavwamKOs0SuNCMqSc">保存</button>
     </div>
   </div>
 </div>
 
 <!-- 退费登记 Modal -->
-<div class="modal-overlay" id="refundModal">
-  <div class="modal-box" style="max-width:620px">
-    <h3 id="refundModalTitle">新增退费记录</h3>
-    <input type="hidden" id="refundEditId">
-    <div class="form-row">
-      <label style="flex:1.4">学员姓名*<select id="refundName" onchange="onRefundNameChange()" style="width:100%"><option value="">-- 选择学员 --</option></select></label>
-      <label>所在班级<input type="text" id="refundClass" placeholder="如:K1001"></label>
+<div class="modal-overlay" id="refundModal" data-page-node-id="kecLDkwdXDwplxpgkCVDKg">
+  <div class="modal-box" style="max-width:620px" data-page-node-id="CF8FuI4MEqctM0bDbeaQK1">
+    <h3 id="refundModalTitle" data-page-node-id="0gFexe6974wDZ3c56yk3m6">新增退费记录</h3>
+    <input type="hidden" id="refundEditId" data-page-node-id="enb4kDfaNsgLKfxqS4xm21">
+    <div class="form-row" data-page-node-id="E4Uh3E0nSMf8czCKuC2HBB">
+      <label style="flex:1.4" data-page-node-id="CFvQsL13eVA2olfJCE8mvG">学员姓名*<select id="refundName" onchange="onRefundNameChange()" style="width:100%" data-page-node-id="QgD2EBvfQ2Vm051LWNfIfi"><option value="" data-page-node-id="5mEK3ISinnUSq7MhDHT5t4">-- 选择学员 --</option></select></label>
+      <label data-page-node-id="lZGMgKZydSLUjOhlUkt7Uh">所在班级<input type="text" id="refundClass" placeholder="如:K1001" data-page-node-id="AedYxH25cB77EwGaqhMwlu"></label>
     </div>
-    <div class="form-row">
-      <label>合计缴费(¥)<input type="number" id="refundTotal" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
-      <label>书费(¥不退)<input type="number" id="refundBookFee" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
-      <label>缴费课时数<input type="number" id="refundCourseHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
+    <div class="form-row" data-page-node-id="MvZ7E4YcO2JP41gstwYTHg">
+      <label data-page-node-id="5GuE8N4zcJTmvbzyXPVkoY">合计缴费(¥)<input type="number" id="refundTotal" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()" data-page-node-id="QfCk9QX14syqBmbfXDCqjC"></label>
+      <label data-page-node-id="2g1fUdANFoEzR7UI40n1aH">书费(¥不退)<input type="number" id="refundBookFee" value="0" min="0" step="0.01" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()" data-page-node-id="fhqfQm0cBpBpPpczPyhOLG"></label>
+      <label data-page-node-id="T25AUlt0zrZyYb32aFhafI">缴费课时数<input type="number" id="refundCourseHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()" data-page-node-id="3qrYAaOrLDvO5wu9HTdaCz"></label>
     </div>
-    <div class="form-row">
-      <label>退课时数*<input type="number" id="refundHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()"></label>
-      <label>课单价(¥)<input type="text" id="refundUnitPrice" readonly style="background:#f1f5f9"></label>
-      <label>退课时费(¥)<input type="number" id="refundClassFee" value="0" min="0" step="0.01"></label>
+    <div class="form-row" data-page-node-id="EywRcILbGX5dsjz1Iye3ac">
+      <label data-page-node-id="sGSodhFLkuarYYdRpY7uNO">退课时数*<input type="number" id="refundHours" value="0" min="0" step="0.5" onchange="onRefundCalcChange()" oninput="onRefundCalcChange()" data-page-node-id="Uedu2kjY4HDdvpIEY32ZjR"></label>
+      <label data-page-node-id="ADDuF2LHpSfQIgbFdPQMoj">课单价(¥)<input type="text" id="refundUnitPrice" readonly style="background:#f1f5f9" data-page-node-id="eG4losP6Uq338O4LsYGTt9"></label>
+      <label data-page-node-id="kOYLoyltQVnKYNG1UIy50a">退课时费(¥)<input type="number" id="refundClassFee" value="0" min="0" step="0.01" data-page-node-id="DvpHLAn0BnP2KE4AnjAjFY"></label>
     </div>
-    <div class="form-row">
-      <label>退书费(¥)<input type="number" id="refundBookRefund" value="0" min="0" step="0.01"></label>
-      <label>退费日期*<input type="date" id="refundDate"></label>
+    <div class="form-row" data-page-node-id="y3aq3GD20H4tgkgpIVY9oe">
+      <label data-page-node-id="r05siJEzXn4HK6MNwUHEV3">退书费(¥)<input type="number" id="refundBookRefund" value="0" min="0" step="0.01" data-page-node-id="1u5QTH9WqeG7tfmNALCwX1"></label>
+      <label data-page-node-id="ZwjlHrOkJQm2w3aR6Y1MDc">退费日期*<input type="date" id="refundDate" data-page-node-id="Bao3h1OarvNWPIz0HuVi0H"></label>
     </div>
-    <div class="form-row">
-      <label style="flex:1">备注<input type="text" id="refundNote" placeholder="如:家长申请退剩余课时"></label>
+    <div class="form-row" data-page-node-id="mis3kS38GfjBh77R1PZuiW">
+      <label style="flex:1" data-page-node-id="BOeVINt68Ql4f12uE2hTYG">备注<input type="text" id="refundNote" placeholder="如:家长申请退剩余课时" data-page-node-id="Xe7pQiXrhq6LPeSB3Xlmm6"></label>
     </div>
-    <p style="font-size:12px;color:#64748b;margin:4px 0 10px">课单价 =（合计缴费 − 书费）÷ 缴费课时数，自动推算；退课时费 = 退课时数 × 课单价，可手动修改。书费默认不退（退书费填 0）。</p>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('refundModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveRefund()">保存退费</button>
+    <p style="font-size:12px;color:#64748b;margin:4px 0 10px" data-page-node-id="GvbSK4dHbuhbgSWKjGuRg6">课单价 =（合计缴费 − 书费）÷ 缴费课时数，自动推算；退课时费 = 退课时数 × 课单价，可手动修改。书费默认不退（退书费填 0）。</p>
+    <div class="modal-actions" data-page-node-id="jqsVNPY8uGtp7W22jGbLGe">
+      <button class="btn btn-gray" onclick="closeModal('refundModal')" data-page-node-id="cKlErRLnBSVMWXbYJ9vP4V">取消</button>
+      <button class="btn btn-primary" onclick="saveRefund()" data-page-node-id="c38aXCbET9IACx8vWC9f9J">保存退费</button>
     </div>
   </div>
 </div>
 
 <!-- 确收表缴费批次编辑 Modal -->
-<div class="modal-overlay" id="revenueBatchModal">
-  <div class="modal-box" style="max-width:720px">
-    <h3 id="revenueBatchModalTitle">编辑缴费批次</h3>
-    <input type="hidden" id="revenueBatchStudentId">
-    <p style="font-size:12px;color:#64748b;margin:0 0 10px">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。课单价 =（合计缴费 - 书费）÷ 课时数，自动计算。粉色日期为销售系统同步，灰色「年前缴费」为手动保留记录。<br><b style="color:#334155">适用班级</b>：选择「全部班级」则该批次所有班级出勤均可使用；选择具体班级则仅该班级出勤使用。</p>
-    <div class="batch-row-header"><span>课时数</span><span>书费</span><span>合计缴费</span><span>课单价</span><span></span></div>
-    <div id="revenueBatchRows"></div>
-    <div style="margin-top:10px">
-      <button class="btn btn-gray btn-sm" onclick="addBatchRow()">＋ 添加一批次</button>
+<div class="modal-overlay" id="revenueBatchModal" data-page-node-id="AxuakjGBap8f61usMCneBb">
+  <div class="modal-box" style="max-width:720px" data-page-node-id="dGOmq8Edjqh1cQFCxtktzE">
+    <h3 id="revenueBatchModalTitle" data-page-node-id="vyWA0mwSQwWxnx8jQu7ZyA">编辑缴费批次</h3>
+    <input type="hidden" id="revenueBatchStudentId" data-page-node-id="Qw2QC2lpNSJw9Oabenro9J">
+    <p style="font-size:12px;color:#64748b;margin:0 0 10px" data-page-node-id="8yHHG1RTObyV5D3v9jM7ac">系统按批次顺序先进先出（FIFO）匹配出勤课时。前一批次课时消耗完后，自动使用下一批次课单价。课单价 =（合计缴费 - 书费）÷ 课时数，自动计算。粉色日期为销售系统同步，灰色「年前缴费」为手动保留记录。<br data-page-node-id="kSauxq3RVFgP4MvQAm3wwy"><b style="color:#334155" data-page-node-id="YJC4bgaENbaASPU3gAplee">适用班级</b>：选择「全部班级」则该批次所有班级出勤均可使用；选择具体班级则仅该班级出勤使用。</p>
+    <div class="batch-row-header" data-page-node-id="2VPLMDdAqmiuxkQwymo9pN"><span data-page-node-id="t2Uh5grCzm9CBOwH5FIwKn">课时数</span><span data-page-node-id="yncuYZ2J44ag9XwkehdQHO">书费</span><span data-page-node-id="Ogju69eRQFLWChew06ljEy">合计缴费</span><span data-page-node-id="C75nWid1YigqeLUgPjxPiG">课单价</span><span data-page-node-id="qqAsppYVegrwpN19VOjJmM"></span></div>
+    <div id="revenueBatchRows" data-page-node-id="W0rZ4JEUlSjCs25GxN91Oy"></div>
+    <div style="margin-top:10px" data-page-node-id="k94tmwvbt8YLTXQrXDPTn4">
+      <button class="btn btn-gray btn-sm" onclick="addBatchRow()" data-page-node-id="RqZI9sa34KbMcNAme66iaL">＋ 添加一批次</button>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-gray" onclick="closeModal('revenueBatchModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveRevenueBatches()">保存</button>
+    <div class="modal-actions" data-page-node-id="ByXD8YiO295SFHVG6V70JE">
+      <button class="btn btn-gray" onclick="closeModal('revenueBatchModal')" data-page-node-id="QQYjxZOQUMkpBzrwygPbZT">取消</button>
+      <button class="btn btn-primary" onclick="saveRevenueBatches()" data-page-node-id="wGJk1L1gGssozuaJ16E3vn">保存</button>
     </div>
   </div>
 </div>
@@ -1519,6 +1522,21 @@ async function setGiftReceived(kind, id, val) {
     else { const r = _renewals.find(x => x.id === id); if (r) r.gift_received = val; }
   } catch (e) { showToast('保存失败: ' + e.message, false); }
 }
+function giftNameInput(kind, id, val) {
+  const safe = (val || '').replace(/"/g, '&quot;');
+  return '<input type="text" class="gift-name-input" placeholder="礼物名称" value="' + safe + '" onchange="setGiftName(\'' + kind + '\',' + id + ',this.value)" onkeydown="if(event.key===\'Enter\'){this.blur();return false;}" />';
+}
+async function setGiftName(kind, id, val) {
+  const table = kind === 'customer' ? 'customers' : 'renewals';
+  const clean = (val || '').trim();
+  try {
+    const { error } = await sb.from(table).update({ gift_name: clean }).eq('id', id);
+    if (error) throw error;
+    if (kind === 'customer') { const c = _customers.find(x => x.id === id); if (c) c.gift_name = clean; }
+    else { const r = _renewals.find(x => x.id === id); if (r) r.gift_name = clean; }
+    showToast('报名礼物名称已保存', true);
+  } catch (e) { showToast('保存失败: ' + e.message, false); }
+}
 function renderSales() {
   updateCounts();
   let list = _customers.filter(c => c.status === '已报名');
@@ -1588,6 +1606,7 @@ function renderSales() {
       cell('¥' + (c.total_payment != null ? Number(c.total_payment).toFixed(2) : '0.00')) +
       cell(c.unit_price != null ? '¥' + Math.round(Number(c.unit_price)) : '') +
       '<td style="text-align:center">' + giftSelect('customer', c.id, c.gift_received) + '</td>' +
+      '<td style="text-align:center;padding:0">' + giftNameInput('customer', c.id, c.gift_name) + '</td>' +
       '<td title="操作" class="action-cell">' +
         '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录">📝</button> ' +
@@ -1597,24 +1616,24 @@ function renderSales() {
         '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="20" class="empty-state">暂无新招学员</td></tr>';
+  document.getElementById('salesTbody').innerHTML = html || '<tr><td colspan="21" class="empty-state">暂无新招学员</td></tr>';
   const totalAmount = list.reduce((sum, c) => sum + (Number(c.total_payment) || 0), 0);
   document.getElementById('salesTfoot').innerHTML = '<tr>' +
-    '<td colspan="17" style="text-align:right">合计金额：</td>' +
+    '<td colspan="18" style="text-align:right">合计金额：</td>' +
     '<td class="total-amount">¥' + totalAmount.toFixed(2) + '</td>' +
     '<td colspan="2"></td>' +
   '</tr>';
 }
 
 function exportSales() {
-  const headers = ['序号','报名日期','姓名','出生日期','年龄','电话','家长','一级渠道','二级渠道','学校','家庭住址','Demo老师','报名班级','跟进人','课时数','书费','合计缴费','课单价','是否领取报名礼物'];
+  const headers = ['序号','报名日期','姓名','出生日期','年龄','电话','家长','一级渠道','二级渠道','学校','家庭住址','Demo老师','报名班级','跟进人','课时数','书费','合计缴费','课单价','是否领取报名礼物','报名礼物名称'];
   const list = _customers.filter(c => c.status === '已报名');
   const rows = list.map((c, idx) => [
     idx + 1, c.enrollment_date||'', c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''),
     c.phone||'', c.parent||'', c.source_primary||'', c.source_secondary||c.source||'', c.school||'',
     c.address||'',
     c.demo_teacher || '无Demo', c.enrolled_class||'', c.owner||'',
-    c.course_hours||'', c.book_fee||'', c.total_payment||'', c.unit_price||'', c.gift_received||'否'
+    c.course_hours||'', c.book_fee||'', c.total_payment||'', c.unit_price||'', c.gift_received||'否', c.gift_name||''
   ]);
   exportCSV(headers, rows, 'DK邻里新招学员_' + new Date().toISOString().substring(0,10) + '.csv');
 }
@@ -1671,15 +1690,16 @@ function renderRenewals() {
       '<td>¥' + (r.total_payment != null ? Number(r.total_payment).toFixed(2) : '0.00') + '</td>' +
       '<td>' + (r.unit_price != null ? '¥' + Math.round(Number(r.unit_price)) : '') + '</td>' +
       '<td style="text-align:center">' + giftSelect('renewal', r.id, r.gift_received) + '</td>' +
+      '<td style="text-align:center;padding:0">' + giftNameInput('renewal', r.id, r.gift_name) + '</td>' +
       '<td>' +
         '<button class="btn btn-gray btn-xs" onclick="openRenewalModal(' + r.id + ')" title="编辑">✏️</button> ' +
         '<button class="btn btn-danger btn-xs" onclick="deleteRenewal(' + r.id + ')" title="删除">🗑️</button>' +
       '</td></tr>';
   });
-  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="17" class="empty-state">暂无续费记录</td></tr>';
+  document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="18" class="empty-state">暂无续费记录</td></tr>';
   const totalAmount = list.reduce((sum, r) => sum + (Number(r.total_payment) || 0), 0);
   document.getElementById('renewalTfoot').innerHTML = '<tr>' +
-    '<td colspan="14" style="text-align:right">合计金额：</td>' +
+    '<td colspan="15" style="text-align:right">合计金额：</td>' +
     '<td class="total-amount">¥' + totalAmount.toFixed(2) + '</td>' +
     '<td colspan="2"></td>' +
   '</tr>';
@@ -1871,7 +1891,7 @@ async function deleteRenewal(rid) {
 }
 
 function exportRenewals() {
-  const headers = ['序号','缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','家庭住址','所在班级','缴费类型','课时数','书费','合计缴费','课单价','是否领取报名礼物'];
+  const headers = ['序号','缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','家庭住址','所在班级','缴费类型','课时数','书费','合计缴费','课单价','是否领取报名礼物','报名礼物名称'];
   const list = [..._renewals];
   const addrMap = {};
   _customers.forEach(c => { addrMap[(c.name||'') + '|' + (c.phone||'')] = c.address||''; });
@@ -1882,7 +1902,7 @@ function exportRenewals() {
     r.phone||'', r.parent_name||'', r.school||'',
     (addrMap[(r.student_name||'') + '|' + (r.phone||'')] || ''),
     r.current_class||'', r.payment_type||'', r.course_hours||'',
-    r.book_fee||'', r.total_payment||'', r.unit_price||'', r.gift_received||'否'
+    r.book_fee||'', r.total_payment||'', r.unit_price||'', r.gift_received||'否', r.gift_name||''
   ]);
   exportCSV(headers, rows, 'DK邻里在读续费_' + new Date().toISOString().substring(0,10) + '.csv');
 }
@@ -3686,8 +3706,8 @@ function getWeekStart(dateStr) {
 </script>
 
 <!-- 试听月历右键菜单 -->
-<div id="dayContextMenu" class="day-context-menu" onmouseleave="closeDayContextMenu()">
-  <div class="ctx-item" onclick="onContextMenuAddDemo()">＋ 新建 Demo 场次</div>
+<div id="dayContextMenu" class="day-context-menu" onmouseleave="closeDayContextMenu()" data-page-node-id="rnGTtvwBofqVIAkx8kh9Nm">
+  <div class="ctx-item" onclick="onContextMenuAddDemo()" data-page-node-id="XvMo3hghGTei4QM2GbLRq9">＋ 新建 Demo 场次</div>
 </div>
 
 </body>
