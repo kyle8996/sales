@@ -1352,7 +1352,7 @@ function renderCustomers() {
     '<th style="min-width:50px">序号</th>' +
     (isTrial ? '<th style="min-width:85px">上门日期</th>' : '') +
     (showAddDate ? '<th style="min-width:85px">客户添加日期</th>' : '') +
-    '<th style="min-width:65px">姓名</th>' +
+    '<th style="min-width:50px;white-space:nowrap">姓名</th>' +
     '<th style="min-width:36px">年龄</th>' +
     '<th style="min-width:95px">电话</th>' +
     '<th style="min-width:50px">家长</th>' +
@@ -1438,7 +1438,7 @@ function renderCustomers() {
       '<td>' + (idx + 1) + '</td>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
       (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
-      '<td style="font-weight:600" class="fu-tip"><div style="max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.name||'') + '">' + (c.name||'') + '</div>' + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
+      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
