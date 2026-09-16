@@ -447,6 +447,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button class="active" onclick="switchSubTab('trial')" id="subtab-trial" data-page-node-id="MWq1EzdZL0SnHuvipuBgpQ">已上门未报名<span class="count-badge badge-trial" id="cnt-trial" data-page-node-id="gPlf9pzWhxUwq8Wz2x01Ws">0</span></button>
           <button onclick="switchSubTab('promised')" id="subtab-promised" data-page-node-id="X0enowfMRnPgTW4EaG1z0k">承诺上门<span class="count-badge badge-promised" id="cnt-promised" data-page-node-id="99cgEMiifZScBwLXrx08UY">0</span></button>
           <button onclick="switchSubTab('lead')" id="subtab-lead" data-page-node-id="jTuWKDbqbG9Dup7Ui3EKqu">未上门<span class="count-badge badge-lead" id="cnt-lead" data-page-node-id="WYmze6OsojdIRj5yY7C7Bo">0</span></button>
+          <button onclick="switchSubTab('nopark')" id="subtab-nopark">未留电话<span class="count-badge badge-lead" id="cnt-nopark">0</span></button>
         </div>
         <div class="toolbar" style="margin-left:auto" data-page-node-id="T2LU75AoQiWanJHiyBBQPI">
           <select id="custFilterSource" onchange="renderCustomers()" data-page-node-id="tI11SQPgDYpRISDAHSREnC"><option value="all" data-page-node-id="OhF2EtWcMnWr8nJN3a8rV7">一级渠道</option></select>
@@ -1202,6 +1203,26 @@ function switchSubTab(sub) {
   renderCustomers();
 }
 
+// 未留电话流转：park=true 流转到未留电话；park=false 转回未上门
+async function parkCustomer(id, park) {
+  const c = _customers.find(x => x.id === id);
+  if (park && c && c.phone) { showToast('该客户已留电话，无需流转', false); return; }
+  const { error } = await sb.from('customers').update({ phone_parked: park, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showToast('操作失败: ' + (error.message || ''), false); return; }
+  if (c) c.phone_parked = park;
+  renderCustomers();
+  showToast(park ? '已流转到「未留电话」' : '已转回「未上门」');
+}
+
+// 在未留电话列表中快速填电话：打开编辑弹窗并聚焦电话输入框
+function openCustomerModalForPhone(cid) {
+  openCustomerModal(cid);
+  setTimeout(() => {
+    const el = document.getElementById('custPhone');
+    if (el) { el.focus(); el.select(); }
+  }, 150);
+}
+
 function renderSalesLedger(ym) {
   const yearSel = document.getElementById('ledgerYear');
   const monthSel = document.getElementById('ledgerMonth');
@@ -1333,10 +1354,12 @@ function renderCustomers() {
   updateCounts();
   const remMap = getReminderMap();
   
+  const isNopark = _currentSubTab === 'nopark';
   let list;
   if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
   else if (_currentSubTab === 'promised') list = _customers.filter(c => c.status === '未上门' && c.trial_date);
-  else list = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date);
+  else if (isNopark) list = _customers.filter(c => c.phone_parked);
+  else list = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date && !c.phone_parked);
 
   // Filters
   const fSource = document.getElementById('custFilterSource').value;
