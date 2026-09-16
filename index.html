@@ -1256,7 +1256,9 @@ function updateCounts() {
   document.getElementById('cnt-signed').textContent = _customers.filter(c => c.status === '已报名').length;
   document.getElementById('cnt-trial').textContent = _customers.filter(c => c.status === '已上门未报名').length;
   document.getElementById('cnt-promised').textContent = _customers.filter(c => c.status === '未上门' && c.trial_date).length;
-  document.getElementById('cnt-lead').textContent = _customers.filter(c => c.status === '未上门' && !c.trial_date).length;
+  document.getElementById('cnt-lead').textContent = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date && !c.phone_parked).length;
+  const cntNopark = document.getElementById('cnt-nopark');
+  if (cntNopark) cntNopark.textContent = _customers.filter(c => c.phone_parked).length;
   const cntRenewal = document.getElementById('cnt-renewal');
   if (cntRenewal) cntRenewal.textContent = _renewals.length;
   const cntRefund = document.getElementById('cnt-refund');
@@ -1398,10 +1400,10 @@ function renderCustomers() {
     const lvl = c.level || 'B';
     const lvlTag = 'tag tag-' + (lvl === 'A' ? 'a' : lvl === 'B' ? 'b' : 'c');
     const stTag = c.status === '已上门未报名' ? 'tag tag-trial' : 'tag tag-lead';
-    // 最近跟进时间（仅未上门lead Tab）
+    // 最近跟进时间（未上门/未留电话Tab）
     let lastFollowDate = '';
     let lastFollowContent = '';
-    if (_currentSubTab === 'lead') {
+    if (_currentSubTab === 'lead' || isNopark) {
       const custFus = _followups.filter(f => f.customer_id === c.id);
       if (custFus.length > 0) {
         custFus.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
@@ -1453,13 +1455,20 @@ function renderCustomers() {
       (isTrial ? '' : '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '">' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</div></td>') +
       '<td>' + (c.owner||'') + '</td>' +
       '<td style="white-space:nowrap">' +
-        '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
-        '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录" style="margin-left:2px">📝</button>' +
-        '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除" style="margin-left:2px">🗑️</button>' +
+        (isNopark
+          ? '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
+            '<button class="btn btn-gray btn-xs" onclick="openCustomerModalForPhone(' + c.id + ')" title="填电话" style="margin-left:2px">📞</button>' +
+            '<button class="btn btn-gray btn-xs" onclick="parkCustomer(' + c.id + ', false)" title="转回未上门" style="margin-left:2px">⬅️</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除" style="margin-left:2px">🗑️</button>'
+          : '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
+            (!c.phone ? '<button class="btn btn-gray btn-xs" onclick="parkCustomer(' + c.id + ', true)" title="流转到未留电话" style="margin-left:2px">➡️</button>' : '') +
+            '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录" style="margin-left:2px">📝</button>' +
+            '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除" style="margin-left:2px">🗑️</button>'
+        ) +
       '</td></tr>';
   });
   const colCount = isTrial ? 16 : 17;
-  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">暂无客户</td></tr>';
+  document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">' + (isNopark ? '暂无未留电话客户' : '暂无客户') + '</td></tr>';
   updateReminderBadge();
 }
 
@@ -2201,6 +2210,13 @@ async function saveCustomer() {
   // 计算课单价
   const netPayment = data.total_payment - data.book_fee;
   data.unit_price = (data.course_hours > 0 && netPayment > 0) ? Math.round(netPayment / data.course_hours) : 0;
+  // 未留电话流转逻辑：填了电话自动转回；没电话的新客户（未上门）自动归入
+  if (data.phone) {
+    data.phone_parked = false;
+  } else {
+    const oldCustPark = editId ? _customers.find(c => c.id === parseInt(editId)) : null;
+    data.phone_parked = oldCustPark ? !!oldCustPark.phone_parked : (data.status === '未上门');
+  }
   let err;
   if (editId) {
     // 检测试听时间是否被清空（从有值变为null），需同步清理 trial_schedule
@@ -3589,7 +3605,7 @@ function exportTab() {
         c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', trialDt, c.owner||'', c.tags||''
       ];
     });
-    exportCSV(headers, rows, 'DK邻里客户管理_' + (_currentSubTab === 'trial' ? '已上门未报名_' : _currentSubTab === 'promised' ? '承诺上门_' : '未上门_') + new Date().toISOString().substring(0,10) + '.csv');
+    exportCSV(headers, rows, 'DK邻里客户管理_' + (_currentSubTab === 'trial' ? '已上门未报名_' : _currentSubTab === 'promised' ? '承诺上门_' : _currentSubTab === 'nopark' ? '未留电话_' : '未上门_') + new Date().toISOString().substring(0,10) + '.csv');
   } else if (_currentTab === 'trials') {
     // 试听邀约：导出试听排期数据
     exportTrials();
