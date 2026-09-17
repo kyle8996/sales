@@ -3739,6 +3739,7 @@ function renderSplit() {
     return { map, all: all.filter(r => r.h > 0.0001) };
   }
 
+  const r1 = v => Math.round((v + Number.EPSILON) * 10) / 10;
   const monthTotals = {}; months.forEach(m => monthTotals[m] = 0);
   let grandTotal = 0, hasRows = false, classIdx = 0, html = '';
 
@@ -3789,7 +3790,8 @@ function renderSplit() {
       pool.forEach((b, bi) => {
         const first = bi === 0;
         let rowSplitTotal = 0;
-        months.forEach(m => { clsMonthSplit[m] += bMonth[bi][m]; monthTotals[m] += bMonth[bi][m]; rowSplitTotal += bMonth[bi][m]; });
+        // 与显示值一致：每个批次每月先四舍五入到1位小数再累加，保证合计=各行显示值之和（避免0.1级误差）
+        months.forEach(m => { const v = r1(bMonth[bi][m]); bMonth[bi][m] = v; clsMonthSplit[m] += v; monthTotals[m] += v; rowSplitTotal += v; });
         grandTotal += rowSplitTotal;
         clsRows += '<tr' + rowCls + ' data-student-id="' + st.id + '" data-class-id="' + cls.id + '">'
           + (first ? '<td class="name" rowspan="' + nB + '">' + (st.name || '') + '</td>' : '')
@@ -4048,11 +4050,12 @@ function exportSplit() {
       pool.forEach((b, bi) => {
         const row = [cls.name, st.name || '', b.isNew ? '新招' : '续费', b.hrs,
           Math.round(b.pay), Math.round(b.book), Math.round(b.fee * 10) / 10,
-          Math.round(b.cindyPer * 10) / 10];
+          Math.round(b.cindyPerR * 10) / 10];
         months.forEach(m => {
-          const v = Math.round(bMonth[bi][m] * 100) / 100;
+          // 与页面一致：先四舍五入到1位小数再累加，保证合计=各行显示值之和
+          const v = Math.round(bMonth[bi][m] * 10) / 10;
           row.push(att[m]); row.push(v);
-          clsMonthSplit[m] += bMonth[bi][m]; grandTotal += bMonth[bi][m];
+          clsMonthSplit[m] += v; grandTotal += v;
         });
         row.push(Math.round(b.remain * 10) / 10);
         clsRows.push(row);
