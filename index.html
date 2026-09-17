@@ -3685,9 +3685,11 @@ function renderSplit() {
   if (classFilter) splitClasses = splitClasses.filter(c => String(c.id) === classFilter);
 
   // 学员缴费批次池：参与分成课时费（新招×90%、续费×100%）、分成课单价 = 参与分成课时费/报名课时
+  // 排除项：王子谦的 14 课时批次不计入分成、不显示（其余批次仍正常计算）
+  const isExclSplitBatch = b => st.name === '王子谦' && Math.abs((parseFloat(b.hours) || 0) - 14) < 0.001;
   function poolOf(st, clsId) {
     return _revenue_batches
-      .filter(b => b.student_id === st.id && (!b.class_id || b.class_id === clsId))
+      .filter(b => b.student_id === st.id && (!b.class_id || b.class_id === clsId) && !isExclSplitBatch(b))
       .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
       .map(b => {
         const isNew = getBatchType(b) === '新招';
@@ -3967,7 +3969,7 @@ function exportSplit() {
     const clsRows = [];
     stu.forEach(st => {
       const pool = _revenue_batches
-        .filter(b => b.student_id === st.id && (!b.class_id || b.class_id === cls.id))
+        .filter(b => b.student_id === st.id && (!b.class_id || b.class_id === cls.id) && !(st.name === '王子谦' && Math.abs((parseFloat(b.hours) || 0) - 14) < 0.001))
         .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
         .map(b => {
           const isNew = getBatchType(b) === '新招';
