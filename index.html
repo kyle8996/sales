@@ -3803,7 +3803,8 @@ function renderSplit() {
           + '<td>' + (b.splittable > 0 ? '¥' + fmt1(b.splittable) : '—') + '</td>'
           + '<td class="split-cindy">' + (b.cindyPerR > 0 ? '¥' + b.cindyPerR.toFixed(1) : '—') + '</td>'
           + months.map(m =>
-              '<td class="mon"' + (first ? ' rowspan="' + nB + '"' : '') + '>' + (att[m] > 0 ? fmt1(att[m]) : '—') + '</td>'
+              // 出勤列由首行 rowspan 合并，后续批次行不再输出，避免整行错位
+              (first ? '<td class="mon" rowspan="' + nB + '">' + (att[m] > 0 ? fmt1(att[m]) : '—') + '</td>' : '')
               + '<td class="mon">' + (bMonth[bi][m] > 0 ? fmtMoney(bMonth[bi][m]) : '—') + '</td>').join('')
           + '<td>' + (b.remain > 0.001 ? fmt1(b.remain) : '0') + '</td>'
           + '</tr>';
