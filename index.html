@@ -235,6 +235,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .tbl-split tr.split-alt.split-cls-row td{background:#cfe2f5}
 .tbl-split td.mon .att-line{font-size:11px;color:#64748b;font-weight:400}
 .tbl-split td.mon .split-line{color:#15803d;font-weight:700}
+/* 月课时分成金额：加粗放大，更直观 */
+.tbl-split td.split-amt{color:#15803d;font-weight:700;font-size:14px}
 .split-typeNew{background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px}
 .split-typeRen{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:20px;font-size:11px}
 .tbl-split tbody tr[draggable="true"]{cursor:grab}
@@ -3805,7 +3807,7 @@ function renderSplit() {
           + months.map(m =>
               // 出勤列由首行 rowspan 合并，后续批次行不再输出，避免整行错位
               (first ? '<td class="mon" rowspan="' + nB + '">' + (att[m] > 0 ? fmt1(att[m]) : '—') + '</td>' : '')
-              + '<td class="mon">' + (bMonth[bi][m] > 0 ? fmtMoney(bMonth[bi][m]) : '—') + '</td>').join('')
+              + '<td class="mon split-amt">' + (bMonth[bi][m] > 0 ? fmtMoney(bMonth[bi][m]) : '—') + '</td>').join('')
           + '<td>' + (b.remain > 0.001 ? fmt1(b.remain) : '0') + '</td>'
           + '</tr>';
       });
@@ -3819,7 +3821,7 @@ function renderSplit() {
     html += '<tr' + (alt ? ' class="split-alt"' : '') + ' style="font-weight:700;background:#f8fafc">'
       + '<td colspan="8" style="text-align:left;color:#475569">' + cls.name + ' · 分成合计</td>'
       + months.map(m => '<td class="mon" style="color:#475569">' + m + '月分成合计</td>'
-        + '<td class="mon" style="color:#15803d">' + (clsMonthSplit[m] > 0 ? fmtMoney(clsMonthSplit[m]) : '—') + '</td>').join('')
+        + '<td class="mon" style="color:#15803d;font-weight:700;font-size:14px">' + (clsMonthSplit[m] > 0 ? fmtMoney(clsMonthSplit[m]) : '—') + '</td>').join('')
       + '</tr>';
   });
 
@@ -3835,10 +3837,10 @@ function renderSplit() {
 
   container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
     + '<div style="overflow:auto;max-height:calc(100vh - 280px)"><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
-    + '<tfoot><tr style="background:#1d4ed8;color:#fff;font-weight:700;font-size:15px;border-top:2px solid #1e40af">'
-    + '<td colspan="8" style="text-align:left;font-size:15px">全部班级合计</td>'
-    + months.map(m => '<td class="mon" style="color:#bfdbfe">' + m + '月分成合计</td>'
-      + '<td class="mon" style="color:#fff;font-size:15px">' + (monthTotals[m] > 0 ? fmtMoney(monthTotals[m]) : '—') + '</td>').join('')
+    + '<tfoot><tr style="background:#fff;font-weight:700;font-size:15px;border-top:2px solid #cbd5e1">'
+    + '<td colspan="8" style="text-align:left;font-size:15px;color:#0f172a">全部班级合计</td>'
+    + months.map(m => '<td class="mon" style="color:#475569">' + m + '月分成合计</td>'
+      + '<td class="mon" style="color:#15803d;font-size:15px">' + (monthTotals[m] > 0 ? fmtMoney(monthTotals[m]) : '—') + '</td>').join('')
     + '</tr></tfoot></table></div>';
   enableSplitDragSort();
 }
