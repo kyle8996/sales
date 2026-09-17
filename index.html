@@ -3635,7 +3635,7 @@ async function saveRevenueBatches() {
 // ═════════════════════════════════════════
 // 课时分成（合作老师班级）
 // 逻辑：新招课时费扣10%提成后90%的4成分成；续费课时费直接4成分成；
-//      分成与出勤挂钩：当月Cindy分成 = 当月出勤课时 × 单课时分成
+//      分成与出勤挂钩：当月Cindy分成 = 单课时分成 × 当月出勤 × 40%
 // ═════════════════════════════════════════
 function getBatchType(b) {
   if (b.batch_type) return b.batch_type;            // '新招' / '续费'
@@ -3696,8 +3696,9 @@ function renderSplit() {
         const fee = pay - book;
         const hrs = parseFloat(b.hours) || 0;
         const splittable = isNew ? fee * 0.90 : fee;
+        const cindyPer = hrs > 0 ? splittable / hrs : 0;
         return { isNew, pay, book, fee, hrs, splittable,
-          cindyPer: hrs > 0 ? splittable / hrs : 0,
+          cindyPer, cindyPerR: Math.round(cindyPer * 10) / 10,
           remain: hrs, date: b.payment_date || '' };
       });
   }
@@ -3742,7 +3743,7 @@ function renderSplit() {
           + '<td class="name">' + (st.name || '') + '</td>'
           + '<td><span class="split-typeRen">无批次</span></td>'
           + '<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>'
-          + months.map(m => '<td class="mon">' + (att[m] > 0 ? fmt1(att[m]) + '课时' : '—') + '</td><td class="mon">—</td>').join('')
+          + months.map(m => '<td class="mon">' + (att[m] > 0 ? fmt1(att[m]) : '—') + '</td><td class="mon">—</td>').join('')
           + '<td>—</td></tr>';
         return;
       }
@@ -3760,7 +3761,7 @@ function renderSplit() {
           if (b.remain <= 0) continue;
           const d = Math.min(need, b.remain);
           b.remain -= d; need -= d;
-          if (months.includes(mm)) bMonth[bi][mm] += d * b.cindyPer;
+          if (months.includes(mm)) bMonth[bi][mm] += d * b.cindyPerR * 0.40;
           if (need <= 0.001) break;
         }
       });
@@ -3777,11 +3778,11 @@ function renderSplit() {
           + '<td>' + (b.book > 0 ? '¥' + Math.round(b.book) : '—') + '</td>'
           + '<td>' + (b.fee > 0 ? '¥' + Math.round(b.fee) : '—') + '</td>'
           + '<td>' + (b.splittable > 0 ? '¥' + fmt1(b.splittable) : '—') + '</td>'
-          + '<td class="split-cindy">' + (b.cindyPer > 0 ? '¥' + b.cindyPer.toFixed(2) : '—') + '</td>'
+          + '<td class="split-cindy">' + (b.cindyPerR > 0 ? '¥' + b.cindyPerR.toFixed(1) : '—') + '</td>'
           + months.map(m =>
-              '<td class="mon"' + (first ? ' rowspan="' + nB + '"' : '') + '>' + (att[m] > 0 ? fmt1(att[m]) + '课时' : '—') + '</td>'
+              '<td class="mon"' + (first ? ' rowspan="' + nB + '"' : '') + '>' + (att[m] > 0 ? fmt1(att[m]) : '—') + '</td>'
               + '<td class="mon">' + (bMonth[bi][m] > 0 ? fmtMoney(bMonth[bi][m]) : '—') + '</td>').join('')
-          + '<td>' + (b.remain > 0.001 ? fmt1(b.remain) + '课时' : '0') + '</td>'
+          + '<td>' + (b.remain > 0.001 ? fmt1(b.remain) : '0') + '</td>'
           + '</tr>';
       });
     });
@@ -3809,7 +3810,7 @@ function renderSplit() {
     + months.map(m => '<th>' + m + '月出勤</th><th class="split-cindy">' + m + '月课时分成</th>').join('')
     + '<th>剩余课时</th></tr>';
 
-  container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时；当月课时分成 = 分成课单价 × 当月出勤（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
+  container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
     + '<div style="overflow:auto;max-height:calc(100vh - 280px)"><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
     + '<tfoot><tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #e2e8f0">'
     + '<td style="text-align:left" colspan="' + (6 + months.length * 2) + '">全部班级合计</td>'
@@ -3975,8 +3976,9 @@ function exportSplit() {
           const fee = pay - book;
           const hrs = parseFloat(b.hours) || 0;
           const splittable = isNew ? fee * 0.90 : fee;
+          const cindyPer = hrs > 0 ? splittable / hrs : 0;
           return { isNew, pay, book, fee, hrs, splittable,
-            cindyPer: hrs > 0 ? splittable / hrs : 0, remain: hrs, date: b.payment_date || '' };
+            cindyPer, cindyPerR: Math.round(cindyPer * 10) / 10, remain: hrs, date: b.payment_date || '' };
         });
       const att = {}; months.forEach(m => att[m] = 0);
       const all = [];
@@ -4000,7 +4002,7 @@ function exportSplit() {
           if (b.remain <= 0) continue;
           const d = Math.min(need, b.remain);
           b.remain -= d; need -= d;
-          if (months.includes(mm)) bMonth[bi][mm] += d * b.cindyPer;
+          if (months.includes(mm)) bMonth[bi][mm] += d * b.cindyPerR * 0.40;
           if (need <= 0.001) break;
         }
       });
@@ -4014,7 +4016,7 @@ function exportSplit() {
       pool.forEach((b, bi) => {
         const row = [cls.name, st.name || '', b.isNew ? '新招' : '续费', b.hrs,
           Math.round(b.pay), Math.round(b.book), Math.round(b.fee * 10) / 10,
-          Math.round(b.cindyPer * 100) / 100];
+          Math.round(b.cindyPer * 10) / 10];
         months.forEach(m => {
           const v = Math.round(bMonth[bi][m] * 100) / 100;
           row.push(att[m]); row.push(v);
