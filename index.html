@@ -3651,16 +3651,15 @@ function renderSplit() {
   const getTeacherOf = c => (c.schedule && c.schedule.teacher) || c.teacher || '';
   if (teacherSel && teacherSel.options.length === 0) {
     const teachers = [];
-    _classes.forEach(c => { const t = getTeacherOf(c); if (t && !teachers.includes(t)) teachers.push(t); });
+    _classes.forEach(c => { const t = getTeacherOf(c); if (t && t !== 'Dora' && !teachers.includes(t)) teachers.push(t); });
     if (teachers.length === 0) teachers.push('Cindy');
-    teachers.sort((a, b) => ['Dora', 'Cindy'].indexOf(a) - ['Dora', 'Cindy'].indexOf(b));
     teacherSel.innerHTML = teachers.map(t => '<option value="' + t + '">' + t + '</option>').join('');
     teacherSel.value = teachers.includes('Cindy') ? 'Cindy' : teachers[0];
   }
   const teacher = teacherSel ? teacherSel.value : 'Cindy';
   const year = REVENUE_YEAR;
   const currentMonth = new Date().getMonth() + 1;
-  const startMonth = 3;
+  const startMonth = 8;
   const months = [];
   for (let m = startMonth; m <= currentMonth; m++) months.push(m);
   if (yearLbl) yearLbl.textContent = year + '年' + startMonth + '月–' + currentMonth + '月';
@@ -3872,7 +3871,7 @@ function exportSplit() {
   const teacher = teacherSel ? teacherSel.value : 'Cindy';
   const year = REVENUE_YEAR;
   const currentMonth = new Date().getMonth() + 1;
-  const startMonth = 3;
+  const startMonth = 8;
   const months = [];
   for (let m = startMonth; m <= currentMonth; m++) months.push(m);
   const nameSearch = (document.getElementById('splitNameSearch').value || '').toLowerCase();
