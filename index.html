@@ -3832,12 +3832,11 @@ function renderSplit() {
 
   container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
     + '<div style="overflow:auto;max-height:calc(100vh - 280px)"><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
-    + '<tfoot><tr style="background:#f1f5f9;font-weight:700;border-top:2px solid #e2e8f0">'
-    + '<td style="text-align:left" colspan="8">全部班级合计</td>'
-    + months.map(m => '<td class="mon" style="color:#475569">' + m + '月分成合计</td>'
-      + '<td class="mon" style="color:#15803d">' + (monthTotals[m] > 0 ? fmtMoney(monthTotals[m]) : '—') + '</td>').join('')
-    + '</tr></tfoot></table></div>'
-    + '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#1d4ed8">' + year + '年' + startMonth + '月–' + currentMonth + '月 ' + teacher + ' 应分课时费合计：<span style="color:#15803d">' + fmtMoney(grandTotal) + '</span></div>';
+    + '<tfoot><tr style="background:#1d4ed8;color:#fff;font-weight:700;font-size:15px;border-top:2px solid #1e40af">'
+    + '<td style="text-align:left;font-size:15px">全部班级合计</td>'
+    + months.map(m => '<td class="mon" style="color:#bfdbfe">' + m + '月分成合计</td>'
+      + '<td class="mon" style="color:#fff;font-size:15px">' + (monthTotals[m] > 0 ? fmtMoney(monthTotals[m]) : '—') + '</td>').join('')
+    + '</tr></tfoot></table></div>';
   enableSplitDragSort();
 }
 async function refreshStudentsData() {
