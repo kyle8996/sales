@@ -216,6 +216,19 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .batch-row-header{display:flex;gap:8px;align-items:center;padding:0 0 4px 50px;font-size:11px;color:#94a3b8}
 .batch-row-header span{flex:1;text-align:center}
 .batch-unit-price{flex:1;text-align:center;padding:8px 10px;background:#f1f5f9;border-radius:7px;font-size:13px;color:#334155;min-height:19px}
+.batch-row .batch-type{flex:0 0 64px;padding:8px 6px;border:1px solid #cbd5e1;border-radius:7px;font-size:13px;background:#fff;outline:none}
+.batch-row .batch-type:focus{border-color:#1d4ed8}
+/* 课时分成表 */
+.tbl-split{border-collapse:collapse;width:100%;font-size:12px}
+.tbl-split th,.tbl-split td{padding:9px 10px;text-align:center;border-bottom:1px solid #eef2f7;white-space:nowrap}
+.tbl-split th{background:#f8fafc;color:#475569;font-weight:600}
+.tbl-split td.name,.tbl-split td.cls{text-align:left}
+.tbl-split td.name{font-weight:600}
+.tbl-split td.mon{color:#334155}
+.tbl-split th.split-cindy{background:#dcfce7;color:#166534}
+.tbl-split td.split-cindy{background:#f0fdf4;color:#15803d;font-weight:700}
+.split-typeNew{background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px}
+.split-typeRen{background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:20px;font-size:11px}
 .day-context-menu{position:fixed;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px 0;z-index:10000;min-width:140px;display:none;overflow:hidden}
 .day-context-menu .ctx-item{padding:8px 14px;font-size:13px;color:#334155;cursor:pointer;white-space:nowrap}
 .day-context-menu .ctx-item:hover{background:#eef4ff;color:#1d4ed8}
@@ -243,6 +256,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <button onclick="switchTab('trials')" data-page-node-id="H3Exx18HH8sugTMeXwkjms">试听邀约</button>
     <button onclick="switchTab('reminders')" data-page-node-id="BBwWGHXalWMvieEDQw9IyB">跟进提醒<span class="nav-badge" id="reminderBadge" style="display:none" data-page-node-id="gRfmehJSNmLaNObKcUO2z2">0</span></button>
     <button onclick="switchTab('revenue')" data-page-node-id="Gt4DbYoZT7yuEyLyXaqYNZ">确收明细</button>
+    <button onclick="switchTab('split')" data-page-node-id="LkPq2xR9mNz7vQsWcD3EaB">课时分成</button>
   </div>
   <span class="user-info" style="margin-left:auto" data-page-node-id="TD1u3P6xRzvwWtdWjCObsC">
     <button class="btn btn-gray btn-xs" onclick="exportTab()" data-page-node-id="nm4odqoHRyesNOH5mCD0eZ">📥 导出</button>
@@ -554,6 +568,33 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         </div>
       </div>
       <div id="revenueContainer" data-page-node-id="7g4bBRlMKSTwgRgydvEl4N"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- Tab 6: 课时分成 -->
+<!-- ================================================================= -->
+<div class="section" id="sec-split" data-page-node-id="QmWn8yT4pLkR2vXsBc5FdA">
+  <div class="container" data-page-node-id="HrTq3wN9mZx8vCsKdE6GbB">
+    <div class="card" data-page-node-id="JpWn4xR8mZy7vDtLcF5HaC">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap" data-page-node-id="KqXr5yN7mZw6vEuMdG4IbD">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap" data-page-node-id="LrYs6zM6nZx5vFtNcH3JcE">
+          <h2 style="margin:0" data-page-node-id="MsZt7aL5nYw4vGuObI2KdF">课时分成 · 合作老师班级</h2>
+          <label style="font-size:12px;color:#475569">合作老师：
+            <select id="splitTeacher" onchange="renderSplit()" data-page-node-id="NtAu8bK4oZx3vHtPdJ1LeG" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:7px"></select>
+          </label>
+          <label style="font-size:12px;color:#475569">分成月份：
+            <select id="splitMonth" onchange="renderSplit()" data-page-node-id="OuBv9cL3pAy2vIsQeK0MfH" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:7px"></select> 月
+          </label>
+          <span style="font-size:12px;color:#94a3b8" id="splitYearLabel" data-page-node-id="PvCw0dM2qBz1vJtRfL9NgI"></span>
+          <input type="text" id="splitNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderSplit()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px" data-page-node-id="QwDx1eN1rCa0vKuSgM8OhJ">
+        </div>
+        <div style="display:flex;gap:8px" data-page-node-id="RxEy2fO0sDb9vLvThN7PiK">
+          <button class="btn btn-gray btn-sm" onclick="refreshRevenueData().then(renderSplit)" data-page-node-id="SyFz3gP9tEc8vMwUiO6QjL">🔄 刷新数据</button>
+        </div>
+      </div>
+      <div id="splitContainer" data-page-node-id="TzGa4hQ8uFd7vNxVjP5RkM"></div>
     </div>
   </div>
 </div>
@@ -1062,7 +1103,8 @@ async function syncRevenueBatchesFromSales() {
       total_payment: parseFloat(eb.total_payment) || 0,
       payment_date: eb.payment_date || '年前缴费',
       source: eb.source || 'manual',
-      unit_price: eb.unit_price
+      unit_price: eb.unit_price,
+      batch_type: eb.batch_type
     }));
 
     // 3) 合并、排序、去重（使用被手动记录 shadow 后的 salesBatches）
@@ -1096,7 +1138,8 @@ async function syncRevenueBatchesFromSales() {
         total_payment: b.total_payment,
         unit_price: calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price),
         payment_date: b.payment_date || '年前缴费',
-        source: b.source || 'manual'
+        source: b.source || 'manual',
+        batch_type: b.batch_type || (b.source === 'sales-new' ? '新招' : '续费')
       };
       const preservedClassId = classIdBySignature.get(sig);
       if (preservedClassId) batch.class_id = preservedClassId;
@@ -1177,8 +1220,8 @@ function switchTab(tab) {
   _currentTab = tab;
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('header .tabs button').forEach(b => b.classList.remove('active'));
-  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales', revenue:'sec-revenue'};
-  const idx = {sales:0, customers:1, trials:2, reminders:3, revenue:4};
+  const map = {customers:'sec-customers', trials:'sec-trials', reminders:'sec-reminders', sales:'sec-sales', revenue:'sec-revenue', split:'sec-split'};
+  const idx = {sales:0, customers:1, trials:2, reminders:3, revenue:4, split:5};
   document.getElementById(map[tab]).classList.add('active');
   document.querySelectorAll('header .tabs button')[idx[tab]].classList.add('active');
   if (tab === 'customers') { renderCustomers(); updateCounts(); }
@@ -1192,6 +1235,10 @@ function switchTab(tab) {
     startRevenueAutoRefresh();
   } else {
     stopRevenueAutoRefresh();
+  }
+  if (tab === 'split') {
+    renderSplit();
+    refreshRevenueData().then(renderSplit);
   }
   updateReminderBadge();
 }
@@ -3401,12 +3448,17 @@ function getBatchLabel(idx) {
   return (idx - 1) + '次续费';
 }
 
-function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice, paymentDate, source) {
+function renderBatchRow(idx, hours, bookFee, totalPayment, unitPrice, paymentDate, source, batchType) {
   const label = getBatchLabel(idx);
   const dateText = paymentDate || '年前缴费';
   const dateColor = source && source.startsWith('sales') ? '#db2777' : '#94a3b8';
+  const bt = batchType || (source === 'sales-new' ? '新招' : '续费');
   return '<div class="batch-row" data-payment-date="' + (paymentDate || '') + '" data-source="' + (source || '') + '">' +
     '<span class="batch-label"><div class="batch-name">' + label + '</div><div class="batch-date" style="color:' + dateColor + '">' + dateText + '</div></span>' +
+    '<select class="batch-type" title="新招/续费（决定课时分成是否扣招生提成）">' +
+      '<option value="新招"' + (bt === '新招' ? ' selected' : '') + '>新招</option>' +
+      '<option value="续费"' + (bt === '续费' ? ' selected' : '') + '>续费</option>' +
+    '</select>' +
     '<input type="number" class="batch-hours" step="0.5" min="0" placeholder="课时数" value="' + (hours || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-book" step="0.01" min="0" placeholder="书费" value="' + (bookFee || '') + '" oninput="calcBatchUnitPrice(this)">' +
     '<input type="number" class="batch-total" step="0.01" min="0" placeholder="合计缴费" value="' + (totalPayment || '') + '" oninput="calcBatchUnitPrice(this)">' +
@@ -3443,7 +3495,7 @@ function addBatchRow() {
   const rowsDiv = document.getElementById('revenueBatchRows');
   const count = rowsDiv.querySelectorAll('.batch-row').length + 1;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = renderBatchRow(count, '', '', '', '', '年前缴费', 'manual');
+  wrapper.innerHTML = renderBatchRow(count, '', '', '', '', '年前缴费', 'manual', '续费');
   const row = wrapper.firstElementChild;
   rowsDiv.appendChild(row);
 }
@@ -3488,7 +3540,7 @@ function openRevenueBatchModal(studentId) {
   if (custom.length > 0) {
     rowsDiv.innerHTML = custom.map((b, idx) => {
       const up = calcPreciseUnitPrice(b.hours, b.book_fee, b.total_payment, b.unit_price);
-      return renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, up, b.payment_date, b.source);
+      return renderBatchRow(idx + 1, b.hours, b.book_fee, b.total_payment, up, b.payment_date, b.source, b.batch_type);
     }).join('');
   } else {
     // 未自定义时，用销售系统数据作为默认值预填充
@@ -3511,10 +3563,10 @@ function openRevenueBatchModal(studentId) {
     if (defaults.length > 0) {
       rowsDiv.innerHTML = defaults.map((d, idx) => {
         const up = calcPreciseUnitPrice(d.hours, d.book_fee, d.total_payment, 0);
-        return renderBatchRow(idx + 1, d.hours, d.book_fee, d.total_payment, up, d.payment_date, d.source);
+        return renderBatchRow(idx + 1, d.hours, d.book_fee, d.total_payment, up, d.payment_date, d.source, d.source === 'sales-new' ? '新招' : '续费');
       }).join('');
     } else {
-      rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '', '年前缴费', 'manual');
+      rowsDiv.innerHTML = renderBatchRow(1, '', '', '', '', '年前缴费', 'manual', '续费');
     }
   }
   document.getElementById('revenueBatchModal').classList.add('show');
@@ -3530,6 +3582,7 @@ async function saveRevenueBatches() {
     const h = parseFloat(row.querySelector('.batch-hours').value) || 0;
     const bookFee = parseFloat(row.querySelector('.batch-book').value) || 0;
     const totalPayment = parseFloat(row.querySelector('.batch-total').value) || 0;
+    const batchType = row.querySelector('.batch-type') ? row.querySelector('.batch-type').value : (source === 'sales-new' ? '新招' : '续费');
     const original = _revenue_batches.find(b => b.student_id === studentId && b.batch_order === (idx + 1));
     const originalUp = original ? original.unit_price : 0;
     const unitPrice = calcPreciseUnitPrice(h, bookFee, totalPayment, originalUp);
@@ -3549,7 +3602,7 @@ async function saveRevenueBatches() {
       const batch = {
         student_id: studentId, batch_order: idx + 1,
         hours: h, book_fee: bookFee, total_payment: totalPayment, unit_price: unitPrice,
-        payment_date: paymentDate, source: source
+        payment_date: paymentDate, source: source, batch_type: batchType
       };
       batches.push(batch);
     }
@@ -3570,6 +3623,114 @@ async function saveRevenueBatches() {
   } catch (e) {
     alert('保存失败：' + (e.message || e) + '\n请确认已在 Supabase SQL Editor 按顺序执行 migrate_revenue_batches_v2.sql（payment_date / source）和 migrate_revenue_batches_v3.sql（class_id）。');
   }
+}
+
+// ═════════════════════════════════════════
+// 课时分成（合作老师班级）
+// 逻辑：新招课时费扣10%提成后90%的4成分成；续费课时费直接4成分成；
+//      分成与出勤挂钩：当月Cindy分成 = 当月出勤课时 × 单课时分成
+// ═════════════════════════════════════════
+function getBatchType(b) {
+  if (b.batch_type) return b.batch_type;            // '新招' / '续费'
+  if (b.source === 'sales-new') return '新招';
+  if (b.source === 'sales-renewal') return '续费';
+  return '续费';                                     // manual 默认续费
+}
+
+function renderSplit() {
+  const container = document.getElementById('splitContainer');
+  if (!container) return;
+  const teacherSel = document.getElementById('splitTeacher');
+  const monthSel = document.getElementById('splitMonth');
+  const yearLbl = document.getElementById('splitYearLabel');
+  const nameSearch = (document.getElementById('splitNameSearch').value || '').toLowerCase();
+  // 初始化合作老师下拉（仅一次）：取班级表 teacher 字段
+  if (teacherSel && teacherSel.options.length === 0) {
+    const teachers = [];
+    _classes.forEach(c => { if (c.teacher && !teachers.includes(c.teacher)) teachers.push(c.teacher); });
+    if (teachers.length === 0) teachers.push('Cindy');
+    teachers.sort((a, b) => ['Dora', 'Cindy'].indexOf(a) - ['Dora', 'Cindy'].indexOf(b));
+    teacherSel.innerHTML = teachers.map(t => '<option value="' + t + '">' + t + '</option>').join('');
+    teacherSel.value = teachers.includes('Cindy') ? 'Cindy' : teachers[0];
+  }
+  // 初始化月份下拉（仅一次）
+  if (monthSel && monthSel.options.length === 0) {
+    let opts = '';
+    for (let m = 1; m <= 12; m++) opts += '<option value="' + m + '"' + (m === new Date().getMonth() + 1 ? ' selected' : '') + '>' + m + '</option>';
+    monthSel.innerHTML = opts;
+  }
+  const teacher = teacherSel ? teacherSel.value : 'Cindy';
+  const month = monthSel ? parseInt(monthSel.value) : (new Date().getMonth() + 1);
+  const year = REVENUE_YEAR;
+  if (yearLbl) yearLbl.textContent = year + '年';
+
+  // 选合作老师的班级 → 学员 → 缴费批次
+  const splitClasses = _classes.filter(c => (c.teacher || '') === teacher);
+  const rows = [];
+  splitClasses.forEach(cls => {
+    _students.filter(s => s.class_id === cls.id).forEach(st => {
+      if (nameSearch && !(st.name || '').toLowerCase().includes(nameSearch)) return;
+      const bs = _revenue_batches.filter(b => b.student_id === st.id && (!b.class_id || b.class_id === cls.id));
+      const attH = _attendance.filter(a => a.student_id === st.id && a.year === year && a.month === month)
+        .reduce((s, a) => s + (parseFloat(a.hours) || 0), 0);
+      rows.push({ cls, st, bs, attH });
+    });
+  });
+
+  if (rows.length === 0) {
+    container.innerHTML = '<p style="font-size:13px;color:#64748b;padding:20px">该老师暂无带班或无学员缴费批次数据。</p>';
+    return;
+  }
+
+  const head = '<tr>' +
+    '<th style="text-align:left">班级</th><th style="text-align:left">学员</th><th>类型</th>' +
+    '<th>报名课时</th><th>缴费金额</th><th>书本费</th>' +
+    '<th>课时费(扣书费)</th><th>招生提成</th><th>可分成课时费</th><th>单课时可分成</th>' +
+    '<th>' + month + '月出勤</th><th class="split-cindy">单课时分成</th><th class="split-cindy">当月Cindy分成</th>' +
+    '</tr>';
+
+  let html = '', g = { pay: 0, book: 0, fee: 0, comm: 0, split: 0, cindy: 0, hrs: 0 };
+  rows.forEach(r => {
+    const bCount = Math.max(r.bs.length, 1);
+    if (r.bs.length === 0) {
+      html += '<tr><td class="cls">' + r.cls.name + '</td><td class="name">' + (r.st.name || '') + '</td>' +
+        '<td><span class="split-typeRen">续费</span></td><td>0</td><td>¥0</td><td>¥0</td><td>¥0</td><td>¥0</td><td>¥0</td><td>¥0.00</td>' +
+        '<td class="mon">' + (r.attH ? r.attH : '0') + '</td><td class="split-cindy">¥0.00</td><td class="split-cindy">¥0</td></tr>';
+      return;
+    }
+    r.bs.forEach((b, i) => {
+      const isNew = getBatchType(b) === '新招';
+      const fee = (parseFloat(b.total_payment) || 0) - (parseFloat(b.book_fee) || 0);
+      const hrs = parseFloat(b.hours) || 0;
+      const comm = isNew ? fee * 0.10 : 0;
+      const splittable = fee - comm;
+      const perHour = hrs > 0 ? splittable / hrs : 0;
+      const cindyPer = perHour * 0.40;
+      const monthCindy = r.attH * cindyPer;
+      g.pay += (parseFloat(b.total_payment) || 0); g.book += (parseFloat(b.book_fee) || 0);
+      g.fee += fee; g.comm += comm; g.split += splittable; g.cindy += monthCindy; g.hrs += hrs;
+      const clsCell = i === 0 ? '<td class="cls" rowspan="' + bCount + '">' + r.cls.name + '</td>' : '';
+      const nameCell = i === 0 ? '<td class="name" rowspan="' + bCount + '">' + (r.st.name || '') + '</td>' : '';
+      const attCell = i === 0 ? '<td rowspan="' + bCount + '" class="mon">' + (r.attH ? r.attH : '0') + '</td>' : '';
+      html += '<tr>' + clsCell + nameCell +
+        '<td>' + (isNew ? '<span class="split-typeNew">新招</span>' : '<span class="split-typeRen">续费</span>') + '</td>' +
+        '<td>' + hrs + '</td>' +
+        '<td>¥' + (parseFloat(b.total_payment) || 0).toFixed(0) + '</td>' +
+        '<td>¥' + (parseFloat(b.book_fee) || 0).toFixed(0) + '</td>' +
+        '<td>¥' + fee.toFixed(0) + '</td>' +
+        '<td>¥' + comm.toFixed(0) + '</td>' +
+        '<td>¥' + splittable.toFixed(0) + '</td>' +
+        '<td>¥' + perHour.toFixed(2) + '</td>' +
+        attCell +
+        '<td class="split-cindy">¥' + cindyPer.toFixed(2) + '</td>' +
+        '<td class="split-cindy">¥' + monthCindy.toFixed(0) + '</td>' +
+        '</tr>';
+    });
+  });
+
+  container.innerHTML = '<table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody></table>' +
+    '<div style="text-align:right;font-size:15px;font-weight:700;color:#1d4ed8;margin-top:14px">' +
+    '当月（' + year + '年' + month + '月）' + teacher + ' 应分课时费合计：<span style="color:#15803d">¥' + g.cindy.toFixed(0) + '</span></div>';
 }
 
 function exportTab() {
@@ -3641,7 +3802,41 @@ function exportTab() {
   } else if (_currentTab === 'revenue') {
     // 确收表：导出确认课时费收入
     exportRevenue();
+  } else if (_currentTab === 'split') {
+    // 课时分成：导出当前老师/月份视图
+    exportSplit();
   }
+}
+
+function exportSplit() {
+  const teacherSel = document.getElementById('splitTeacher');
+  const monthSel = document.getElementById('splitMonth');
+  const teacher = teacherSel ? teacherSel.value : 'Cindy';
+  const month = monthSel ? parseInt(monthSel.value) : (new Date().getMonth() + 1);
+  const year = REVENUE_YEAR;
+  const splitClasses = _classes.filter(c => (c.teacher || '') === teacher);
+  const rows = [];
+  splitClasses.forEach(cls => {
+    _students.filter(s => s.class_id === cls.id).forEach(st => {
+      const bs = _revenue_batches.filter(b => b.student_id === st.id && (!b.class_id || b.class_id === cls.id));
+      const attH = _attendance.filter(a => a.student_id === st.id && a.year === year && a.month === month)
+        .reduce((s, a) => s + (parseFloat(a.hours) || 0), 0);
+      if (bs.length === 0) { rows.push({ cls: cls.name, name: st.name || '', type: '续费', hrs: 0, pay: 0, book: 0, fee: 0, comm: 0, splittable: 0, perHour: 0, att: attH, cindyPer: 0, monthCindy: 0 }); return; }
+      bs.forEach(b => {
+        const isNew = getBatchType(b) === '新招';
+        const fee = (parseFloat(b.total_payment) || 0) - (parseFloat(b.book_fee) || 0);
+        const hrs = parseFloat(b.hours) || 0;
+        const comm = isNew ? fee * 0.10 : 0;
+        const splittable = fee - comm;
+        const perHour = hrs > 0 ? splittable / hrs : 0;
+        const cindyPer = perHour * 0.40;
+        rows.push({ cls: cls.name, name: st.name || '', type: isNew ? '新招' : '续费', hrs, pay: parseFloat(b.total_payment) || 0, book: parseFloat(b.book_fee) || 0, fee, comm, splittable, perHour, att: attH, cindyPer, monthCindy: attH * cindyPer });
+      });
+    });
+  });
+  const headers = ['班级', '学员', '类型', '报名课时', '缴费金额', '书本费', '课时费(扣书费)', '招生提成', '可分成课时费', '单课时可分成', month + '月出勤', '单课时分成', '当月Cindy分成'];
+  const data = rows.map(r => [r.cls, r.name, r.type, r.hrs, r.pay, r.book, Math.round(r.fee * 100) / 100, Math.round(r.comm * 100) / 100, Math.round(r.splittable * 100) / 100, Math.round(r.perHour * 100) / 100, r.att, Math.round(r.cindyPer * 100) / 100, Math.round(r.monthCindy * 100) / 100]);
+  exportCSV(headers, data, 'DK邻里课时分成_' + teacher + '_' + year + '年' + month + '月_' + new Date().toISOString().substring(0, 10) + '.csv');
 }
 
 function exportReminders() {
