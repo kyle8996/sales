@@ -3644,6 +3644,13 @@ function getBatchType(b) {
   return '续费';                                     // manual 默认续费
 }
 
+// 出勤排除：指定学员的指定课时不参与分成、不显示（按月份先后 FIFO 扣除）
+// 王子谦：8月10.5 + 9月前3.5 = 14课时，对应已排除的14课时缴费批次，故不计算分成
+function splitAttExcl(name) {
+  if (name === '王子谦') return { 8: 10.5, 9: 3.5 };
+  return null;
+}
+
 function renderSplit() {
   const container = document.getElementById('splitContainer');
   if (!container) return;
@@ -3705,18 +3712,30 @@ function renderSplit() {
   }
 
   // 学员当年出勤：分月 + 全部记录（用于剩余课时 FIFO 扣除）
-  function attOf(stId) {
+  function attOf(st) {
     const map = {}; months.forEach(m => map[m] = 0);
     const all = [];
     _attendance.forEach(a => {
-      if (a.student_id !== stId || a.year !== year) return;
+      if (a.student_id !== st.id || a.year !== year) return;
       const h = parseFloat(a.hours) || 0;
       if (h <= 0) return;
       all.push({ m: a.month, h });
       if (months.includes(a.month)) map[a.month] += h;
     });
     all.sort((a, b) => a.m - b.m);
-    return { map, all };
+    // 扣除不参与分成的课时（按月份先后）
+    const ex = splitAttExcl(st.name);
+    if (ex) {
+      const left = {}; months.forEach(m => left[m] = ex[m] || 0);
+      all.forEach(r => {
+        const e = left[r.m] || 0;
+        if (e <= 0) return;
+        const d = Math.min(r.h, e);
+        r.h -= d; left[r.m] = e - d;
+        if (months.includes(r.m)) map[r.m] = Math.max(0, map[r.m] - d);
+      });
+    }
+    return { map, all: all.filter(r => r.h > 0.0001) };
   }
 
   const monthTotals = {}; months.forEach(m => monthTotals[m] = 0);
@@ -3736,7 +3755,7 @@ function renderSplit() {
 
     stu.forEach(st => {
       const pool = poolOf(st, cls.id);
-      const ao = attOf(st.id);
+      const ao = attOf(st);
       const att = ao.map, attAll = ao.all;
       // 无批次学员：单独一行
       if (pool.length === 0) {
@@ -3990,9 +4009,22 @@ function exportSplit() {
         if (months.includes(a.month)) att[a.month] += h;
       });
       all.sort((a, b) => a.m - b.m);
+      // 扣除不参与分成的课时（按月份先后）
+      const ex = splitAttExcl(st.name);
+      if (ex) {
+        const left = {}; months.forEach(m => left[m] = ex[m] || 0);
+        all.forEach(r => {
+          const e = left[r.m] || 0;
+          if (e <= 0) return;
+          const d = Math.min(r.h, e);
+          r.h -= d; left[r.m] = e - d;
+          if (months.includes(r.m)) att[r.m] = Math.max(0, att[r.m] - d);
+        });
+      }
+      const allEff = all.filter(r => r.h > 0.0001);
       const bMonth = pool.map(() => ({}));
       months.forEach(m => pool.forEach((b, bi) => bMonth[bi][m] = 0));
-      all.forEach(rec => {
+      allEff.forEach(rec => {
         let need = rec.h;
         const mm = rec.m;
         const monthUpper = year + '-' + (mm < 10 ? '0' + mm : mm) + '-31';
