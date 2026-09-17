@@ -3644,10 +3644,11 @@ function renderSplit() {
   const monthSel = document.getElementById('splitMonth');
   const yearLbl = document.getElementById('splitYearLabel');
   const nameSearch = (document.getElementById('splitNameSearch').value || '').toLowerCase();
-  // 初始化合作老师下拉（仅一次）：取班级表 teacher 字段
+  // 初始化合作老师下拉（仅一次）：取班级 schedule.teacher（JSONB）或顶层 teacher 字段
+  const getTeacherOf = c => (c.schedule && c.schedule.teacher) || c.teacher || '';
   if (teacherSel && teacherSel.options.length === 0) {
     const teachers = [];
-    _classes.forEach(c => { if (c.teacher && !teachers.includes(c.teacher)) teachers.push(c.teacher); });
+    _classes.forEach(c => { const t = getTeacherOf(c); if (t && !teachers.includes(t)) teachers.push(t); });
     if (teachers.length === 0) teachers.push('Cindy');
     teachers.sort((a, b) => ['Dora', 'Cindy'].indexOf(a) - ['Dora', 'Cindy'].indexOf(b));
     teacherSel.innerHTML = teachers.map(t => '<option value="' + t + '">' + t + '</option>').join('');
@@ -3665,7 +3666,7 @@ function renderSplit() {
   if (yearLbl) yearLbl.textContent = year + '年';
 
   // 选合作老师的班级 → 学员 → 缴费批次
-  const splitClasses = _classes.filter(c => (c.teacher || '') === teacher);
+  const splitClasses = _classes.filter(c => getTeacherOf(c) === teacher);
   const rows = [];
   splitClasses.forEach(cls => {
     _students.filter(s => s.class_id === cls.id).forEach(st => {
