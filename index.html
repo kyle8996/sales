@@ -1539,6 +1539,7 @@ function renderCustomers() {
           ? '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
             '<button class="btn btn-gray btn-xs" onclick="openCustomerModalForPhone(' + c.id + ')" title="填电话" style="margin-left:2px">📞</button>' +
             '<button class="btn btn-gray btn-xs" onclick="parkCustomer(' + c.id + ', false)" title="转回未上门" style="margin-left:2px">⬅️</button>' +
+            '<button class="btn btn-gray btn-xs" onclick="openFollowupModal(' + c.id + ')" title="跟进记录" style="margin-left:2px">📝</button>' +
             '<button class="btn btn-danger btn-xs" onclick="deleteCustomer(' + c.id + ')" title="删除" style="margin-left:2px">🗑️</button>'
           : '<button class="btn btn-gray btn-xs" onclick="openCustomerModal(' + c.id + ')" title="编辑">✏️</button>' +
             (!c.phone ? '<button class="btn btn-gray btn-xs" onclick="parkCustomer(' + c.id + ', true)" title="流转到未留电话" style="margin-left:2px">➡️</button>' : '') +
