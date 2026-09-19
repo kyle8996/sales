@@ -918,15 +918,6 @@ else document.addEventListener('DOMContentLoaded', bootIfAuth);
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
-  // 月度销售台账原位于「新招学员」卡片内，切换在读续费/退费时会被整卡隐藏。
-  // 一次性将其移到三张子tab卡片之前（同级），确保任何子tab下都常驻显示。
-  (function relocateSalesLedger() {
-    const ledger = document.getElementById('salesLedger');
-    const newCard = document.getElementById('sales-new-card');
-    if (ledger && newCard && ledger.parentElement === newCard) {
-      newCard.parentElement.insertBefore(ledger, newCard);
-    }
-  })();
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
   // 先用缓存即时出数（重复打开秒开），后台再拉最新数据覆盖
@@ -1334,6 +1325,13 @@ function switchSalesSubTab(sub) {
   document.getElementById('sales-new-card').style.display = sub === 'new' ? '' : 'none';
   document.getElementById('sales-renewal-card').style.display = sub === 'renewal' ? '' : 'none';
   document.getElementById('sales-refund-card').style.display = sub === 'refund' ? '' : 'none';
+  // 月度销售台账：卡片是固定定位面板，台账必须位于卡片内才可见。
+  // 切换时把台账移进当前激活卡片顶部（原来是h2），三个子tab下都常驻显示。
+  const ledger = document.getElementById('salesLedger');
+  const targetCard = document.getElementById(sub === 'new' ? 'sales-new-card' : sub === 'renewal' ? 'sales-renewal-card' : 'sales-refund-card');
+  if (ledger && targetCard && ledger.parentElement !== targetCard) {
+    targetCard.insertBefore(ledger, targetCard.firstChild);
+  }
   if (sub === 'new') { renderSales(); updateCounts(); }
   if (sub === 'renewal') renderRenewals();
   if (sub === 'refund') renderRefunds();
