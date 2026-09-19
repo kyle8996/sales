@@ -918,6 +918,15 @@ else document.addEventListener('DOMContentLoaded', bootIfAuth);
 // 数据加载
 // ═══════════════════════════════════════
 async function loadAll() {
+  // 月度销售台账原位于「新招学员」卡片内，切换在读续费/退费时会被整卡隐藏。
+  // 一次性将其移到三张子tab卡片之前（同级），确保任何子tab下都常驻显示。
+  (function relocateSalesLedger() {
+    const ledger = document.getElementById('salesLedger');
+    const newCard = document.getElementById('sales-new-card');
+    if (ledger && newCard && ledger.parentElement === newCard) {
+      newCard.parentElement.insertBefore(ledger, newCard);
+    }
+  })();
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
   // 先用缓存即时出数（重复打开秒开），后台再拉最新数据覆盖
