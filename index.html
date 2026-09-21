@@ -1436,7 +1436,7 @@ function renderCustomers() {
   if (fSearch) list = list.filter(c => (c.name||'').toLowerCase().includes(fSearch) || (c.phone||'').includes(fSearch) || (c.school||'').toLowerCase().includes(fSearch) || (c.address||'').toLowerCase().includes(fSearch) || (c.enrolled_class||'').toLowerCase().includes(fSearch) || (c.tags||'').toLowerCase().includes(fSearch));
 
   const isTrial = _currentSubTab === 'trial';
-  const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead';
+  const showAddDate = _currentSubTab === 'promised' || _currentSubTab === 'lead' || isNopark;
   document.getElementById('custThead').innerHTML = '<tr>' +
     '<th style="min-width:50px">序号</th>' +
     (isTrial ? '<th style="min-width:85px">上门日期</th>' : '') +
