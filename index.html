@@ -803,7 +803,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <h3 id="refundModalTitle" data-page-node-id="0gFexe6974wDZ3c56yk3m6">新增退费记录</h3>
     <input type="hidden" id="refundEditId" data-page-node-id="enb4kDfaNsgLKfxqS4xm21">
     <div class="form-row" data-page-node-id="E4Uh3E0nSMf8czCKuC2HBB">
-      <label style="flex:1.4" data-page-node-id="CFvQsL13eVA2olfJCE8mvG">学员姓名*<select id="refundName" onchange="onRefundNameChange()" style="width:100%" data-page-node-id="QgD2EBvfQ2Vm051LWNfIfi"><option value="" data-page-node-id="5mEK3ISinnUSq7MhDHT5t4">-- 选择学员 --</option></select></label>
+      <label style="flex:1.4;position:relative" data-page-node-id="CFvQsL13eVA2olfJCE8mvG">学员姓名*<input type="text" id="refundName" autocomplete="off" oninput="onRefundNameInput()" onchange="onRefundNameChange()" onblur="setTimeout(function(){var b=document.getElementById('refundNameSug'); if(b) b.style.display='none';},180)" style="width:100%" data-page-node-id="QgD2EBvfQ2Vm051LWNfIfi"><div id="refundNameSug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:230px;overflow:auto;text-align:left;margin-top:2px"></div></label>
       <label data-page-node-id="lZGMgKZydSLUjOhlUkt7Uh">所在班级<input type="text" id="refundClass" placeholder="如:K1001" data-page-node-id="AedYxH25cB77EwGaqhMwlu"></label>
     </div>
     <div class="form-row" data-page-node-id="MvZ7E4YcO2JP41gstwYTHg">
@@ -2132,10 +2132,10 @@ function renderRefunds() {
 function openRefundModal(rid) {
   document.getElementById('refundEditId').value = rid || '';
   document.getElementById('refundModalTitle').textContent = rid ? '编辑退费记录' : '新增退费记录';
-  // 填充学员选单
+  // 学员姓名为搜索式输入框，无需填充长列表
   const sel = document.getElementById('refundName');
-  const opts = getEnrollmentOptions();
-  sel.innerHTML = '<option value="">-- 选择学员 --</option>' + opts.map(o => '<option value="' + escHtml(o.name) + '">' + escHtml(o.name) + (o.class_name ? '（' + escHtml(o.class_name) + '）' : '') + '</option>').join('');
+  const sug = document.getElementById('refundNameSug');
+  if (sug) sug.style.display = 'none';
   // 重置
   ['refundClass','refundTotal','refundBookFee','refundCourseHours','refundHours','refundUnitPrice','refundClassFee','refundBookRefund','refundDate','refundNote'].forEach(id => {
     const el = document.getElementById(id);
@@ -2160,6 +2160,29 @@ function openRefundModal(rid) {
     }
   }
   document.getElementById('refundModal').classList.add('show');
+}
+
+// ===== 新增退费：学员姓名搜索式选择 =====
+function onRefundNameInput() {
+  const box = document.getElementById('refundNameSug');
+  const q = document.getElementById('refundName').value.trim().toLowerCase();
+  if (!q) { box.style.display = 'none'; return; }
+  const opts = getEnrollmentOptions().filter(o => o.name.toLowerCase().indexOf(q) >= 0).slice(0, 10);
+  if (opts.length === 0) { box.style.display = 'none'; return; }
+  box.innerHTML = '<div style="padding:4px 10px;font-size:11px;color:#94a3b8">点击学员自动填入缴费信息</div>' + opts.map(o => {
+    const sub = [o.class_name, o.total_payment ? '缴费¥' + o.total_payment : '', o.course_hours ? o.course_hours + '课时' : ''].filter(Boolean).join(' · ');
+    return '<div onmousedown="pickRefundSug(this.getAttribute(\'data-n\'))" data-n="' + escHtml(o.name) + '" style="padding:7px 10px;cursor:pointer;border-top:1px solid #f1f5f9">' +
+      '<div style="font-weight:600;font-size:13px;color:#0f172a">' + escHtml(o.name) + '</div>' +
+      (sub ? '<div style="font-size:11px;color:#64748b">' + escHtml(sub) + '</div>' : '') + '</div>';
+  }).join('');
+  box.style.display = 'block';
+}
+
+function pickRefundSug(name) {
+  document.getElementById('refundName').value = name;
+  const box = document.getElementById('refundNameSug');
+  if (box) box.style.display = 'none';
+  onRefundNameChange();
 }
 
 function onRefundNameChange() {
