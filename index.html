@@ -421,6 +421,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <th style="width:70px" data-page-node-id="WJ2cvr9lKf8mzT5ZwYiWcJ">合计缴费</th>
           <th style="width:60px" data-page-node-id="EkC7qyroX2IFK0kMEcDepG">课单价</th>
           <th style="width:90px" data-page-node-id="9Gf6ETGqjfHeRZZRnLiIUr">是否领取报名礼物</th>
+          <th style="width:90px">礼物名称</th>
           <th style="width:140px" data-page-node-id="hIoEsZOEvaLfsSo3oPtQ4p">操作</th>
         </tr></thead>
         <tbody id="renewalTbody" data-page-node-id="ruFZWAm4hyRXlDHT3R6khB"></tbody>
@@ -767,7 +768,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <h3 id="renewalModalTitle" data-page-node-id="yZ3T9cXfgRUf4IsyrTZ04G">新增续费记录</h3>
     <input type="hidden" id="renewalEditId" data-page-node-id="M3KeWgcwymh2GPHo3myQCj">
     <div class="form-row" data-page-node-id="sZSdpIXfNeaf3ozQChdQWV">
-      <label data-page-node-id="URN9BoIdbzVMsEQndTTyJo">姓名*<input type="text" id="renewalName" data-page-node-id="AlsEaOgLPsfwgxzDyf1dQy"></label>
+      <label style="position:relative" data-page-node-id="URN9BoIdbzVMsEQndTTyJo">姓名*<input type="text" id="renewalName" autocomplete="off" oninput="onRenewalNameInput()" onblur="setTimeout(function(){var b=document.getElementById('renewalNameSug'); if(b) b.style.display='none';},180)" data-page-node-id="AlsEaOgLPsfwgxzDyf1dQy"><div id="renewalNameSug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:60;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:230px;overflow:auto;text-align:left;margin-top:2px"></div></label>
       <label data-page-node-id="Xum1tfUlMd0slDaeaypeLx">出生日期<input type="date" id="renewalBirthDate" onchange="onRenewalBirthChange()" data-page-node-id="uAV5l4AfBCESYAJdpVZS8c"></label>
       <label data-page-node-id="jEGaCHsgNnMFVwZNahCoUu">年龄<input type="text" id="renewalAge" readonly style="background:#f1f5f9;width:60px" data-page-node-id="xRx0EQDh3R43L0f8J5MKSJ"></label>
     </div>
@@ -1796,9 +1797,9 @@ function renderRenewals() {
   document.getElementById('renewalTbody').innerHTML = html || '<tr><td colspan="18" class="empty-state">暂无续费记录</td></tr>';
   const totalAmount = list.reduce((sum, r) => sum + (Number(r.total_payment) || 0), 0);
   document.getElementById('renewalTfoot').innerHTML = '<tr>' +
-    '<td colspan="15" style="text-align:right">合计金额：</td>' +
+    '<td colspan="13" style="text-align:right">合计金额：</td>' +
     '<td class="total-amount">¥' + totalAmount.toFixed(2) + '</td>' +
-    '<td colspan="2"></td>' +
+    '<td colspan="4"></td>' +
   '</tr>';
   fillRenewalFilters();
 }
@@ -1825,6 +1826,63 @@ function fillRenewalFilters() {
     sMon.innerHTML += '<option value="' + m + '">' + y + '年' + parseInt(mo) + '月</option>';
   });
   sMon.value = curMon || 'all';
+}
+
+// ===== 新增续费：姓名自动带出已有学员信息 =====
+// 数据源优先级：历史续费记录（信息最全）> 客户表 > 教务学员表（仅姓名/电话/班级）
+function renewalSugPool() {
+  const pool = {};
+  const put = (name, info) => {
+    if (!name) return;
+    const k = String(name).trim();
+    if (!k) return;
+    if (!pool[k]) pool[k] = { name: k };
+    Object.keys(info).forEach(key => { if (info[key] && !pool[k][key]) pool[k][key] = info[key]; });
+  };
+  _students.forEach(s => put(s.name, {
+    phone: s.phone || '',
+    current_class: (function(){ const c = _classes.find(x => x.id === s.class_id); return c ? (c.name || '') : ''; })()
+  }));
+  _customers.forEach(c => put(c.name, {
+    birth_date: c.birth_date || '', phone: c.phone || '', parent_name: c.parent || '', school: c.school || ''
+  }));
+  [..._renewals].sort((a, b) => (b.payment_date || '').localeCompare(a.payment_date || '')).forEach(r => put(r.student_name, {
+    birth_date: r.birth_date || '', phone: r.phone || '', parent_name: r.parent_name || '',
+    school: r.school || '', current_class: r.current_class || ''
+  }));
+  return pool;
+}
+
+function onRenewalNameInput() {
+  const box = document.getElementById('renewalNameSug');
+  const q = document.getElementById('renewalName').value.trim().toLowerCase();
+  if (!q) { box.style.display = 'none'; return; }
+  const pool = renewalSugPool();
+  const keys = Object.keys(pool).filter(k => k.toLowerCase().indexOf(q) >= 0).slice(0, 8);
+  if (keys.length === 0) { box.style.display = 'none'; return; }
+  box.innerHTML = '<div style="padding:4px 10px;font-size:11px;color:#94a3b8">点击学员自动填入信息</div>' + keys.map(k => {
+    const i = pool[k];
+    const sub = [i.current_class, i.phone, i.school].filter(Boolean).join(' · ');
+    const safeN = k.replace(/"/g, '&quot;');
+    return '<div onmousedown="pickRenewalSug(this.getAttribute(\'data-n\'))" data-n="' + safeN + '" style="padding:7px 10px;cursor:pointer;border-top:1px solid #f1f5f9">' +
+      '<div style="font-weight:600;font-size:13px;color:#0f172a">' + k + '</div>' +
+      (sub ? '<div style="font-size:11px;color:#64748b">' + sub + '</div>' : '') + '</div>';
+  }).join('');
+  box.style.display = 'block';
+}
+
+function pickRenewalSug(name) {
+  const info = renewalSugPool()[name];
+  if (info) {
+    document.getElementById('renewalName').value = info.name || name;
+    if (info.birth_date) { document.getElementById('renewalBirthDate').value = info.birth_date; onRenewalBirthChange(); }
+    document.getElementById('renewalPhone').value = info.phone || '';
+    document.getElementById('renewalParent').value = info.parent_name || '';
+    document.getElementById('renewalSchool').value = info.school || '';
+    if (info.current_class) document.getElementById('renewalClass').value = info.current_class;
+  }
+  const box = document.getElementById('renewalNameSug');
+  if (box) box.style.display = 'none';
 }
 
 function openRenewalModal(rid) {
