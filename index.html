@@ -245,6 +245,13 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .day-context-menu{position:fixed;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px 0;z-index:10000;min-width:140px;display:none;overflow:hidden}
 .day-context-menu .ctx-item{padding:8px 14px;font-size:13px;color:#334155;cursor:pointer;white-space:nowrap}
 .day-context-menu .ctx-item:hover{background:#eef4ff;color:#1d4ed8}
+/* 手机端适配：销售管理区表格改为横向滚动（列不再压缩省略），并禁止整页横向漂移（避免滑动时顶部导航跟着移走） */
+@media(max-width:768px){
+  html,body{overflow-x:hidden}
+  #sec-sales .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #sec-sales .tbl table{table-layout:auto;width:auto;min-width:1100px}
+  #sec-sales .fit-table th,#sec-sales .fit-table td{overflow:visible;text-overflow:clip}
+}
 </style>
 <link rel="dns-prefetch" href="https://chasxggorljjqqmficnh.supabase.co">
 <link rel="preconnect" href="https://chasxggorljjqqmficnh.supabase.co">
