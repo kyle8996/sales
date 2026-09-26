@@ -1461,6 +1461,7 @@ function renderCustomers() {
     '<th style="min-width:110px">学校</th>' +
     '<th style="min-width:120px">家庭住址</th>' +
       '<th style="min-width:140px">标签</th>' +
+      (isTrial ? '<th style="min-width:90px">Demo老师</th>' : '') +
       '<th style="min-width:80px">状态</th>' +
       '<th style="min-width:80px">跟进提醒</th>' +
     (isTrial ? '' : '<th style="min-width:140px">' + (_currentSubTab === 'promised' ? '试听时间' : '最近跟进') + '</th>') +
@@ -1547,6 +1548,7 @@ function renderCustomers() {
       '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.school||'') + '">' + (c.school||'') + '</div></td>' +
       '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (c.address||'') + '">' + (c.address||'') + '</div></td>' +
       '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + cTags + '">' + cTags + '</div></td>' +
+      (isTrial ? '<td>' + (c.demo_teacher || '无Demo') + '</td>' : '') +
       '<td><span class="' + stTag + '">' + (c.status||'未上门') + '</span></td>' +
       '<td>' + reminderBadgeHtml(remMap[c.id]) + '</td>' +
       (isTrial ? '' : '<td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto" title="' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '">' + (_currentSubTab === 'promised' ? trialDate : lastFollowDate) + '</div></td>') +
@@ -1565,7 +1567,7 @@ function renderCustomers() {
         ) +
       '</td></tr>';
   });
-  const colCount = isTrial ? 16 : 17;
+  const colCount = 17;
   document.getElementById('custTbody').innerHTML = html || '<tr><td colspan="' + colCount + '" class="empty-state">' + (isNopark ? '暂无未留电话客户' : '暂无客户') + '</td></tr>';
   updateReminderBadge();
 }
@@ -4027,7 +4029,8 @@ function exportTab() {
       });
     }
 
-    const headers = ['序号','姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'];
+    const isTrialExport = _currentSubTab === 'trial';
+    const headers = ['序号','姓名','出生日期','年龄','年级','学校','家长','电话','一级渠道','二级渠道','级别','状态','报名日期','报名班级','试听时间','跟进人','标签'].concat(isTrialExport ? ['Demo老师'] : []);
     const rows = list.map((c, idx) => {
       // 试听时间：带具体时间
       let trialDt = c.trial_date || '';
@@ -4038,10 +4041,11 @@ function exportTab() {
           trialDt = trialDt.substring(0,10) + ' ' + (sess ? (sess.start_time||'') : '');
         }
       }
-      return [
+      const base = [
         idx + 1, c.name||'', c.birth_date||'', calcAge(c.birth_date)||(c.age||''), c.grade||'', c.school||'', c.parent||'', c.phone||'',
         c.source_primary||'', c.source_secondary||c.source||'', c.level||'', c.status||'', c.enrollment_date||'', c.enrolled_class||'', trialDt, c.owner||'', c.tags||''
       ];
+      return isTrialExport ? base.concat([c.demo_teacher || '无Demo']) : base;
     });
     exportCSV(headers, rows, 'DK邻里客户管理_' + (_currentSubTab === 'trial' ? '已上门未报名_' : _currentSubTab === 'promised' ? '承诺上门_' : _currentSubTab === 'nopark' ? '未留电话_' : '未上门_') + new Date().toISOString().substring(0,10) + '.csv');
   } else if (_currentTab === 'trials') {
