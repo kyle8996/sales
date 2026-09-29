@@ -2020,23 +2020,42 @@ async function saveRenewal() {
 
 // 将销售系统续费课时同步到教务系统学员的 paid_hours
 async function syncRenewalToStudentHours(phone, studentName, deltaHours) {
-  if (!phone || !studentName || deltaHours === 0) return;
+  if (!studentName || deltaHours === 0) return;
   try {
-    const { data: stuRows, error: selErr } = await sb.from('students')
-      .select('id,paid_hours')
-      .eq('phone', phone)
-      .eq('name', studentName);
-    if (selErr) { console.error('同步课时查询失败:', selErr); return; }
-    if (!stuRows || stuRows.length === 0) {
-      console.warn('同步课时: 未找到匹配学员 phone=' + phone + ' name=' + studentName);
+    let stuRows = [];
+    // 优先按 电话+姓名 精确匹配
+    if (phone) {
+      const { data, error: selErr } = await sb.from('students')
+        .select('id,paid_hours')
+        .eq('phone', phone)
+        .eq('name', studentName);
+      if (selErr) { console.error('同步课时查询失败:', selErr); }
+      else stuRows = data || [];
+    }
+    // 兜底：仅按姓名匹配（学员可能刚录入教务、同步时电话不一致或为空）
+    if (stuRows.length === 0) {
+      const { data: byName, error: err2 } = await sb.from('students')
+        .select('id,paid_hours,phone')
+        .eq('name', studentName);
+      if (err2) { console.error('同步课时按姓名查询失败:', err2); return; }
+      stuRows = byName || [];
+    }
+    if (stuRows.length === 0) {
+      alert('⚠️ 续费课时未同步到教务系统！\n教务系统中未找到学员「' + studentName + '」（电话：' + (phone || '空') + '）。\n请先在教务系统录入该学员，再手动把 ' + deltaHours + ' 课时加到其「缴费课时」中。');
       return;
     }
     for (const stu of stuRows) {
       const newPaid = (parseFloat(stu.paid_hours) || 0) + deltaHours;
       const { error: updErr } = await sb.from('students').update({ paid_hours: newPaid }).eq('id', stu.id);
-      if (updErr) console.error('同步课时更新失败:', updErr);
+      if (updErr) {
+        console.error('同步课时更新失败:', updErr);
+        alert('⚠️ 续费课时同步失败：' + updErr.message + '\n请手动把 ' + deltaHours + ' 课时加到「' + studentName + '」的缴费课时中。');
+      }
     }
-  } catch(e) { console.error('同步课时异常:', e); }
+  } catch(e) {
+    console.error('同步课时异常:', e);
+    alert('⚠️ 续费课时同步异常：' + (e.message || e) + '\n请手动核对「' + studentName + '」的缴费课时。');
+  }
 }
 
 async function deleteRenewal(rid) {
