@@ -47,8 +47,10 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
 .ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
 /* 销售管理：与客户管理一致，使用默认卡片（文档流），内部表格在限定高度内滚动 */
+/* 卡片内含月度销售台账(约220px)，表格限高需相应扣除，避免卡片顶到视口底部 */
 #sec-sales:not(.active) .card{display:none}
 #sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0}
+#sec-sales .tbl{max-height:calc(100vh - 400px)}
 /* 试听月历：与客户管理一致，卡片随文档流，日历内容在限定高度内滚动 */
 #sec-trials .card#calendarCard{display:flex;flex-direction:column;overflow:hidden;margin-bottom:16px}
 #calendarCard h2{flex-shrink:0;margin:0;padding:10px 0}
