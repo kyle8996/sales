@@ -51,6 +51,13 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 #sec-sales:not(.active) .card{display:none}
 #sec-sales .container{padding-bottom:0}
 #sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0}
+/* 试听月历：与销售管理一致，固定面板圈定在视口内 */
+#sec-trials .card#calendarCard{position:fixed;top:98px;left:24px;right:24px;bottom:10px;z-index:80;display:flex;flex-direction:column;overflow:hidden;margin-bottom:0}
+#calendarCard h2{flex-shrink:0;margin:0;padding:10px 0}
+#calendarCard #trialCalendar{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+#calendarCard .month-header-row{flex-shrink:0}
+#calendarCard .month-grid{flex:1;min-height:0;grid-auto-rows:1fr}
+#calendarCard .month-day{min-height:0;overflow-y:auto}
 #sec-sales .tbl{flex:1;min-height:0;overflow:auto}
 #sec-sales .tbl thead{position:sticky;top:0;z-index:84}
 #sec-sales .tbl tfoot{position:sticky;bottom:0;z-index:84;background:#f8fafc;font-weight:600}
@@ -507,7 +514,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 <div class="section" id="sec-trials">
   <div class="container">
     <!-- 月历视图 -->
-    <div class="card">
+    <div class="card" id="calendarCard">
       <h2>试听月历
         <div class="month-nav" id="monthNav">
           <button onclick="shiftMonth(-1)">&#8249;</button>
@@ -1361,6 +1368,7 @@ function updateCounts() {
 }
 
 function switchTrialView(view) {
+  document.getElementById('calendarCard').style.display = view === 'calendar' ? '' : 'none';
   document.getElementById('trialCalendar').style.display = view === 'calendar' ? '' : 'none';
   document.getElementById('sessionsCard').style.display = view === 'sessions' ? '' : 'none';
   if (view === 'sessions') renderSessions();
