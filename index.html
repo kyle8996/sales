@@ -2012,10 +2012,42 @@ async function saveRenewal() {
     // 新增续费：同步课时到教务系统
     await syncRenewalToStudentHours(data.phone, data.student_name, hours);
   }
+  // 同步出生日期到学员表（生日提醒用）
+  await syncBirthDateToStudent(data.phone, data.student_name, data.birth_date);
   closeModal('renewalModal');
   renderRenewals();
   renderSalesLedger();
   if (_currentTab === 'revenue') refreshRevenueData();
+}
+
+// 将续费记录里的出生日期同步到学员表（生日提醒用）
+async function syncBirthDateToStudent(phone, studentName, birthDate) {
+  if (!studentName || !birthDate) return;
+  try {
+    // 优先按 电话+姓名 匹配，兜底按姓名
+    let stuRows = [];
+    if (phone) {
+      const { data, error: selErr } = await sb.from('students')
+        .select('id,birth_date').eq('phone', phone).eq('name', studentName);
+      if (selErr) { console.error('同步生日查询失败:', selErr); }
+      else stuRows = data || [];
+    }
+    if (stuRows.length === 0) {
+      const { data: byName, error: err2 } = await sb.from('students')
+        .select('id,birth_date').eq('name', studentName);
+      if (err2) { console.error('同步生日按姓名查询失败:', err2); return; }
+      stuRows = byName || [];
+    }
+    if (stuRows.length === 0) return;
+    const norm = ('' + birthDate).split('T')[0];
+    for (const stu of stuRows) {
+      const exist = stu.birth_date ? ('' + stu.birth_date).split('T')[0] : '';
+      if (exist === norm) continue; // 已一致，跳过
+      const { error: updErr } = await sb.from('students')
+        .update({ birth_date: norm }).eq('id', stu.id);
+      if (updErr) console.error('同步生日更新失败:', updErr);
+    }
+  } catch(e) { console.error('同步生日异常:', e); }
 }
 
 // 将销售系统续费课时同步到教务系统学员的 paid_hours
