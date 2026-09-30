@@ -46,19 +46,16 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger-card{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:10px;padding:12px 14px;border-left:4px solid var(--accent,#1d4ed8);box-shadow:0 2px 6px rgba(15,23,42,.2)}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
 .ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
-#sec-sales .container{padding-bottom:80px}
-#sec-sales .card{position:fixed;top:98px;left:24px;right:24px;bottom:10px;z-index:80;background:#fff;display:flex;flex-direction:column;overflow:hidden;padding-bottom:10px}
+/* 销售管理：与客户管理一致，使用默认卡片（文档流），内部表格在限定高度内滚动 */
 #sec-sales:not(.active) .card{display:none}
-#sec-sales .container{padding-bottom:0}
 #sec-sales .card h2{flex-shrink:0;margin:0;padding:10px 0}
-/* 试听月历：与销售管理一致，固定面板圈定在视口内 */
-#sec-trials .card#calendarCard{position:fixed;top:98px;left:24px;right:24px;bottom:10px;z-index:80;display:flex;flex-direction:column;overflow:hidden;margin-bottom:0}
+/* 试听月历：与客户管理一致，卡片随文档流，日历内容在限定高度内滚动 */
+#sec-trials .card#calendarCard{display:flex;flex-direction:column;overflow:hidden;margin-bottom:16px}
 #calendarCard h2{flex-shrink:0;margin:0;padding:10px 0}
-#calendarCard #trialCalendar{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+#calendarCard #trialCalendar{max-height:calc(100vh - 230px);display:flex;flex-direction:column;overflow:hidden}
 #calendarCard .month-header-row{flex-shrink:0}
 #calendarCard .month-grid{flex:1;min-height:0;grid-auto-rows:1fr}
 #calendarCard .month-day{min-height:0;overflow-y:auto}
-#sec-sales .tbl{flex:1;min-height:0;overflow:auto}
 #sec-sales .tbl thead{position:sticky;top:0;z-index:84}
 #sec-sales .tbl tfoot{position:sticky;bottom:0;z-index:84;background:#f8fafc;font-weight:600}
 #sec-sales .tbl tfoot td{background:#f8fafc;border-top:2px solid #e2e8f0}
