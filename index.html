@@ -87,6 +87,16 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar select,.toolbar input{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px}
 .toolbar label{font-size:12px;color:#64748b}
+/* 多选下拉组件（销售管理：渠道/班级/月份） */
+.msel{position:relative;display:inline-block}
+.msel-btn{padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;background:#fff;cursor:pointer;min-width:100px;display:flex;justify-content:space-between;align-items:center;gap:6px;color:#0f172a}
+.msel-btn.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:700}
+.msel-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:95;background:#fff;border:1px solid #e2e8f0;border-radius:9px;box-shadow:0 10px 30px rgba(15,23,42,.14);padding:6px;max-height:280px;overflow-y:auto;min-width:180px}
+.msel.open .msel-panel{display:block}
+.msel-item{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;color:#334155}
+.msel-item:hover{background:#f1f5f9}
+.msel-item input{accent-color:#2563eb;margin:0}
+.msel-item.msel-all{font-weight:700;color:#0f172a;border-bottom:1px solid #eef2f7;margin-bottom:4px;padding-bottom:7px}
 .btn{padding:7px 14px;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500}
 .btn-primary{background:#1d4ed8;color:#fff}
 .btn-primary:hover{background:#1e40af}
@@ -387,12 +397,12 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab-refund">退费学员</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
-          <select id="salesFilterSource" onchange="renderSales()"><option value="all">一级渠道</option></select>
+          <div class="msel" id="msel-salesSource"><button type="button" class="msel-btn" id="msel-salesSource-btn" onclick="mselToggle('salesSource', event)"><span id="msel-salesSource-label">一级渠道</span><span style="font-size:10px">▾</span></button><div class="msel-panel" id="msel-salesSource-panel"></div></div>
           <select id="salesFilterOwner" onchange="renderSales()"><option value="all">全部跟进人</option></select>
-          <select id="salesFilterClass" onchange="renderSales()"><option value="all">全部班级</option></select>
-          <select id="salesFilterMonth" onchange="renderSales()"><option value="all">全部月份</option></select>
+          <div class="msel" id="msel-salesClass"><button type="button" class="msel-btn" id="msel-salesClass-btn" onclick="mselToggle('salesClass', event)"><span id="msel-salesClass-label">全部班级</span><span style="font-size:10px">▾</span></button><div class="msel-panel" id="msel-salesClass-panel"></div></div>
+          <div class="msel" id="msel-salesMonth"><button type="button" class="msel-btn" id="msel-salesMonth-btn" onclick="mselToggle('salesMonth', event)"><span id="msel-salesMonth-label">全部月份</span><span style="font-size:10px">▾</span></button><div class="msel-panel" id="msel-salesMonth-panel"></div></div>
           <select id="salesFilterDemoTeacher" onchange="renderSales()"><option value="all">Demo老师</option><option value="Dora">Dora</option><option value="Cindy">Cindy</option><option value="无Demo">无Demo</option></select>
-          <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderSales()" style="width:180px">
+          <input type="text" id="salesFilterSearch" placeholder="搜索姓名/电话/学校/班级/住址..." oninput="renderSales()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal(null,'sales')">＋ 新增学员</button>
           <button class="btn btn-gray btn-sm" onclick="exportSales()">📥 导出</button>
         </div>
@@ -1603,6 +1613,53 @@ function renderCustomers() {
 }
 
 // ═══════════════════════════════════════
+// 多选下拉组件（销售管理：一级渠道/班级/月份）
+// _msel[key] = Set(选中值)；空 Set = 全部
+// ═══════════════════════════════════════
+const _msel = {};
+function mselToggle(key, ev) {
+  if (ev) ev.stopPropagation();
+  const el = document.getElementById('msel-' + key);
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.msel.open').forEach(e => e.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.msel.open').forEach(el => { if (!el.contains(e.target)) el.classList.remove('open'); });
+});
+function mselChange(key, val, checked) {
+  if (!_msel[key]) _msel[key] = new Set();
+  if (checked) _msel[key].add(val); else _msel[key].delete(val);
+  mselRefreshLabel(key);
+  renderSales();
+}
+function mselAll(key) {
+  _msel[key] = new Set();
+  document.querySelectorAll('#msel-' + key + '-panel input[data-opt]').forEach(cb => { cb.checked = false; });
+  mselRefreshLabel(key);
+  renderSales();
+}
+function mselRefreshLabel(key) {
+  const n = (_msel[key] || new Set()).size;
+  const label = document.getElementById('msel-' + key + '-label');
+  const btn = document.getElementById('msel-' + key + '-btn');
+  if (label) label.textContent = (label.dataset.title || '') + (n ? '（' + n + '）' : '');
+  if (btn) btn.classList.toggle('active', n > 0);
+}
+function mselFill(key, title, options) {
+  // options: [{value, label}]；保留仍有效的已选项
+  const cur = _msel[key] || new Set();
+  _msel[key] = new Set(options.filter(o => cur.has(o.value)).map(o => o.value));
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const panel = document.getElementById('msel-' + key + '-panel');
+  panel.innerHTML = '<label class="msel-item msel-all"><input type="checkbox"' + (_msel[key].size ? '' : ' checked') + ' onchange="mselAll(\'' + key + '\')">全部</label>'
+    + options.map(o => '<label class="msel-item"><input type="checkbox" data-opt="1" value="' + esc(o.value) + '"' + (_msel[key].has(o.value) ? ' checked' : '') + ' onchange="mselChange(\'' + key + '\', this.value, this.checked)"> ' + esc(o.label) + '</label>').join('');
+  const label = document.getElementById('msel-' + key + '-label');
+  if (label) label.dataset.title = title;
+  mselRefreshLabel(key);
+}
+
+// ═══════════════════════════════════════
 // 销售管理（已报名学员）
 // ═══════════════════════════════════════
 function fillSalesFilters() {
@@ -1611,31 +1668,22 @@ function fillSalesFilters() {
   const owners = [...new Set(signed.map(c => c.owner).filter(Boolean))];
   const classes = [...new Set(signed.map(c => c.enrolled_class).filter(Boolean))].sort();
 
-  const sSrc = document.getElementById('salesFilterSource');
-  sSrc.innerHTML = '<option value="all">一级渠道</option>';
-  sources.forEach(s => { sSrc.innerHTML += '<option>' + s + '</option>'; });
-
   const sOwn = document.getElementById('salesFilterOwner');
   sOwn.innerHTML = '<option value="all">全部跟进人</option>';
   owners.forEach(o => { sOwn.innerHTML += '<option>' + o + '</option>'; });
 
-  const sCls = document.getElementById('salesFilterClass');
-  sCls.innerHTML = '<option value="all">全部班级</option>';
-  classes.forEach(c => { sCls.innerHTML += '<option>' + c + '</option>'; });
+  mselFill('salesSource', '一级渠道', sources.map(s => ({ value: s, label: s })));
+  mselFill('salesClass', '全部班级', classes.map(c => ({ value: c, label: c })));
 
-  // 月份筛选（基于报名日期）
+  // 月份多选（基于报名日期）
   const months = [...new Set(signed.map(c => {
     const d = c.enrollment_date;
     return d ? d.substring(0, 7) : null;
   }).filter(Boolean))].sort().reverse();
-  const sMon = document.getElementById('salesFilterMonth');
-  const curMon = sMon.value;
-  sMon.innerHTML = '<option value="all">全部月份</option>';
-  months.forEach(m => {
+  mselFill('salesMonth', '全部月份', months.map(m => {
     const [y, mo] = m.split('-');
-    sMon.innerHTML += '<option value="' + m + '">' + y + '年' + parseInt(mo) + '月</option>';
-  });
-  sMon.value = months.length > 0 ? (curMon || 'all') : 'all';
+    return { value: m, label: y + '年' + parseInt(mo) + '月' };
+  }));
 }
 
 function cell(value, style) {
@@ -1680,19 +1728,19 @@ function renderSales() {
   updateCounts();
   let list = _customers.filter(c => c.status === '已报名');
 
-  const fSrc = document.getElementById('salesFilterSource').value;
   const fOwn = document.getElementById('salesFilterOwner').value;
-  const fCls = document.getElementById('salesFilterClass').value;
-  const fMon = document.getElementById('salesFilterMonth').value;
   const fDemo = document.getElementById('salesFilterDemoTeacher').value;
   const fQ   = document.getElementById('salesFilterSearch').value.toLowerCase();
+  const fSrcSet = _msel['salesSource'] || new Set();
+  const fClsSet = _msel['salesClass'] || new Set();
+  const fMonSet = _msel['salesMonth'] || new Set();
 
-  if (fSrc !== 'all') list = list.filter(c => (c.source_primary||'') === fSrc);
+  if (fSrcSet.size) list = list.filter(c => fSrcSet.has(c.source_primary || ''));
   if (fOwn !== 'all') list = list.filter(c => c.owner === fOwn);
-  if (fCls !== 'all') list = list.filter(c => c.enrolled_class === fCls);
-  if (fMon !== 'all') list = list.filter(c => (c.enrollment_date||'').startsWith(fMon));
+  if (fClsSet.size) list = list.filter(c => fClsSet.has(c.enrolled_class || ''));
+  if (fMonSet.size) list = list.filter(c => fMonSet.has((c.enrollment_date || '').substring(0, 7)));
   if (fDemo !== 'all') list = list.filter(c => (fDemo === '无Demo') ? !(c.demo_teacher) : (c.demo_teacher === fDemo));
-  if (fQ) list = list.filter(c => (c.name||'').toLowerCase().includes(fQ) || (c.phone||'').includes(fQ) || (c.school||'').toLowerCase().includes(fQ) || (c.enrolled_class||'').toLowerCase().includes(fQ));
+  if (fQ) list = list.filter(c => (c.name||'').toLowerCase().includes(fQ) || (c.phone||'').includes(fQ) || (c.school||'').toLowerCase().includes(fQ) || (c.enrolled_class||'').toLowerCase().includes(fQ) || (c.address||'').toLowerCase().includes(fQ));
 
   // 按报名日期倒序
   list.sort((a, b) => {
