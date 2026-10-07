@@ -355,7 +355,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
               <option value="06">6月</option>
               <option value="07">7月</option>
               <option value="08">8月</option>
-              <option value="09" selected>9月</option>
+              <option value="09">9月</option>
               <option value="10">10月</option>
               <option value="11">11月</option>
               <option value="12">12月</option>
@@ -1007,7 +1007,15 @@ async function loadAll() {
   _cacheSet('classes', _classes);
   _cacheSet('renewals', _renewals);
   _cacheSet('students', _students);
-  // 月度销售台账：数据更新后即时刷新（也覆盖各保存/删除路径的 loadAll 重载）
+  // 月度销售台账：首次进入按当前年月默认显示（避免写死默认值），之后保留用户手动选择的月份，不随数据刷新重置
+  const ly = document.getElementById('ledgerYear');
+  const lm = document.getElementById('ledgerMonth');
+  if (!_ledgerInit && ly && lm) {
+    const now = new Date();
+    ly.value = String(now.getFullYear());
+    lm.value = String(now.getMonth() + 1).padStart(2, '0');
+    _ledgerInit = true;
+  }
   renderSalesLedger();
 }
 
@@ -1411,6 +1419,7 @@ function setThisWeek() {
 }
 
 let _currentMonthYear = { year: new Date().getFullYear(), month: new Date().getMonth() };
+let _ledgerInit = false;
 
 function goThisMonth() {
   const now = new Date();
