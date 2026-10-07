@@ -3474,7 +3474,7 @@ function renderRevenue() {
   let html = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
     (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员未设置课单价，未计入合计；点击右侧「编辑」即可录入缴费批次。</span>' : '') +
     '</p>' +
-    '<div style="overflow:auto"><table class="rev-table">' +
+    '<div><table class="rev-table">' +
     '<thead><tr><th style="text-align:left">班级</th><th style="text-align:left">学员</th>' + monthHeads + '<th>确收合计</th><th>未消耗课时费用</th><th>状态</th><th>操作</th></tr></thead><tbody>';
 
   classes.forEach(({ cls, students }) => {
@@ -4021,7 +4021,7 @@ function renderSplit() {
     + '<th>剩余课时</th></tr>';
 
   container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
-    + '<div style="overflow:auto"><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
+    + '<div><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
     + '<tfoot><tr style="background:#fff;font-weight:700;font-size:15px;border-top:2px solid #cbd5e1">'
     + '<td colspan="8" style="text-align:left;font-size:15px;color:#0f172a">全部班级合计</td>'
     + months.map(m => '<td class="mon" style="color:#475569">' + m + '月分成合计</td>'
