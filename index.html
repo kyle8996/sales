@@ -537,6 +537,11 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         <div class="toolbar" id="referralToolbar" style="margin-left:auto;display:none">
           <input type="text" id="refRefSearch" placeholder="🔍 搜索在读推荐人姓名" oninput="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:180px">
           <input type="text" id="refNameSearch" placeholder="🔍 搜索孩子姓名" oninput="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
+          <select id="refUsedFilter" onchange="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px">
+            <option value="all">是否使用：全部</option>
+            <option value="used">已使用</option>
+            <option value="unused">未使用</option>
+          </select>
           <button class="btn btn-primary btn-sm" onclick="openReferralModal()">＋ 新增推荐</button>
           <span id="refSummary" style="font-size:12px;color:#ea580c;font-weight:600;white-space:nowrap"></span>
         </div>
@@ -1529,9 +1534,12 @@ function fillFilters() {
 function renderReferrals() {
   const qRef = (document.getElementById('refRefSearch').value || '').trim().toLowerCase();
   const qName = (document.getElementById('refNameSearch').value || '').trim().toLowerCase();
+  const usedF = (document.getElementById('refUsedFilter') || {}).value || 'all';
   let list = (_referrals || []).slice();
   if (qRef) list = list.filter(d => (d.referrer || '').toLowerCase().includes(qRef));
   if (qName) list = list.filter(d => (d.child_name || '').toLowerCase().includes(qName));
+  if (usedF === 'used') list = list.filter(d => !!d.used);
+  if (usedF === 'unused') list = list.filter(d => !d.used);
   // 默认按报名时间倒序（最新报名在前）
   list.sort((a, b) => (b.reg_date || '').localeCompare(a.reg_date || ''));
 
@@ -1550,8 +1558,11 @@ function renderReferrals() {
   // 摘要
   const total = (_referrals || []).length;
   const sumEl = document.getElementById('refSummary');
+  const usedLabel = usedF === 'used' ? '已使用' : (usedF === 'unused' ? '未使用' : '');
   if (qRef) {
     sumEl.textContent = '在读推荐人「' + qRef + '」共推荐 ' + list.length + ' 位学员（占 ' + total + ' 位中的 ' + list.length + ' 位）';
+  } else if (usedLabel) {
+    sumEl.textContent = usedLabel + '共 ' + list.length + ' 条（全部 ' + total + ' 条）· 涉及 ' + rankArr.length + ' 位在读推荐人';
   } else {
     sumEl.textContent = '共 ' + total + ' 位已报名学员 · 涉及 ' + rankArr.length + ' 位在读推荐人';
   }
@@ -4307,9 +4318,12 @@ function exportTab() {
     if (_currentSubTab === 'referral') {
       const qRef = (document.getElementById('refRefSearch').value || '').trim().toLowerCase();
       const qName = (document.getElementById('refNameSearch').value || '').trim().toLowerCase();
+      const expUsedF = (document.getElementById('refUsedFilter') || {}).value || 'all';
       let rlist = (_referrals || []).slice();
       if (qRef) rlist = rlist.filter(d => (d.referrer || '').toLowerCase().includes(qRef));
       if (qName) rlist = rlist.filter(d => (d.child_name || '').toLowerCase().includes(qName));
+      if (expUsedF === 'used') rlist = rlist.filter(d => !!d.used);
+      if (expUsedF === 'unused') rlist = rlist.filter(d => !d.used);
       rlist.sort((a, b) => (b.reg_date || '').localeCompare(a.reg_date || ''));
       const headers = ['序号', '孩子姓名', '手机号码', '一级渠道', '二级渠道', '报名时间', '在读推荐人', '是否使用'];
       const rows = rlist.map((d, i) => [i + 1, d.child_name || '', d.phone || '', d.primary_channel || '', d.secondary_channel || '', d.reg_date || '', d.referrer || '', d.used ? '已使用' : '未使用']);
