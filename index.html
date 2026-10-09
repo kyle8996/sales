@@ -220,6 +220,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .badge-trial{background:#fffbeb;color:#b45309}
 .badge-promised{background:#fff7ed;color:#c2410c}
 .badge-lead{background:#eef4ff;color:#1e40af}
+.badge-referral{background:#fff1e6;color:#ea580c}
 .badge-renewal{background:#fce7f3;color:#9d174d}
 .badge-refund{background:#fee2e2;color:#b91c1c}
 .refund-tag{display:inline-block;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:6px}
@@ -524,19 +525,41 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button onclick="switchSubTab('promised')" id="subtab-promised">承诺上门<span class="count-badge badge-promised" id="cnt-promised">0</span></button>
           <button onclick="switchSubTab('lead')" id="subtab-lead">未上门<span class="count-badge badge-lead" id="cnt-lead">0</span></button>
           <button onclick="switchSubTab('nopark')" id="subtab-nopark">未留电话<span class="count-badge badge-lead" id="cnt-nopark">0</span></button>
+          <button onclick="switchSubTab('referral')" id="subtab-referral">口碑推荐登记<span class="count-badge badge-referral" id="cnt-referral">0</span></button>
         </div>
-        <div class="toolbar" style="margin-left:auto">
+        <div class="toolbar" id="custToolbar" style="margin-left:auto">
           <select id="custFilterSource" onchange="renderCustomers()"><option value="all">一级渠道</option></select>
           <select id="custFilterLevel" onchange="renderCustomers()"><option value="all">客户级别</option></select>
           <select id="custFilterOwner" onchange="renderCustomers()"><option value="all">全部跟进人</option></select>
           <input type="text" id="custFilterSearch" placeholder="搜索姓名/电话/学校/班级..." oninput="renderCustomers()" style="width:180px">
           <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">＋ 新增客户</button>
         </div>
+        <div class="toolbar" id="referralToolbar" style="margin-left:auto;display:none">
+          <input type="text" id="refRefSearch" placeholder="🔍 搜索在读推荐人姓名" oninput="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:180px">
+          <input type="text" id="refNameSearch" placeholder="🔍 搜索孩子姓名" oninput="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
+          <span id="refSummary" style="font-size:12px;color:#ea580c;font-weight:600;white-space:nowrap"></span>
+        </div>
       </h2>
-      <div class="tbl"><table>
+      <div class="tbl" id="custTableWrap"><table>
         <thead id="custThead"><tr></tr></thead>
         <tbody id="custTbody"></tbody>
       </table></div>
+      <div id="referralPanel" style="display:none;flex:1;min-height:0;flex-direction:column">
+        <div id="refRank" style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;max-height:92px;overflow:auto"></div>
+        <div class="tbl"><table>
+          <thead id="referralThead"><tr>
+            <th style="min-width:50px">序号</th>
+            <th style="min-width:90px">孩子姓名</th>
+            <th style="min-width:110px">手机号码</th>
+            <th style="min-width:90px">一级渠道</th>
+            <th style="min-width:110px">二级渠道</th>
+            <th style="min-width:100px">报名时间</th>
+            <th style="min-width:110px">在读推荐人</th>
+            <th style="min-width:80px">是否使用</th>
+          </tr></thead>
+          <tbody id="referralTbody"></tbody>
+        </table></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1314,7 +1337,12 @@ function switchSubTab(sub) {
   _currentSubTab = sub;
   document.querySelectorAll('.subtabs button').forEach(b => b.classList.remove('active'));
   document.getElementById('subtab-'+sub).classList.add('active');
-  renderCustomers();
+  const isRef = sub === 'referral';
+  document.getElementById('custToolbar').style.display = isRef ? 'none' : '';
+  document.getElementById('custTableWrap').style.display = isRef ? 'none' : '';
+  document.getElementById('referralToolbar').style.display = isRef ? '' : 'none';
+  document.getElementById('referralPanel').style.display = isRef ? 'flex' : 'none';
+  if (isRef) renderReferrals(); else renderCustomers();
 }
 
 // 未留电话流转：park=true 流转到未留电话；park=false 转回未上门
@@ -1401,6 +1429,8 @@ function updateCounts() {
   document.getElementById('cnt-lead').textContent = _customers.filter(c => (c.status === '未上门' || !c.status || c.status === '新线索') && !c.trial_date && !c.phone_parked).length;
   const cntNopark = document.getElementById('cnt-nopark');
   if (cntNopark) cntNopark.textContent = _customers.filter(c => c.phone_parked).length;
+  const cntReferral = document.getElementById('cnt-referral');
+  if (cntReferral) cntReferral.textContent = (_referralRoster || []).length;
   const cntRenewal = document.getElementById('cnt-renewal');
   if (cntRenewal) cntRenewal.textContent = _renewals.length;
   const cntRefund = document.getElementById('cnt-refund');
@@ -1461,6 +1491,55 @@ function fillFilters() {
 // ═══════════════════════════════════════
 // 客户管理
 // ═══════════════════════════════════════
+// 口碑推荐登记：内置名单（已报名学员 + 在读推荐人），用于客户管理模块展示与按推荐人检索
+const _referralRoster = [{"name": "高雪晴", "phone": "13650919804", "primary": "口碑", "secondary": "口碑推荐", "reg": "2026-03-11", "referrer": "王凯琪", "used": "已使用"}, {"name": "王凯妮", "phone": "17665121323", "primary": "口碑", "secondary": "在读二宝", "reg": "2026-03-11", "referrer": "王凯琪", "used": "已使用"}, {"name": "林歆然", "phone": "18520766775", "primary": "口碑", "secondary": "在读二宝", "reg": "2026-03-11", "referrer": "林昱彤", "used": "已使用"}, {"name": "刘睿怡", "phone": "18588661246", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-12", "referrer": "王凯琪", "used": ""}, {"name": "黄雅莉", "phone": "15818980625", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-14", "referrer": "王凯妮", "used": ""}, {"name": "王骏铭", "phone": "15918795415", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-14", "referrer": "江诺伊", "used": "已使用"}, {"name": "邓善知", "phone": "13302331050", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-14", "referrer": "王凯妮", "used": ""}, {"name": "张沐晨", "phone": "15602207948", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-15", "referrer": "王凯妮", "used": ""}, {"name": "周诗静", "phone": "13660042336", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-22", "referrer": "林昱彤", "used": "已使用"}, {"name": "陈艺昕", "phone": "13610284447", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-03-29", "referrer": "黄雅莉", "used": ""}, {"name": "邬卓衡", "phone": "15118874339", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-01", "referrer": "苏灏渝", "used": "已使用"}, {"name": "何雨琪", "phone": "15975399062", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-12", "referrer": "雷承安", "used": ""}, {"name": "雷承安", "phone": "15879136961", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-15", "referrer": "何雨琪", "used": "已使用"}, {"name": "邱语汐", "phone": "18720791605", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-16", "referrer": "张文钰", "used": ""}, {"name": "周裕皓", "phone": "13535432761", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-18", "referrer": "邬卓衡", "used": ""}, {"name": "卢思广", "phone": "13342867182", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-23", "referrer": "高安歌", "used": "已使用"}, {"name": "唐甜君", "phone": "13713634069", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-04-30", "referrer": "李沛潼", "used": "已使用"}, {"name": "朱子钧", "phone": "15918455767", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-05-24", "referrer": "黄雅莉", "used": ""}, {"name": "胡昕悦", "phone": "13794356299", "primary": "Walkin", "secondary": "在读推荐", "reg": "2026-05-30", "referrer": "张沐晨", "used": ""}, {"name": "邬旻灏", "phone": "18820147787", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-06-10", "referrer": "邬卓衡", "used": ""}, {"name": "叶潼林", "phone": "13922498830", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-06-17", "referrer": "李逸少", "used": "已使用"}, {"name": "吴泰甫", "phone": "13512771901", "primary": "口碑", "secondary": "口碑推荐", "reg": "2026-06-27", "referrer": "李先泽", "used": ""}, {"name": "吴新潼", "phone": "13265066990", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-06-28", "referrer": "温嘉伦", "used": ""}, {"name": "高音希", "phone": "13660897582", "primary": "口碑", "secondary": "在读二宝", "reg": "2026-07-12", "referrer": "高安歌", "used": "已使用"}, {"name": "陈天然", "phone": "13670197302", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-07-13", "referrer": "刘菲尔", "used": ""}, {"name": "屈裕皓", "phone": "13751863190", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-05", "referrer": "邬淼", "used": "已使用"}, {"name": "邬淼", "phone": "13825182647", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-13", "referrer": "岑婉瑜", "used": ""}, {"name": "李知言", "phone": "18923097142", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-17", "referrer": "高安歌", "used": ""}, {"name": "梁炜婷", "phone": "18926260275", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-17", "referrer": "高安歌", "used": ""}, {"name": "张非晚", "phone": "18225288212", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-28", "referrer": "苏灏渝", "used": "已使用"}, {"name": "佘予墨", "phone": "18520263063", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-08-29", "referrer": "梁炜婷", "used": ""}, {"name": "张宜然", "phone": "16620098053", "primary": "口碑", "secondary": "小小演说家", "reg": "2026-09-01", "referrer": "张璟乐", "used": ""}, {"name": "项安琪", "phone": "13544570235", "primary": "口碑", "secondary": "口碑推荐", "reg": "2026-09-02", "referrer": "李知言", "used": ""}, {"name": "吴玥潼", "phone": "15814813310", "primary": "口碑", "secondary": "口碑推荐", "reg": "2026-09-02", "referrer": "张非晚", "used": ""}, {"name": "莫钦涵", "phone": "13711033904", "primary": "口碑", "secondary": "口碑推荐", "reg": "2026-09-03", "referrer": "胡昕悦", "used": ""}, {"name": "刘允浠", "phone": "13602222507", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-05", "referrer": "黄雅莉", "used": ""}, {"name": "敖宇梵", "phone": "15815844339", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-05", "referrer": "苏灏渝", "used": ""}, {"name": "王梓航", "phone": "13249150639", "primary": "口碑", "secondary": "小小演说家", "reg": "2026-09-07", "referrer": "张璟乐", "used": ""}, {"name": "叶泽宇", "phone": "17728170716", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-07", "referrer": "王梓航", "used": "已使用"}, {"name": "方浩轩", "phone": "18922181339", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-11", "referrer": "梁炜婷", "used": ""}, {"name": "何志成", "phone": "15975399062", "primary": "口碑", "secondary": "在读二宝", "reg": "2026-09-17", "referrer": "何雨琪", "used": ""}, {"name": "陈星镒", "phone": "15920139254", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-19", "referrer": "王梓航", "used": ""}, {"name": "黄惠一", "phone": "18102258072", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-26", "referrer": "孙谋为", "used": ""}, {"name": "孟祥晖", "phone": "15818166384", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-29", "referrer": "张璟乐", "used": ""}, {"name": "彭乐陶", "phone": "15902013082", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-29", "referrer": "高安歌", "used": ""}, {"name": "赵晞柠", "phone": "18926119996", "primary": "口碑", "secondary": "在读推荐", "reg": "2026-09-29", "referrer": "陈歌行", "used": ""}, {"name": "李梓渲", "phone": "13828813764", "primary": "口碑", "secondary": "在读二宝", "reg": "2026-10-07", "referrer": "李梓桐", "used": ""}];
+
+function renderReferrals() {
+  const qRef = (document.getElementById('refRefSearch').value || '').trim().toLowerCase();
+  const qName = (document.getElementById('refNameSearch').value || '').trim().toLowerCase();
+  let list = _referralRoster.slice();
+  if (qRef) list = list.filter(d => (d.referrer || '').toLowerCase().includes(qRef));
+  if (qName) list = list.filter(d => (d.name || '').toLowerCase().includes(qName));
+  // 默认按报名时间倒序（最新报名在前）
+  list.sort((a, b) => (b.reg || '').localeCompare(a.reg || ''));
+
+  // 推荐人排行：点击即按该推荐人筛选
+  const rank = {};
+  _referralRoster.forEach(d => { if (d.referrer) rank[d.referrer] = (rank[d.referrer] || 0) + 1; });
+  const rankArr = Object.keys(rank).map(n => ({ name: n, c: rank[n] })).sort((a, b) => b.c - a.c || a.name.localeCompare(b.name));
+  const rankEl = document.getElementById('refRank');
+  rankEl.innerHTML = rankArr.map(r => {
+    const active = qRef && (r.name || '').toLowerCase().includes(qRef);
+    const style = 'cursor:pointer;padding:3px 10px;border:1px solid #e2e8f0;background:#fff;border-radius:14px;font-size:12px' + (active ? ';border-color:#ea580c;color:#ea580c;font-weight:700' : '');
+    const js = "document.getElementById('refRefSearch').value='" + (r.name || '').replace(/'/g, "\\'") + "';renderReferrals()";
+    return '<span class="ref-chip" style="' + style + '" onclick="' + js.replace(/"/g, '&quot;') + '">' + (r.name || '未填写') + ' · ' + r.c + '</span>';
+  }).join('');
+
+  // 摘要：未搜索时看总盘，搜索时直接看到该推荐人推荐了几位
+  const total = _referralRoster.length;
+  const sumEl = document.getElementById('refSummary');
+  if (qRef) {
+    sumEl.textContent = '在读推荐人「' + qRef + '」共推荐 ' + list.length + ' 位学员（占 ' + total + ' 位中的 ' + list.length + ' 位）';
+  } else {
+    sumEl.textContent = '共 ' + total + ' 位已报名学员 · 涉及 ' + rankArr.length + ' 位在读推荐人';
+  }
+
+  let html = '';
+  list.forEach((d, i) => {
+    html += '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + (d.name || '') + '</td>' +
+      '<td>' + (d.phone || '') + '</td>' +
+      '<td>' + (d.primary || '') + '</td>' +
+      '<td>' + (d.secondary || '') + '</td>' +
+      '<td style="white-space:nowrap">' + (d.reg || '') + '</td>' +
+      '<td>' + (d.referrer || '') + '</td>' +
+      '<td>' + (d.used ? '<span style="color:#16a34a;font-weight:600">已使用</span>' : '<span style="color:#94a3b8">未使用</span>') + '</td>' +
+    '</tr>';
+  });
+  document.getElementById('referralTbody').innerHTML = html || '<tr><td colspan="8" class="empty-state">未找到匹配的推荐记录</td></tr>';
+}
+
 function calcAge(birthDateStr) {
   if (!birthDateStr) return '';
   try {
@@ -4133,6 +4212,18 @@ async function reorderSplitStudents(classId, dragId, targetId) {
 
 function exportTab() {
   if (_currentTab === 'customers') {
+    if (_currentSubTab === 'referral') {
+      const qRef = (document.getElementById('refRefSearch').value || '').trim().toLowerCase();
+      const qName = (document.getElementById('refNameSearch').value || '').trim().toLowerCase();
+      let rlist = _referralRoster.slice();
+      if (qRef) rlist = rlist.filter(d => (d.referrer || '').toLowerCase().includes(qRef));
+      if (qName) rlist = rlist.filter(d => (d.name || '').toLowerCase().includes(qName));
+      rlist.sort((a, b) => (b.reg || '').localeCompare(a.reg || ''));
+      const headers = ['序号', '孩子姓名', '手机号码', '一级渠道', '二级渠道', '报名时间', '在读推荐人', '是否使用'];
+      const rows = rlist.map((d, i) => [i + 1, d.name || '', d.phone || '', d.primary || '', d.secondary || '', d.reg || '', d.referrer || '', d.used || '']);
+      exportCSV(headers, rows, 'DK邻里口碑推荐登记_' + new Date().toISOString().substring(0, 10) + '.csv');
+      return;
+    }
     // 客户管理：根据当前子Tab和筛选条件导出
     let list;
     if (_currentSubTab === 'trial') list = _customers.filter(c => c.status === '已上门未报名');
