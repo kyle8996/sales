@@ -1108,12 +1108,30 @@ async function refreshTrialData() {
   } catch(e) { console.warn('refreshTrialData error:', e.message); }
 }
 
+// 分页拉全量考勤（按年份），避免 Supabase 单次 1000 行上限截断
+// 说明：attendance 表 2026 年已超 1000 行，若不分页，K2005 等高位 id 班级的记录会被丢弃，
+// 导致确收明细 / 课时分成无法跟随教务出勤更新（显示 0 或缺失）。
+async function fetchAttendanceByYear(year) {
+  let all = [];
+  let from = 0;
+  const PAGE = 1000;
+  while (true) {
+    const { data, error } = await sb.from('attendance').select('id,student_id,year,month,hours').eq('year', year).range(from, from + PAGE - 1);
+    if (error) return { error };
+    if (!data || data.length === 0) break;
+    all = all.concat(data);
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return { data: all };
+}
+
 // 重新拉取确收表依赖的数据（students/attendance/renewals/revenue_batches），确保跟随教务出勤变化
 async function refreshRevenueData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
     const [att, rb] = await Promise.all([
-      withTimeout(sb.from('attendance').select('id,student_id,year,month,hours').eq('year', REVENUE_YEAR), 12000),
+      withTimeout(fetchAttendanceByYear(REVENUE_YEAR), 15000),
       withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000)
     ]);
     if (att.data) _attendance = att.data;
