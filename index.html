@@ -1021,6 +1021,33 @@ else document.addEventListener('DOMContentLoaded', bootIfAuth);
 // ═══════════════════════════════════════
 // 数据加载
 // ═══════════════════════════════════════
+// 分页拉全量：解决 Supabase 单次最多返回 1000 行导致大表（如 followups 持续增长）被截断的问题。
+// makeQuery 必须返回一个“全新”的查询构造器（每次调用都重新 from+select，因为查询构造器是有状态的）。
+// 同时兼容线上 Supabase SDK 与本地镜像 makeLocalClient（两者都支持 .range()）。
+async function fetchAllRows(makeQuery, opts) {
+  const timeout = (opts && opts.timeout) || 12000;
+  const PAGE = 1000;
+  let from = 0, all = [];
+  while (true) {
+    let timer = null;
+    const timeoutP = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('fetchAllRows timeout')), timeout); });
+    try {
+      const res = await Promise.race([ makeQuery().range(from, from + PAGE - 1), timeoutP ]);
+      clearTimeout(timer);
+      if (res && res.error) return { error: res.error };
+      const data = (res && res.data) || [];
+      if (data.length === 0) break;
+      all = all.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    } catch (e) {
+      clearTimeout(timer);
+      return { error: e };
+    }
+  }
+  return { data: all };
+}
+
 async function loadAll() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
@@ -1043,13 +1070,13 @@ async function loadAll() {
   // 首屏必需数据：单批次并行（customers/followups/classes/renewals/students）
   // 懒加载表延后：attendance/revenue_batches → 确收表；trial_schedule/trial_sessions → 试听邀约
   const results = await Promise.allSettled([
-    withTimeout(sb.from('customers').select('*').order('created_at', {ascending: false})),
-    withTimeout(sb.from('followups').select('*').order('created_at', {ascending: false})),
-    withTimeout(sb.from('classes').select('*').order('id', {ascending: true})),
-    withTimeout(sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
-    withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours'), 8000),
-    withTimeout(sb.from('refunds').select('*').order('created_at', {ascending: false})),
-    withTimeout(sb.from('referrals').select('*').order('reg_date', {ascending: false}))
+    fetchAllRows(() => sb.from('customers').select('*').order('created_at', {ascending: false})),
+    fetchAllRows(() => sb.from('followups').select('*').order('created_at', {ascending: false})),
+    fetchAllRows(() => sb.from('classes').select('*').order('id', {ascending: true})),
+    fetchAllRows(() => sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
+    fetchAllRows(() => sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours')),
+    fetchAllRows(() => sb.from('refunds').select('*').order('created_at', {ascending: false})),
+    fetchAllRows(() => sb.from('referrals').select('*').order('reg_date', {ascending: false}))
   ]);
   const get = (i) => results[i].status === 'fulfilled' ? (results[i].value.data || []) : [];
   _customers = get(0);
@@ -1085,8 +1112,8 @@ async function ensureTrialData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
     const [ts, sess] = await Promise.all([
-      withTimeout(sb.from('trial_schedule').select('*')),
-      withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
+      fetchAllRows(() => sb.from('trial_schedule').select('*')),
+      fetchAllRows(() => sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
     ]);
     if (ts.data) _trialSchedule = ts.data;
     if (sess.data) _trialSessions = sess.data;
@@ -1099,8 +1126,8 @@ async function refreshTrialData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
     const [ts, sess] = await Promise.all([
-      withTimeout(sb.from('trial_schedule').select('*')),
-      withTimeout(sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
+      fetchAllRows(() => sb.from('trial_schedule').select('*')),
+      fetchAllRows(() => sb.from('trial_sessions').select('*').order('session_date', {ascending: true}))
     ]);
     if (ts.data) _trialSchedule = ts.data;
     if (sess.data) _trialSessions = sess.data;
