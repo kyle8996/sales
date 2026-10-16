@@ -2939,6 +2939,14 @@ async function saveFollowup() {
 // ═══════════════════════════════════════
 // 转为学员
 // ═══════════════════════════════════════
+// 班级阶段排序：K1→K2→S1~S6→其他(SH暑假班等)
+function classStageIdx(n) {
+  n = String(n || '').toUpperCase();
+  const m = n.match(/^(K[12]|S[1-6])/);
+  if (!m) return 99;
+  return m[1][0] === 'K' ? parseInt(m[1][1], 10) : 2 + parseInt(m[1][1], 10);
+}
+
 function openConvertModal(cid) {
   const c = _customers.find(x => x.id === cid);
   if (!c) return;
@@ -2951,7 +2959,10 @@ function openConvertModal(cid) {
   
   const sel = document.getElementById('convertClass');
   sel.innerHTML = '<option value="">请选择班级</option>';
-  _classes.forEach(cl => {
+  _classes.slice().sort((a, b) =>
+    classStageIdx(a.name) - classStageIdx(b.name) ||
+    String(a.name||'').localeCompare(String(b.name||''), 'zh-Hans-CN', { numeric: true })
+  ).forEach(cl => {
     sel.innerHTML += '<option value="' + cl.id + '">' + (cl.name||'') + '</option>';
   });
   document.getElementById('convertHours').value = '64';
