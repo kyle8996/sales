@@ -542,6 +542,11 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
             <option value="used">已使用</option>
             <option value="unused">未使用</option>
           </select>
+          <select id="refCouponFilter" onchange="renderReferrals()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px">
+            <option value="all">纸质券：全部</option>
+            <option value="given">已发券</option>
+            <option value="notgiven">未发券</option>
+          </select>
           <button class="btn btn-primary btn-sm" onclick="openReferralModal()">＋ 新增推荐</button>
           <span id="refSummary" style="font-size:12px;color:#ea580c;font-weight:600;white-space:nowrap"></span>
         </div>
@@ -562,6 +567,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
             <th style="min-width:100px">报名时间</th>
             <th style="min-width:110px">在读推荐人</th>
             <th style="min-width:80px">是否使用</th>
+            <th style="min-width:80px">纸质券</th>
             <th style="min-width:70px">操作</th>
           </tr></thead>
           <tbody id="referralTbody"></tbody>
@@ -944,6 +950,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     </div>
     <div class="form-row">
       <label>是否使用<select id="refUsed"><option value="false">未使用</option><option value="true">已使用</option></select></label>
+      <label>纸质券<select id="refCoupon"><option value="false">未发券</option><option value="true">已发券</option></select></label>
     </div>
     <div class="modal-actions">
       <button class="btn btn-gray" onclick="closeModal('referralModal')">取消</button>
@@ -1580,11 +1587,14 @@ function renderReferrals() {
   const qRef = (document.getElementById('refRefSearch').value || '').trim().toLowerCase();
   const qName = (document.getElementById('refNameSearch').value || '').trim().toLowerCase();
   const usedF = (document.getElementById('refUsedFilter') || {}).value || 'all';
+  const coupF = (document.getElementById('refCouponFilter') || {}).value || 'all';
   let list = (_referrals || []).slice();
   if (qRef) list = list.filter(d => (d.referrer || '').toLowerCase().includes(qRef));
   if (qName) list = list.filter(d => (d.child_name || '').toLowerCase().includes(qName));
   if (usedF === 'used') list = list.filter(d => !!d.used);
   if (usedF === 'unused') list = list.filter(d => !d.used);
+  if (coupF === 'given') list = list.filter(d => !!d.coupon_given);
+  if (coupF === 'notgiven') list = list.filter(d => !d.coupon_given);
   // 默认按报名时间倒序（最新报名在前）
   list.sort((a, b) => (b.reg_date || '').localeCompare(a.reg_date || ''));
 
@@ -1602,20 +1612,25 @@ function renderReferrals() {
 
   // 摘要
   const total = (_referrals || []).length;
+  const coupGiven = (_referrals || []).filter(d => !!d.coupon_given).length;
+  const coupStat = ' · 已发券 ' + coupGiven + ' / 未发券 ' + (total - coupGiven);
   const sumEl = document.getElementById('refSummary');
   const usedLabel = usedF === 'used' ? '已使用' : (usedF === 'unused' ? '未使用' : '');
+  const coupLabel = coupF === 'given' ? '已发券' : (coupF === 'notgiven' ? '未发券' : '');
   if (qRef) {
     sumEl.textContent = '在读推荐人「' + qRef + '」共推荐 ' + list.length + ' 位学员（占 ' + total + ' 位中的 ' + list.length + ' 位）';
-  } else if (usedLabel) {
-    sumEl.textContent = usedLabel + '共 ' + list.length + ' 条（全部 ' + total + ' 条）· 涉及 ' + rankArr.length + ' 位在读推荐人';
+  } else if (usedLabel || coupLabel) {
+    sumEl.textContent = [usedLabel, coupLabel].filter(Boolean).join(' + ') + '共 ' + list.length + ' 条（全部 ' + total + ' 条）· 涉及 ' + rankArr.length + ' 位在读推荐人' + coupStat;
   } else {
-    sumEl.textContent = '共 ' + total + ' 位已报名学员 · 涉及 ' + rankArr.length + ' 位在读推荐人';
+    sumEl.textContent = '共 ' + total + ' 位已报名学员 · 涉及 ' + rankArr.length + ' 位在读推荐人' + coupStat;
   }
 
   let html = '';
   list.forEach((d, i) => {
     const usedTxt = d.used ? '已使用' : '未使用';
     const usedCls = d.used ? 'background:#dcfce7;color:#16a34a;border-color:#86efac' : 'background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0';
+    const coupTxt = d.coupon_given ? '已发券' : '未发券';
+    const coupCls = d.coupon_given ? 'background:#dcfce7;color:#16a34a;border-color:#86efac' : 'background:#fff7ed;color:#ea580c;border-color:#fdba74';
     html += '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + '</td>' +
@@ -1625,10 +1640,11 @@ function renderReferrals() {
       '<td style="white-space:nowrap">' + (d.reg_date || '') + '</td>' +
       '<td>' + (d.referrer || '') + '</td>' +
       '<td><button class="ref-used-btn" style="cursor:pointer;padding:2px 10px;border:1px solid;' + usedCls + ';border-radius:12px;font-size:12px;font-weight:600" onclick="toggleReferralUsed(' + d.id + ',' + (d.used ? 'true' : 'false') + ')">' + usedTxt + '</button></td>' +
+      '<td><button class="ref-used-btn" style="cursor:pointer;padding:2px 10px;border:1px solid;' + coupCls + ';border-radius:12px;font-size:12px;font-weight:600" onclick="toggleReferralCoupon(' + d.id + ',' + (d.coupon_given ? 'true' : 'false') + ')">' + coupTxt + '</button></td>' +
       '<td style="text-align:center"><button class="btn btn-gray btn-sm" style="padding:2px 8px" onclick="deleteReferral(' + d.id + ')">删除</button></td>' +
     '</tr>';
   });
-  document.getElementById('referralTbody').innerHTML = html || '<tr><td colspan="9" class="empty-state">未找到匹配的推荐记录</td></tr>';
+  document.getElementById('referralTbody').innerHTML = html || '<tr><td colspan="10" class="empty-state">未找到匹配的推荐记录</td></tr>';
 }
 
 // ═══════════════════════════════════════
@@ -1645,6 +1661,7 @@ function openReferralModal() {
   ['refChildName','refPhone','refPrimary','refSecondary','refRegDate','refReferrer'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('refPrimary').value = '口碑';
   document.getElementById('refUsed').value = 'false';
+  document.getElementById('refCoupon').value = 'false';
   document.getElementById('referralModal').classList.add('show');
   setTimeout(() => { const el = document.getElementById('refChildName'); if (el) el.focus(); }, 100);
 }
@@ -1659,7 +1676,8 @@ async function saveReferral() {
     secondary_channel: (document.getElementById('refSecondary').value || '').trim(),
     reg_date: (document.getElementById('refRegDate').value || '').trim(),
     referrer: (document.getElementById('refReferrer').value || '').trim(),
-    used: document.getElementById('refUsed').value === 'true'
+    used: document.getElementById('refUsed').value === 'true',
+    coupon_given: document.getElementById('refCoupon').value === 'true'
   };
   const { error } = await sb.from('referrals').insert([payload]);
   if (error) { showToast('保存失败: ' + (error.message || ''), false); return; }
@@ -1686,6 +1704,16 @@ async function toggleReferralUsed(id, cur) {
   if (rec) rec.used = next;
   renderReferrals();
   showToast(next ? '已标记为「已使用」' : '已标记为「未使用」');
+}
+
+async function toggleReferralCoupon(id, cur) {
+  const next = !cur;
+  const { error } = await sb.from('referrals').update({ coupon_given: next }).eq('id', id);
+  if (error) { showToast('更新失败: ' + (error.message || '（若提示字段不存在，请先在 Supabase 执行 add_coupon_given.sql）'), false); return; }
+  const rec = (_referrals || []).find(r => r.id === id);
+  if (rec) rec.coupon_given = next;
+  renderReferrals();
+  showToast(next ? '已标记为「已发券」' : '已标记为「未发券」');
 }
 
 function calcAge(birthDateStr) {
