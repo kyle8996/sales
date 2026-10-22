@@ -4169,6 +4169,8 @@ function renderSplit() {
   const classSel = document.getElementById('splitClassFilter');
   const yearLbl = document.getElementById('splitYearLabel');
   const nameSearch = (document.getElementById('splitNameSearch').value || '').toLowerCase();
+  // 已退费学员（refunds 表）不计入课时分成
+  const refundedNames = new Set((_refunds || []).map(r => (r.student_name || '').trim()).filter(Boolean));
   // 初始化合作老师下拉（仅一次）：取班级 schedule.teacher（JSONB），排除非合作老师 Dora
   const getTeacherOf = c => (c.schedule && c.schedule.teacher) || c.teacher || '';
   if (teacherSel && teacherSel.options.length === 0) {
@@ -4254,6 +4256,7 @@ function renderSplit() {
 
   splitClasses.forEach(cls => {
     const stu = _students.filter(s => s.class_id === cls.id)
+      .filter(s => !refundedNames.has((s.name || '').trim()))
       .filter(s => !nameSearch || (s.name || '').toLowerCase().includes(nameSearch))
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     if (stu.length === 0) return;
@@ -4509,6 +4512,7 @@ function exportSplit() {
   let grandTotal = 0;
   splitClasses.forEach(cls => {
     const stu = _students.filter(s => s.class_id === cls.id)
+      .filter(s => !refundedNames.has((s.name || '').trim()))
       .filter(s => !nameSearch || (s.name || '').toLowerCase().includes(nameSearch))
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     if (stu.length === 0) return;
