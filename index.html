@@ -659,6 +659,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
             <input type="checkbox" id="showGradClass" onchange="renderRevenue()"> 🏫 显示毕业班级
           </label>
           <input type="text" id="revNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderRevenue()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
+          <div id="revSummaryBar" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-gray btn-sm" onclick="syncRevenueBatchesFromSales().then(() => { renderRevenue(); showToast('缴费批次已同步'); })">🔄 同步缴费批次</button>
@@ -3793,6 +3794,18 @@ function renderRevenue() {
   const { year, currentMonth, months, classes, grandTotal, remainingTotal, monthlyTotals, nopriceCount } = data;
 
   const monthHeads = months.map(m => '<th>' + m + '月</th>').join('');
+
+  // 顶部工具栏三项金额：与页面底部合计完全同源，免得每次滚动到最底下查看
+  const sumBar = document.getElementById('revSummaryBar');
+  if (sumBar) {
+    const pill = (label, val, color, bg, border) =>
+      '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid ' + border + ';border-radius:8px;background:' + bg + ';font-size:12px;color:#475569;white-space:nowrap">' +
+      label + '<b style="font-size:15px;color:' + color + '">¥' + val + '</b></span>';
+    sumBar.innerHTML =
+      pill('本月确收（' + currentMonth + '月）', (monthlyTotals[currentMonth] || 0).toFixed(1), '#2563eb', '#eff6ff', '#bfdbfe') +
+      pill('校区总确收合计', grandTotal.toFixed(1), '#1d4ed8', '#eef2ff', '#c7d2fe') +
+      pill('未消耗课时费用', Math.round(remainingTotal), '#ea580c', '#fff7ed', '#fed7aa');
+  }
 
   let html = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
     (nopriceCount > 0 ? ' <span style="color:#dc2626">红色行共 ' + nopriceCount + ' 名学员未设置课单价，未计入合计；点击右侧「编辑」即可录入缴费批次。</span>' : '') +
