@@ -1089,7 +1089,7 @@ async function loadAll() {
     fetchAllRows(() => sb.from('followups').select('*').order('created_at', {ascending: false})),
     fetchAllRows(() => sb.from('classes').select('*').order('id', {ascending: true})),
     fetchAllRows(() => sb.from('renewals').select('*').eq('source', 'sales').order('created_at', {ascending: false})),
-    fetchAllRows(() => sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours')),
+    fetchAllRows(() => sb.from('students').select('*')),
     fetchAllRows(() => sb.from('refunds').select('*').order('created_at', {ascending: false})),
     fetchAllRows(() => sb.from('referrals').select('*').order('reg_date', {ascending: false}))
   ]);
@@ -1642,7 +1642,7 @@ function renderReferrals() {
     const coupCls = d.coupon_given ? 'background:#dcfce7;color:#16a34a;border-color:#86efac' : 'background:#fff7ed;color:#ea580c;border-color:#fdba74';
     html += '<tr>' +
       '<td>' + (i + 1) + '</td>' +
-      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + genderBadge(d, d.child_name, gmap, custIdByName(d.child_name)) + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + genderBadge(d, d.child_name, gmap, genderTargetKey(d.child_name)) + '</td>' +
       '<td>' + (d.phone || '') + '</td>' +
       '<td>' + (d.primary_channel || '') + '</td>' +
       '<td>' + (d.secondary_channel || '') + '</td>' +
@@ -1968,13 +1968,21 @@ function cell(value, style, suffix) {
 }
 
 // ===== 性别显示与列表快捷修改 =====
-// 客户表(customers.gender)为唯一数据源；续费 / 退费 / 口碑推荐等列表按姓名关联显示。
-// 列表里的性别徽章可直接点选，写入客户表后所有列表与编辑窗口同步生效。
+// 两个数据源，按姓名关联，客户表优先：
+//   1) customers.gender —— 正常招生流程登记的学员（可在客户编辑窗口维护）
+//   2) students.gender  —— 年前报名缴费、客户管理里没有招生记录的学员；性别挂在教务学员名册上，
+//                          不需要在客户管理新增记录，也不会影响客户数量 / 转化率统计。
+// 列表里的性别徽章可直接点选，写入对应记录后所有列表与编辑窗口同步生效。
 function genderMap() {
   const m = {};
   (_customers || []).forEach(function (c) {
     const n = String(c.name || '').trim();
     const g = String(c.gender || '').trim();
+    if (n && g && !m[n]) m[n] = g;
+  });
+  (_students || []).forEach(function (s) {
+    const n = String(s.name || '').trim();
+    const g = String(s.gender || '').trim();
     if (n && g && !m[n]) m[n] = g;
   });
   return m;
@@ -1985,8 +1993,22 @@ function custIdByName(name) {
   const hit = (_customers || []).find(c => String(c.name || '').trim() === n);
   return hit ? hit.id : null;
 }
+function studentIdByName(name) {
+  const n = String(name || '').trim();
+  if (!n) return null;
+  const hit = (_students || []).find(s => String(s.name || '').trim() === n);
+  return hit ? hit.id : null;
+}
+// 徽章的写入目标：'c:<客户id>' 或 's:<学员id>'；两个表都找不到时返回 ''（只读）。
+function genderTargetKey(name) {
+  const cid = custIdByName(name);
+  if (cid != null) return 'c:' + cid;
+  const sid = studentIdByName(name);
+  if (sid != null) return 's:' + sid;
+  return '';
+}
 // ===== 性别筛选 =====
-// 取值与列表徽章保持同源：优先行自身 gender，其次按姓名从客户表关联。
+// 取值与列表徽章保持同源：优先行自身 gender，其次按姓名关联（客户表优先，其次教务学员名册）。
 // noFallback=true：只看本条记录自身的 gender（新招学员数据就在 customers 里，
 // 避免同名重复登记时借用另一条的性别，导致「未填写」筛不出真正待补录的人）。
 function genderOf(row, name, gmap, noFallback) {
@@ -2027,20 +2049,23 @@ function updateGenderFilterOptions(selId, list, getName, gmap, noFallback) {
     if (labels[o.value]) o.textContent = labels[o.value];
   });
 }
-function genderBadge(row, name, gmap, cid) {
+function genderBadge(row, name, gmap, key) {
   let g = String((row && row.gender) || '').trim();
   if (!g) g = (gmap || {})[String(name || '').trim()] || '';
-  if (cid == null) cid = custIdByName(name);
+  let k = key;
+  if (typeof k === 'number') k = 'c:' + k;          // 兼容旧调用（纯数字＝客户 id）
+  if (!k) k = genderTargetKey(name);                  // 未指定时自动找可写入的记录
   const base = 'display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;font-size:11px;font-weight:600;line-height:1.5;vertical-align:middle;white-space:nowrap;';
   let color, label;
   if (g === '男') { color = 'background:#e0f2fe;color:#0369a1'; label = '男'; }
   else if (g === '女') { color = 'background:#fce7f3;color:#be185d'; label = '女'; }
   else { color = 'background:#f1f5f9;color:#94a3b8'; label = '—'; }
-  if (cid == null) {
-    return '<span style="' + base + color + '" title="客户表中无同名学员，请先在客户管理新增">' + label + '</span>';
+  if (!k) {
+    return '<span style="' + base + color + '" title="客户表和学员名册中都找不到同名学员">' + label + '</span>';
   }
-  return '<span style="' + base + color + ';cursor:pointer" title="点击修改性别" ' +
-    'onclick="openGenderPicker(event,this,' + cid + ',\'' + g + '\')">' + label + '</span>';
+  const tip = String(k).indexOf('s:') === 0 ? '点击修改性别（年前学员 · 存学员名册）' : '点击修改性别';
+  return '<span style="' + base + color + ';cursor:pointer" title="' + tip + '" ' +
+    'onclick="openGenderPicker(event,this,\'' + k + '\',\'' + g + '\')">' + label + '</span>';
 }
 let _genderPickerAt = 0;
 function closeGenderPicker() {
@@ -2051,7 +2076,7 @@ function closeGenderPicker() {
 function closeGenderPickerOnViewport() {
   if (Date.now() - _genderPickerAt > 350) closeGenderPicker();
 }
-function openGenderPicker(e, btn, cid, cur) {
+function openGenderPicker(e, btn, key, cur) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
   closeGenderPicker();
   const r = btn.getBoundingClientRect();
@@ -2076,20 +2101,38 @@ function openGenderPicker(e, btn, cid, cur) {
     b.onclick = function (ev) {
       ev.preventDefault(); ev.stopPropagation();
       closeGenderPicker();
-      setGender(cid, o[0]);
+      setGender(key, o[0]);
     };
     box.appendChild(b);
   });
   document.body.appendChild(box);
   _genderPickerAt = Date.now();
 }
-async function setGender(cid, value) {
+async function setGender(key, value) {
   const v = value || null;
-  const { error } = await sb.from('customers').update({ gender: v }).eq('id', cid);
-  if (error) { showToast('性别保存失败：' + (error.message || ''), false); return; }
-  const c = (_customers || []).find(x => x.id === cid);
-  if (c) c.gender = v;
-  try { _cacheSet('customers', _customers); } catch (e) {}
+  const k = String(key || '');
+  const isStudent = k.indexOf('s:') === 0;
+  const id = parseInt(k.slice(2), 10);
+  if (!Number.isFinite(id)) { showToast('找不到可写入的学员记录', false); return; }
+  const table = isStudent ? 'students' : 'customers';
+  const { error } = await sb.from(table).update({ gender: v }).eq('id', id);
+  if (error) {
+    if (/gender/i.test(error.message || '')) {
+      showToast('请先在 Supabase SQL Editor 执行 add_students_gender.sql 建性别列', false);
+    } else {
+      showToast('性别保存失败：' + (error.message || ''), false);
+    }
+    return;
+  }
+  if (isStudent) {
+    const s = (_students || []).find(x => x.id === id);
+    if (s) s.gender = v;
+    try { _cacheSet('students', _students); } catch (e) {}
+  } else {
+    const c = (_customers || []).find(x => x.id === id);
+    if (c) c.gender = v;
+    try { _cacheSet('customers', _customers); } catch (e) {}
+  }
   // 一处修改，所有列表 + 编辑窗口数据源同步刷新
   try { renderCustomers(); renderSales(); renderRenewals(); renderRefunds(); renderReferrals(); } catch (e) {}
   showToast(v ? '性别已设为「' + v + '」' : '已清除性别');
@@ -2279,7 +2322,7 @@ function renderRenewals() {
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (r.payment_date||'') + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + genderBadge(r, r.student_name, gmap, custIdByName(r.student_name)) + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + genderBadge(r, r.student_name, gmap, genderTargetKey(r.student_name)) + '</td>' +
       '<td>' + (r.birth_date||'') + '</td>' +
       '<td>' + age + '</td>' +
       '<td>' + (r.phone||'') + '</td>' +
@@ -2670,7 +2713,7 @@ function renderRefunds() {
     sumClassFee += classFee; sumBookFee += bookFee;
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + genderBadge(r, r.student_name, gmap, custIdByName(r.student_name)) + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + genderBadge(r, r.student_name, gmap, genderTargetKey(r.student_name)) + '</td>' +
       '<td>' + (r.class_name || '') + '</td>' +
       '<td>¥' + fmtMoney(r.total_payment) + '</td>' +
       '<td>¥' + fmtMoney(r.book_fee) + '</td>' +
@@ -4541,7 +4584,7 @@ function renderSplit() {
 }
 async function refreshStudentsData() {
   try {
-    const r = await withTimeout(sb.from('students').select('id,name,class_id,phone,sort_order,status,paid_hours,remaining_hours'), 8000);
+    const r = await withTimeout(sb.from('students').select('*'), 8000);
     if (r.data) _students = r.data;
   } catch(e) { console.warn('refreshStudentsData error:', e.message); }
 }
