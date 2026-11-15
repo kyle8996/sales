@@ -1994,9 +1994,14 @@ function genderBadge(row, name, gmap, cid) {
   return '<span style="' + base + color + ';cursor:pointer" title="点击修改性别" ' +
     'onclick="openGenderPicker(event,this,' + cid + ',\'' + g + '\')">' + label + '</span>';
 }
+let _genderPickerAt = 0;
 function closeGenderPicker() {
   const p = document.getElementById('genderPicker');
   if (p) p.remove();
+}
+// 触控板滚动惯性可能在点开菜单后仍派发 scroll，350ms 内忽略，避免菜单闪退
+function closeGenderPickerOnViewport() {
+  if (Date.now() - _genderPickerAt > 350) closeGenderPicker();
 }
 function openGenderPicker(e, btn, cid, cur) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -2028,6 +2033,7 @@ function openGenderPicker(e, btn, cid, cur) {
     box.appendChild(b);
   });
   document.body.appendChild(box);
+  _genderPickerAt = Date.now();
 }
 async function setGender(cid, value) {
   const v = value || null;
@@ -2044,8 +2050,9 @@ document.addEventListener('click', function (e) {
   const p = document.getElementById('genderPicker');
   if (p && !p.contains(e.target)) closeGenderPicker();
 });
-window.addEventListener('scroll', closeGenderPicker, true);
-window.addEventListener('resize', closeGenderPicker);
+window.addEventListener('scroll', closeGenderPickerOnViewport, true);
+window.addEventListener('resize', closeGenderPickerOnViewport);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeGenderPicker(); });
 
 function giftSelect(kind, id, val) {
   const cur = (val === '是' || val === '否') ? val : '否';
