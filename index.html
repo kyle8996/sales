@@ -1636,7 +1636,7 @@ function renderReferrals() {
     const coupCls = d.coupon_given ? 'background:#dcfce7;color:#16a34a;border-color:#86efac' : 'background:#fff7ed;color:#ea580c;border-color:#fdba74';
     html += '<tr>' +
       '<td>' + (i + 1) + '</td>' +
-      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + genderBadge(d, d.child_name, gmap) + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + genderBadge(d, d.child_name, gmap, custIdByName(d.child_name)) + '</td>' +
       '<td>' + (d.phone || '') + '</td>' +
       '<td>' + (d.primary_channel || '') + '</td>' +
       '<td>' + (d.secondary_channel || '') + '</td>' +
@@ -1846,7 +1846,7 @@ function renderCustomers() {
       '<td>' + (idx + 1) + '</td>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
       (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
-      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + genderBadge(c, c.name, gmap) + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
+      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + genderBadge(c, c.name, gmap, c.id) + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
@@ -1961,9 +1961,9 @@ function cell(value, style, suffix) {
   return '<td' + styleAttr + ' title="' + esc + '">' + esc + (suffix || '') + '</td>';
 }
 
-// ===== 性别显示 =====
+// ===== 性别显示与列表快捷修改 =====
 // 客户表(customers.gender)为唯一数据源；续费 / 退费 / 口碑推荐等列表按姓名关联显示。
-// 只需在「客户信息编辑窗口」维护一次，所有列表同步生效。
+// 列表里的性别徽章可直接点选，写入客户表后所有列表与编辑窗口同步生效。
 function genderMap() {
   const m = {};
   (_customers || []).forEach(function (c) {
@@ -1973,14 +1973,79 @@ function genderMap() {
   });
   return m;
 }
-function genderBadge(row, name, gmap) {
+function custIdByName(name) {
+  const n = String(name || '').trim();
+  if (!n) return null;
+  const hit = (_customers || []).find(c => String(c.name || '').trim() === n);
+  return hit ? hit.id : null;
+}
+function genderBadge(row, name, gmap, cid) {
   let g = String((row && row.gender) || '').trim();
   if (!g) g = (gmap || {})[String(name || '').trim()] || '';
+  if (cid == null) cid = custIdByName(name);
   const base = 'display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;font-size:11px;font-weight:600;line-height:1.5;vertical-align:middle;white-space:nowrap;';
-  if (g === '男') return '<span style="' + base + 'background:#e0f2fe;color:#0369a1">男</span>';
-  if (g === '女') return '<span style="' + base + 'background:#fce7f3;color:#be185d">女</span>';
-  return '<span style="' + base + 'background:#f1f5f9;color:#94a3b8" title="未填性别，可在客户编辑窗口补录">—</span>';
+  let color, label;
+  if (g === '男') { color = 'background:#e0f2fe;color:#0369a1'; label = '男'; }
+  else if (g === '女') { color = 'background:#fce7f3;color:#be185d'; label = '女'; }
+  else { color = 'background:#f1f5f9;color:#94a3b8'; label = '—'; }
+  if (cid == null) {
+    return '<span style="' + base + color + '" title="客户表中无同名学员，请先在客户管理新增">' + label + '</span>';
+  }
+  return '<span style="' + base + color + ';cursor:pointer" title="点击修改性别" ' +
+    'onclick="openGenderPicker(event,this,' + cid + ',\'' + g + '\')">' + label + '</span>';
 }
+function closeGenderPicker() {
+  const p = document.getElementById('genderPicker');
+  if (p) p.remove();
+}
+function openGenderPicker(e, btn, cid, cur) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  closeGenderPicker();
+  const r = btn.getBoundingClientRect();
+  const box = document.createElement('div');
+  box.id = 'genderPicker';
+  box.style.cssText = 'position:fixed;z-index:100000;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 26px rgba(15,23,42,.18);padding:6px;min-width:100px;';
+  box.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 116)) + 'px';
+  box.style.top = ((r.bottom + 110 > window.innerHeight) ? Math.max(8, r.top - 108) : (r.bottom + 6)) + 'px';
+  const tip = document.createElement('div');
+  tip.textContent = '选择性别';
+  tip.style.cssText = 'font-size:11px;color:#94a3b8;padding:2px 8px 6px;';
+  box.appendChild(tip);
+  [['男', '男', '#e0f2fe', '#0369a1'], ['女', '女', '#fce7f3', '#be185d'], ['', '清除', '#f1f5f9', '#64748b']].forEach(function (o) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    const active = String(cur || '') === o[0];
+    b.textContent = o[1] + (active ? ' ✓' : '');
+    b.style.cssText = 'display:block;width:100%;text-align:left;border:none;background:' + (active ? o[2] : 'transparent') +
+      ';color:' + o[3] + ';font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;cursor:pointer;';
+    b.onmouseenter = function () { if (!active) b.style.background = '#f8fafc'; };
+    b.onmouseleave = function () { if (!active) b.style.background = 'transparent'; };
+    b.onclick = function (ev) {
+      ev.preventDefault(); ev.stopPropagation();
+      closeGenderPicker();
+      setGender(cid, o[0]);
+    };
+    box.appendChild(b);
+  });
+  document.body.appendChild(box);
+}
+async function setGender(cid, value) {
+  const v = value || null;
+  const { error } = await sb.from('customers').update({ gender: v }).eq('id', cid);
+  if (error) { showToast('性别保存失败：' + (error.message || ''), false); return; }
+  const c = (_customers || []).find(x => x.id === cid);
+  if (c) c.gender = v;
+  try { _cacheSet('customers', _customers); } catch (e) {}
+  // 一处修改，所有列表 + 编辑窗口数据源同步刷新
+  try { renderCustomers(); renderSales(); renderRenewals(); renderRefunds(); renderReferrals(); } catch (e) {}
+  showToast(v ? '性别已设为「' + v + '」' : '已清除性别');
+}
+document.addEventListener('click', function (e) {
+  const p = document.getElementById('genderPicker');
+  if (p && !p.contains(e.target)) closeGenderPicker();
+});
+window.addEventListener('scroll', closeGenderPicker, true);
+window.addEventListener('resize', closeGenderPicker);
 
 function giftSelect(kind, id, val) {
   const cur = (val === '是' || val === '否') ? val : '否';
@@ -2066,7 +2131,7 @@ function renderSales() {
     html += '<tr>' +
       cell(idx + 1) +
       cell(c.enrollment_date||'') +
-      cell(c.name||'', 'text-align:left;font-weight:600', genderBadge(c, c.name, gmap)) +
+      cell(c.name||'', 'text-align:left;font-weight:600', genderBadge(c, c.name, gmap, c.id)) +
       cell(c.birth_date||'') +
       cell(calcAge(c.birth_date)||(c.age||'')) +
       cell(c.phone||'') +
@@ -2151,7 +2216,7 @@ function renderRenewals() {
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (r.payment_date||'') + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + genderBadge(r, r.student_name, gmap) + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + genderBadge(r, r.student_name, gmap, custIdByName(r.student_name)) + '</td>' +
       '<td>' + (r.birth_date||'') + '</td>' +
       '<td>' + age + '</td>' +
       '<td>' + (r.phone||'') + '</td>' +
@@ -2539,7 +2604,7 @@ function renderRefunds() {
     sumClassFee += classFee; sumBookFee += bookFee;
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + genderBadge(r, r.student_name, gmap) + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + genderBadge(r, r.student_name, gmap, custIdByName(r.student_name)) + '</td>' +
       '<td>' + (r.class_name || '') + '</td>' +
       '<td>¥' + fmtMoney(r.total_payment) + '</td>' +
       '<td>¥' + fmtMoney(r.book_fee) + '</td>' +
