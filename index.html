@@ -706,6 +706,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
     <input type="hidden" id="custEditId">
     <div class="form-row">
       <label>学员姓名*<input type="text" id="custName"></label>
+      <label>性别<select id="custGender"><option value="">未填</option><option value="男">男</option><option value="女">女</option></select></label>
       <label>出生日期<input type="date" id="custBirthDate" onchange="onBirthDateChange()"></label>
       <label>年龄<input type="text" id="custAge" readonly style="background:#f1f5f9"></label>
     </div>
@@ -1626,6 +1627,7 @@ function renderReferrals() {
     sumEl.textContent = '共 ' + total + ' 位已报名学员 · 涉及 ' + rankArr.length + ' 位在读推荐人' + coupStat;
   }
 
+  const gmap = genderMap();
   let html = '';
   list.forEach((d, i) => {
     const usedTxt = d.used ? '已使用' : '未使用';
@@ -1634,7 +1636,7 @@ function renderReferrals() {
     const coupCls = d.coupon_given ? 'background:#dcfce7;color:#16a34a;border-color:#86efac' : 'background:#fff7ed;color:#ea580c;border-color:#fdba74';
     html += '<tr>' +
       '<td>' + (i + 1) + '</td>' +
-      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + (d.child_name || '') + genderBadge(d, d.child_name, gmap) + '</td>' +
       '<td>' + (d.phone || '') + '</td>' +
       '<td>' + (d.primary_channel || '') + '</td>' +
       '<td>' + (d.secondary_channel || '') + '</td>' +
@@ -1731,6 +1733,7 @@ function calcAge(birthDateStr) {
 
 function renderCustomers() {
   updateCounts();
+  const gmap = genderMap();
   const remMap = getReminderMap();
   
   const isNopark = _currentSubTab === 'nopark';
@@ -1843,7 +1846,7 @@ function renderCustomers() {
       '<td>' + (idx + 1) + '</td>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
       (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
-      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
+      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + genderBadge(c, c.name, gmap) + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
@@ -1951,11 +1954,32 @@ function fillSalesFilters() {
   }));
 }
 
-function cell(value, style) {
+function cell(value, style, suffix) {
   const v = value === undefined || value === null ? '' : String(value);
   const esc = v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const styleAttr = style ? ' style="' + style + '"' : '';
-  return '<td' + styleAttr + ' title="' + esc + '">' + esc + '</td>';
+  return '<td' + styleAttr + ' title="' + esc + '">' + esc + (suffix || '') + '</td>';
+}
+
+// ===== 性别显示 =====
+// 客户表(customers.gender)为唯一数据源；续费 / 退费 / 口碑推荐等列表按姓名关联显示。
+// 只需在「客户信息编辑窗口」维护一次，所有列表同步生效。
+function genderMap() {
+  const m = {};
+  (_customers || []).forEach(function (c) {
+    const n = String(c.name || '').trim();
+    const g = String(c.gender || '').trim();
+    if (n && g && !m[n]) m[n] = g;
+  });
+  return m;
+}
+function genderBadge(row, name, gmap) {
+  let g = String((row && row.gender) || '').trim();
+  if (!g) g = (gmap || {})[String(name || '').trim()] || '';
+  const base = 'display:inline-block;margin-left:5px;padding:1px 5px;border-radius:5px;font-size:11px;font-weight:600;line-height:1.5;vertical-align:middle;white-space:nowrap;';
+  if (g === '男') return '<span style="' + base + 'background:#e0f2fe;color:#0369a1">男</span>';
+  if (g === '女') return '<span style="' + base + 'background:#fce7f3;color:#be185d">女</span>';
+  return '<span style="' + base + 'background:#f1f5f9;color:#94a3b8" title="未填性别，可在客户编辑窗口补录">—</span>';
 }
 
 function giftSelect(kind, id, val) {
@@ -1991,6 +2015,7 @@ async function setGiftName(kind, id, val) {
 }
 function renderSales() {
   updateCounts();
+  const gmap = genderMap();
   let list = _customers.filter(c => c.status === '已报名');
 
   const fOwn = document.getElementById('salesFilterOwner').value;
@@ -2041,7 +2066,7 @@ function renderSales() {
     html += '<tr>' +
       cell(idx + 1) +
       cell(c.enrollment_date||'') +
-      cell(c.name||'', 'text-align:left;font-weight:600') +
+      cell(c.name||'', 'text-align:left;font-weight:600', genderBadge(c, c.name, gmap)) +
       cell(c.birth_date||'') +
       cell(calcAge(c.birth_date)||(c.age||'')) +
       cell(c.phone||'') +
@@ -2095,6 +2120,7 @@ function exportSales() {
 // ═══════════════════════════════════════
 function renderRenewals() {
   updateCounts();
+  const gmap = genderMap();
   let list = [..._renewals];
 
   // 家庭住址：从 customers 表按「姓名+电话」关联取（续费表本身无地址字段）
@@ -2125,7 +2151,7 @@ function renderRenewals() {
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
       '<td>' + (r.payment_date||'') + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name||'') + genderBadge(r, r.student_name, gmap) + '</td>' +
       '<td>' + (r.birth_date||'') + '</td>' +
       '<td>' + age + '</td>' +
       '<td>' + (r.phone||'') + '</td>' +
@@ -2499,6 +2525,7 @@ function getEnrollmentOptions() {
 }
 
 function renderRefunds() {
+  const gmap = genderMap();
   const cnt = document.getElementById('cnt-refund');
   if (cnt) cnt.textContent = _refunds.length;
   const q = (document.getElementById('refundFilterSearch')?.value || '').trim().toLowerCase();
@@ -2512,7 +2539,7 @@ function renderRefunds() {
     sumClassFee += classFee; sumBookFee += bookFee;
     html += '<tr>' +
       '<td>' + (idx + 1) + '</td>' +
-      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + '</td>' +
+      '<td style="text-align:left;font-weight:600">' + (r.student_name || '') + genderBadge(r, r.student_name, gmap) + '</td>' +
       '<td>' + (r.class_name || '') + '</td>' +
       '<td>¥' + fmtMoney(r.total_payment) + '</td>' +
       '<td>¥' + fmtMoney(r.book_fee) + '</td>' +
@@ -2701,6 +2728,7 @@ function openCustomerModal(cid, fromModule) {
     const c = _customers.find(x => x.id === cid);
     if (c) {
       document.getElementById('custName').value = c.name||'';
+      document.getElementById('custGender').value = c.gender||'';
       document.getElementById('custBirthDate').value = c.birth_date||'';
       // 根据实际状态决定年龄是否可编辑
       editableAge = fromModule !== 'sales' && c.status === '未上门';
@@ -2733,7 +2761,7 @@ function openCustomerModal(cid, fromModule) {
       document.getElementById('custUnitPrice').value = unitPriceDisplay(c.unit_price);
     }
   } else {
-    ['custName','custBirthDate','custAge','custGrade','custSchool','custAddress','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass','custSourcePrimary','custSourceSecondary'].forEach(id => document.getElementById(id).value='');
+    ['custName','custGender','custBirthDate','custAge','custGrade','custSchool','custAddress','custParent','custPhone','custTrialDate','custTags','custEnrollDate','custEnrollClass','custSourcePrimary','custSourceSecondary'].forEach(id => document.getElementById(id).value='');
     document.getElementById('custLevel').value = fromModule === 'sales' ? 'A' : 'B';
     document.getElementById('custStatus').value = fromModule === 'sales' ? '已报名' : '未上门';
     document.getElementById('custDemoTeacher').value = '';
@@ -2759,7 +2787,8 @@ async function saveCustomer() {
   if (!name) { showToast('请输入学员姓名', false); return; }
   const editId = document.getElementById('custEditId').value;
   const data = {
-    name, birth_date: document.getElementById('custBirthDate').value || null,
+    name, gender: document.getElementById('custGender').value || null,
+    birth_date: document.getElementById('custBirthDate').value || null,
     age: document.getElementById('custAge').value,
     grade: document.getElementById('custGrade').value,
     school: document.getElementById('custSchool').value,
@@ -2792,18 +2821,28 @@ async function saveCustomer() {
     data.phone_parked = oldCustPark ? !!oldCustPark.phone_parked : (data.status === '未上门');
   }
   let err;
-  if (editId) {
+  // 性别列由 add_gender_columns.sql 新增；若用户尚未执行该 SQL，
+  // 自动去掉性别字段重试，保证客户信息的其它字段仍能正常保存。
+  let genderSkipped = false;
+  const doWrite = async function (payload) {
+    let e;
+    if (editId) ({ error: e } = await sb.from('customers').update(payload).eq('id', parseInt(editId)));
+    else ({ error: e } = await sb.from('customers').insert(payload));
+    return e;
+  };
+  err = await doWrite(data);
+  if (err && /gender/i.test(err.message || '')) {
+    const fallback = Object.assign({}, data);
+    delete fallback.gender;
+    err = await doWrite(fallback);
+    genderSkipped = !err;
+  }
+  if (!err && editId) {
     // 检测试听时间是否被清空（从有值变为null），需同步清理 trial_schedule
     const oldCust = _customers.find(c => c.id === parseInt(editId));
-    const wasTrial = oldCust && oldCust.trial_date;
-    const nowTrial = !!data.trial_date;
-    ({error: err} = await sb.from('customers').update(data).eq('id', parseInt(editId)));
-    if (!err && wasTrial && !nowTrial) {
-      // 试听时间被清除，同步删除 trial_schedule 中的排期记录
+    if (oldCust && oldCust.trial_date && !data.trial_date) {
       await sb.from('trial_schedule').delete().eq('customer_id', parseInt(editId));
     }
-  } else {
-    ({error: err} = await sb.from('customers').insert(data));
   }
   if (err) {
     let msg = err.message || '';
@@ -2812,7 +2851,8 @@ async function saveCustomer() {
     }
     showToast('保存失败: '+msg, false); return;
   }
-  showToast(editId ? '已更新' : '已新增');
+  if (genderSkipped) showToast('已保存，但性别未写入：请先在 Supabase SQL Editor 执行 add_gender_columns.sql', false);
+  else showToast(editId ? '已更新' : '已新增');
   closeModal('custModal');
   await loadAll();
   fillFilters();
