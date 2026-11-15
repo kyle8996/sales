@@ -1852,7 +1852,7 @@ function renderCustomers() {
       '<td>' + (idx + 1) + '</td>' +
       (isTrial ? '<td>' + visitDate + '</td>' : '') +
       (showAddDate ? '<td>' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>' : '') +
-      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + genderBadge(c, c.name, gmap, c.id) + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
+      '<td style="font-weight:600;text-align:center;white-space:nowrap" class="fu-tip">' + (c.name||'') + genderBadge(c, c.name, {}, c.id) + (lastFollowContent ? '<span class="fu-tip-box">' + lastFollowDate + '：' + lastFollowContent + '</span>' : '') + '</td>' +
       '<td>' + (calcAge(c.birth_date)||(c.age||'')) + '</td>' +
       '<td>' + (c.phone||'') + '</td>' +
       '<td>' + (c.parent||'') + '</td>' +
@@ -1987,9 +1987,11 @@ function custIdByName(name) {
 }
 // ===== 性别筛选 =====
 // 取值与列表徽章保持同源：优先行自身 gender，其次按姓名从客户表关联。
-function genderOf(row, name, gmap) {
+// noFallback=true：只看本条记录自身的 gender（新招学员数据就在 customers 里，
+// 避免同名重复登记时借用另一条的性别，导致「未填写」筛不出真正待补录的人）。
+function genderOf(row, name, gmap, noFallback) {
   let g = String((row && row.gender) || '').trim();
-  if (!g) g = (gmap || genderMap())[String(name || '').trim()] || '';
+  if (!g && !noFallback) g = (gmap || genderMap())[String(name || '').trim()] || '';
   return g;
 }
 function genderFilterMatch(g, val) {
@@ -2004,13 +2006,13 @@ function genderFilterValue(selId) {
   return sel.value || 'all';
 }
 // 下拉里带人数，随其它筛选条件联动；只改 option 文字，不重建 DOM，避免打断正在展开的下拉。
-function updateGenderFilterOptions(selId, list, getName, gmap) {
+function updateGenderFilterOptions(selId, list, getName, gmap, noFallback) {
   const sel = document.getElementById(selId);
   if (!sel) return;
   const rows = list || [];
   let male = 0, female = 0, unset = 0;
   rows.forEach(function (x) {
-    const g = genderOf(x, getName(x), gmap);
+    const g = genderOf(x, getName(x), gmap, noFallback);
     if (g === '男') male++;
     else if (g === '女') female++;
     else unset++;
@@ -2151,8 +2153,8 @@ function renderSales() {
   if (fDemo !== 'all') list = list.filter(c => (fDemo === '无Demo') ? !(c.demo_teacher) : (c.demo_teacher === fDemo));
   if (fQ) list = list.filter(c => (c.name||'').toLowerCase().includes(fQ) || (c.phone||'').includes(fQ) || (c.school||'').toLowerCase().includes(fQ) || (c.enrolled_class||'').toLowerCase().includes(fQ) || (c.address||'').toLowerCase().includes(fQ));
 
-  updateGenderFilterOptions('salesFilterGender', list, function (c) { return c.name; }, gmap);
-  if (fGender !== 'all') list = list.filter(c => genderFilterMatch(genderOf(c, c.name, gmap), fGender));
+  updateGenderFilterOptions('salesFilterGender', list, function (c) { return c.name; }, gmap, true);
+  if (fGender !== 'all') list = list.filter(c => genderFilterMatch(genderOf(c, c.name, gmap, true), fGender));
 
   // 按报名日期倒序
   list.sort((a, b) => {
@@ -2188,7 +2190,7 @@ function renderSales() {
     html += '<tr>' +
       cell(idx + 1) +
       cell(c.enrollment_date||'') +
-      cell(c.name||'', 'text-align:left;font-weight:600', genderBadge(c, c.name, gmap, c.id)) +
+      cell(c.name||'', 'text-align:left;font-weight:600', genderBadge(c, c.name, {}, c.id)) +
       cell(c.birth_date||'') +
       cell(calcAge(c.birth_date)||(c.age||'')) +
       cell(c.phone||'') +
