@@ -4389,6 +4389,18 @@ function splitAttExcl(name) {
   return null;
 }
 
+// 班级分成规则特例：不扣销售10%提成，直接按扣书费后课时费四六分成（Cindy 40%）
+// 命中班级时：新招 batch 也按 100% 课时费参与分成（等同续费的算法），分成比例仍为 40%
+const NO_SALES_CUT_CLASSES = ['K2007'];
+function isNoSalesCutClass(cls) {
+  const n = String((cls && cls.name) || '').trim().toUpperCase();
+  return NO_SALES_CUT_CLASSES.indexOf(n) >= 0;
+}
+// 计算参与分成课时费：新招默认×90%（扣销售10%），特例班级×100%
+function splittableFee(isNew, fee, noSalesCut) {
+  return (isNew && !noSalesCut) ? fee * 0.90 : fee;
+}
+
 function renderSplit() {
   const container = document.getElementById('splitContainer');
   if (!container) return;
@@ -4433,7 +4445,8 @@ function renderSplit() {
 
   // 学员缴费批次池：参与分成课时费（新招×90%、续费×100%）、分成课单价 = 参与分成课时费/报名课时
   // 排除项：王子谦的 14 课时批次不计入分成、不显示（其余批次仍正常计算）
-  function poolOf(st, clsId) {
+  function poolOf(st, clsId, cls) {
+    const noSalesCut = isNoSalesCutClass(cls);
     return _revenue_batches
       .filter(b => b.student_id === st.id && (!b.class_id || b.class_id === clsId) && !(st.name === '王子谦' && Math.abs((parseFloat(b.hours) || 0) - 14) < 0.001))
       .sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0))
@@ -4443,9 +4456,9 @@ function renderSplit() {
         const book = parseFloat(b.book_fee) || 0;
         const fee = pay - book;
         const hrs = parseFloat(b.hours) || 0;
-        const splittable = isNew ? fee * 0.90 : fee;
+        const splittable = splittableFee(isNew, fee, noSalesCut);
         const cindyPer = hrs > 0 ? splittable / hrs : 0;
-        return { isNew, pay, book, fee, hrs, splittable,
+        return { isNew, pay, book, fee, hrs, splittable, noSalesCut,
           cindyPer, cindyPerR: Math.round(cindyPer * 10) / 10,
           remain: hrs, date: b.payment_date || '' };
       });
@@ -4495,7 +4508,7 @@ function renderSplit() {
     let clsRows = '';
 
     stu.forEach(st => {
-      const pool = poolOf(st, cls.id);
+      const pool = poolOf(st, cls.id, cls);
       const ao = attOf(st);
       const att = ao.map, attAll = ao.all;
       // 无批次学员：单独一行
@@ -4553,7 +4566,9 @@ function renderSplit() {
 
     // 班级标题行
     html += '<tr' + headCls + '><td colspan="' + (8 + months.length * 2 + 1) + '">📚 ' + cls.name
-      + ' <span style="font-weight:400;color:#475569">（' + stu.length + '人）</span></td></tr>';
+      + ' <span style="font-weight:400;color:#475569">（' + stu.length + '人）</span>'
+      + (isNoSalesCutClass(cls) ? ' <span style="font-weight:400;color:#0369a1;background:#e0f2fe;padding:1px 8px;border-radius:10px;font-size:11px">不扣销售10% · 四六分成</span>' : '')
+      + '</td></tr>';
     html += clsRows;
     // 班级合计行：标签写在各月出勤列下（m月分成合计），金额与上方 m月课时分成 对齐；不再显示两月总计
     html += '<tr' + (alt ? ' class="split-alt"' : '') + ' style="font-weight:700;background:#f8fafc">'
@@ -4573,7 +4588,7 @@ function renderSplit() {
     + months.map(m => '<th>' + m + '月出勤</th><th class="split-cindy">' + m + '月课时分成</th>').join('')
     + '<th>剩余课时</th></tr>';
 
-  container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
+  container.innerHTML = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">规则：参与分成课时费 = 课时费（缴费−书费）× 90%（新招）/ × 100%（续费）；K2007 班不扣销售10%，新招也按 100% 课时费参与分成（四六分成、Cindy 40%）；分成课单价 = 参与分成课时费 ÷ 报名课时（保留1位小数）；当月课时分成 = 分成课单价 × 当月出勤 × 40%（多批次按缴费先后 FIFO 消耗）；剩余课时 = 报名课时 − 缴费起累计出勤。学员行可拖拽排序（与教务系统实时同步）。</p>'
     + '<div><table class="tbl-split"><thead>' + head + '</thead><tbody>' + html + '</tbody>'
     + '<tfoot><tr style="background:#fff;font-weight:700;font-size:15px;border-top:2px solid #cbd5e1">'
     + '<td colspan="8" style="text-align:left;font-size:15px;color:#0f172a">全部班级合计</td>'
@@ -4755,7 +4770,7 @@ function exportSplit() {
           const book = parseFloat(b.book_fee) || 0;
           const fee = pay - book;
           const hrs = parseFloat(b.hours) || 0;
-          const splittable = isNew ? fee * 0.90 : fee;
+          const splittable = splittableFee(isNew, fee, isNoSalesCutClass(cls));
           const cindyPer = hrs > 0 ? splittable / hrs : 0;
           return { isNew, pay, book, fee, hrs, splittable,
             cindyPer, cindyPerR: Math.round(cindyPer * 10) / 10, remain: hrs, date: b.payment_date || '' };
