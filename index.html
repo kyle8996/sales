@@ -1236,7 +1236,8 @@ async function syncRevenueBatchesFromSales() {
         // 仅当 enrolled_class 能映射到具体班级时才精确匹配；映射不到(如“K1002升学”待排班)按容错仍计入
         const custClassId = classNameToId.get((c.enrolled_class || '').trim());
         if (custClassId && studentClassId) {
-          return custClassId === studentClassId;
+          // 升班免疫：当前班级 或 转班历史里的任一班级，都视为该学员的缴费记录
+          return studentClassIds(student).has(custClassId);
         }
       }
       return true;
@@ -3834,7 +3835,8 @@ function buildRevenueData() {
       if (multiStudent2) {
         const custClassId = classNameToId.get((c.enrolled_class || '').trim());
         if (custClassId && student.class_id) {
-          return custClassId === student.class_id;
+          // 升班免疫：当前班级 或 转班历史里的任一班级，都视为该学员的缴费记录
+          return studentClassIds(student).has(custClassId);
         }
       }
       return true;
@@ -4381,6 +4383,26 @@ function getBatchType(b) {
   if (b.source === 'sales-new') return '新招';
   if (b.source === 'sales-renewal') return '续费';
   return '续费';                                     // manual 默认续费
+}
+
+// 升班/转班免疫：学员的有效班级 = 当前班级 + 转班历史里所有班级。
+// 教务系统转班只改 students.class_id 并在 class_history 记录原班级，
+// 但销售系统客户记录的 enrolled_class 仍停在报名时的老班级。
+// 匹配缴费记录时若只认当前班级，升班后就会匹配不到而显示"无课单价"。
+// 这里把 class_history 一并纳入，升班后缴费记录自动跟上，无需手改数据。
+function studentClassIds(student) {
+  const set = new Set();
+  if (!student) return set;
+  if (student.class_id) set.add(Number(student.class_id));
+  let hist = student.class_history;
+  if (typeof hist === 'string') { try { hist = JSON.parse(hist); } catch (e) { hist = []; } }
+  if (Array.isArray(hist)) {
+    hist.forEach(h => {
+      const cid = h && (h.class_id != null ? h.class_id : h.id);
+      if (cid != null && cid !== '') set.add(Number(cid));
+    });
+  }
+  return set;
 }
 
 // 出勤排除：指定学员的指定课时不参与分成、不显示（按月份先后 FIFO 扣除）
