@@ -691,6 +691,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           </label>
           <span style="font-size:12px;color:#94a3b8" id="splitYearLabel"></span>
           <input type="text" id="splitNameSearch" placeholder="🔍 按姓名查询学员" oninput="renderSplit()" style="padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;min-width:160px">
+          <div id="splitSummaryBar" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"></div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-gray btn-sm" onclick="refreshRevenueData().then(renderSplit)">🔄 刷新数据</button>
@@ -4577,6 +4578,17 @@ function renderSplit() {
         + '<td class="mon" style="color:#15803d;font-weight:700;font-size:14px">' + (clsMonthSplit[m] > 0 ? fmtMoney(clsMonthSplit[m]) : '—') + '</td>').join('')
       + '</tr>';
   });
+
+  // 顶部工具栏合计：与表格底部合计同源（monthTotals / grandTotal），免得每次滚到最底下看
+  const sumBar = document.getElementById('splitSummaryBar');
+  if (sumBar) {
+    const pill = (label, val, color, bg, border) =>
+      '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid ' + border + ';border-radius:8px;background:' + bg + ';font-size:12px;color:#475569;white-space:nowrap">' +
+      label + '<b style="font-size:15px;color:' + color + '">¥' + val + '</b></span>';
+    sumBar.innerHTML =
+      pill('本月分成（' + currentMonth + '月）', (monthTotals[currentMonth] || 0).toFixed(1), '#15803d', '#f0fdf4', '#bbf7d0') +
+      pill('总计分成金额', grandTotal.toFixed(1), '#166534', '#ecfdf5', '#a7f3d0');
+  }
 
   if (!hasRows) {
     container.innerHTML = '<p style="font-size:13px;color:#64748b;padding:20px">该老师暂无带班或无学员数据。</p>';
