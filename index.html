@@ -42,7 +42,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .ledger-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .ledger-title{font-size:15px;font-weight:600;color:#0C447C}
 .ledger-month select{font-size:13px;padding:5px 24px 5px 10px;border:1.5px solid #185FA5;border-radius:8px;color:#042C53;background:#fff url('data:image/svg+xml;charset=UTF-8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23185FA5\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"/></svg>') no-repeat right 8px center;appearance:none;-webkit-appearance:none;cursor:pointer}.ledger-month select+select{margin-left:8px}.ledger-month #ledgerYear{width:78px}.ledger-month #ledgerMonth{width:68px}
-.ledger-grid{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}
+.ledger-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:12px}
 .ledger-card{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:10px;padding:12px 14px;border-left:4px solid var(--accent,#1d4ed8);box-shadow:0 2px 6px rgba(15,23,42,.2)}
 .ledger-label{font-size:12px;color:#94a3b8;margin:0 0 4px}
 .ledger-value{font-size:20px;font-weight:700;color:#fff;margin:0}
@@ -386,6 +386,10 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <div class="ledger-card" style="--accent:#1d4ed8">
             <div class="ledger-label">本月合计现金收入</div>
             <div class="ledger-value" id="ledgerIncome">¥0</div>
+          </div>
+          <div class="ledger-card" style="--accent:#f43f5e">
+            <div class="ledger-label">本月退费人数</div>
+            <div class="ledger-value" id="ledgerRefundCount">0 人</div>
           </div>
           <div class="ledger-card" style="--accent:#ef4444">
             <div class="ledger-label">本月退费支出</div>
@@ -1488,9 +1492,10 @@ function renderSalesLedger(ym) {
   const renewRecords = _renewals.filter(r => (r.payment_date || '').startsWith(ym));
   const renewNames = new Set(renewRecords.map(r => (r.student_name || '').trim()).filter(Boolean));
   const renewCash = renewRecords.reduce((s, r) => s + (parseFloat(r.total_payment) || 0), 0);
-  // 退费
-  const refund = _refunds.filter(r => (r.refund_date || '').startsWith(ym))
-    .reduce((s, r) => s + (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0), 0);
+  // 退费：人数按学员姓名去重，支出按退费金额求和
+  const refundRecords = _refunds.filter(r => (r.refund_date || '').startsWith(ym));
+  const refundNames = new Set(refundRecords.map(r => (r.student_name || '').trim() || ('记录#' + r.id)).filter(Boolean));
+  const refund = refundRecords.reduce((s, r) => s + (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0), 0);
   const totalIncome = newCash + renewCash;
   const fmt = n => '¥' + Number(n).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2});
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -1499,6 +1504,7 @@ function renderSalesLedger(ym) {
   set('ledgerRenew', renewNames.size + ' 人');
   set('ledgerRenewCash', fmt(renewCash));
   set('ledgerIncome', fmt(totalIncome));
+  set('ledgerRefundCount', refundNames.size + ' 人');
   set('ledgerRefund', fmt(refund));
 }
 
