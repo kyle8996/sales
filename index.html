@@ -171,6 +171,11 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .month-nav b{font-size:16px;min-width:100px;text-align:center}
 .month-nav button{padding:4px 12px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;font-size:13px;cursor:pointer}
 .month-nav button:hover{background:#f1f5f9}
+.trial-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trial-stat{display:flex;align-items:baseline;gap:4px;padding:5px 12px;background:#f8fafc;border:1px solid #eef2f6;border-radius:8px;font-size:12px;color:#64748b;white-space:nowrap}
+.trial-stat b{font-size:16px;font-weight:800;color:#2563eb}
+.trial-stat.rate b{color:#059669}
+.trial-stat.rate{background:#ecfdf5;border-color:#d1fae5}
 /* 保留旧类以防兼容 */
 .week-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
 .week-day{border:1px solid #e2e8f0;border-radius:10px;min-height:180px;padding:8px;background:#fafbfc}
@@ -599,6 +604,11 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <b id="monthLabel"></b>
           <button onclick="shiftMonth(1)">&#8250;</button>
           <button class="btn btn-gray btn-sm" onclick="goThisMonth()">本月</button>
+        </div>
+        <div class="trial-stats" id="trialStats">
+          <div class="trial-stat"><span>本月试听上门</span><b id="tsVisited">0</b><span>人</span></div>
+          <div class="trial-stat"><span>本月试听报名</span><b id="tsSigned">0</b><span>人</span></div>
+          <div class="trial-stat rate"><span>当面转化率</span><b id="tsRate">0%</b></div>
         </div>
         <button class="btn btn-success btn-sm" onclick="switchTrialView('sessions')" style="margin-left:auto">📋 排课管理</button>
       </h2>
@@ -3274,10 +3284,30 @@ async function convertToStudent() {
 // ═══════════════════════════════════════
 // 试听邀约
 // ═══════════════════════════════════════
+// 试听月历顶部三项统计：本月上门人数 / 本月报名人数 / 当面转化率
+function renderTrialStats() {
+  const { year, month } = _currentMonthYear;
+  const ym = year + '-' + String(month + 1).padStart(2, '0');
+  const sessionIds = new Set(_trialSessions.filter(s => (s.session_date || '').startsWith(ym)).map(s => s.id));
+  const visited = new Set(), signed = new Set();
+  _trialSchedule.filter(ts => ts.status === '已预约' && sessionIds.has(ts.trial_session_id)).forEach(ts => {
+    const c = _customers.find(x => x.id === ts.customer_id);
+    if (!c) return;
+    // 上门口径与月历卡片一致：attended 或 客户状态已上门/已报名
+    if (ts.attended || c.status === '已上门未报名' || c.status === '已报名') visited.add(ts.customer_id);
+    if (c.status === '已报名') signed.add(ts.customer_id);
+  });
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('tsVisited', visited.size);
+  set('tsSigned', signed.size);
+  set('tsRate', visited.size ? (signed.size / visited.size * 100).toFixed(1) + '%' : '0%');
+}
+
 function renderTrialCalendar() {
   const { year, month } = _currentMonthYear;
   const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   document.getElementById('monthLabel').textContent = year + '年 ' + monthNames[month];
+  renderTrialStats();
 
   const today = toDateStr(new Date());
   const firstDay = new Date(year, month, 1);
