@@ -2306,13 +2306,15 @@ function renderSales() {
   updateGenderFilterOptions('salesFilterGender', list, function (c) { return c.name; }, gmap, true);
   if (fGender !== 'all') list = list.filter(c => genderFilterMatch(genderOf(c, c.name, gmap, true), fGender));
 
-  // 按报名日期倒序
+  // 按录入系统的时间倒序（最新录入排最前），与在读续费/退费学员口径一致。
+  // 修复：旧版按 enrollment_date 报名日期排，同一天录入的多名学员会因报名日期相同
+  // 而显示为杂乱顺序，与用户实际录入早晚不符；created_at 才是真实录入时间。
   list.sort((a, b) => {
-    const da = a.enrollment_date || '';
-    const db = b.enrollment_date || '';
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
+    const ca = a.created_at || '';
+    const cb = b.created_at || '';
+    if (ca && cb && ca !== cb) return cb.localeCompare(ca);
+    // created_at 缺失时回退到报名日期
+    const da = a.enrollment_date || '', db = b.enrollment_date || '';
     return db.localeCompare(da);
   });
 
@@ -2413,13 +2415,15 @@ function renderRenewals() {
   updateGenderFilterOptions('renewalFilterGender', list, function (r) { return r.student_name; }, gmap);
   if (fGender !== 'all') list = list.filter(r => genderFilterMatch(genderOf(r, r.student_name, gmap), fGender));
 
-  // 按缴费日期倒序
+  // 按录入系统的时间倒序（最新录入排最前），与新招学员/退费学员口径一致。
+  // 修复：旧版按 payment_date 缴费日期排，同一天录入的多笔续费会因缴费日期相同
+  // 而显示为杂乱顺序；created_at 才是真实录入时间。
   list.sort((a, b) => {
-    const da = a.payment_date || '';
-    const db = b.payment_date || '';
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
+    const ca = a.created_at || '';
+    const cb = b.created_at || '';
+    if (ca && cb && ca !== cb) return cb.localeCompare(ca);
+    // created_at 缺失时回退到缴费日期
+    const da = a.payment_date || '', db = b.payment_date || '';
     return db.localeCompare(da);
   });
 
