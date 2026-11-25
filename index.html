@@ -1184,12 +1184,28 @@ async function fetchAttendanceByYear(year) {
 }
 
 // 重新拉取确收表依赖的数据（students/attendance/renewals/revenue_batches），确保跟随教务出勤变化
+// 分页拉全量缴费批次（与 attendance 一致），避免大表被 1000 行上限截断，
+// 更关键：确保同步时拿到的 existing 是数据库真实全量，绝不因加载不全而误删 manual 批次。
+async function fetchAllRevenueBatches() {
+  let all = [], from = 0;
+  const PAGE = 1000;
+  while (true) {
+    const { data, error } = await sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}).range(from, from + PAGE - 1);
+    if (error) return { error };
+    if (!data || data.length === 0) break;
+    all = all.concat(data);
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return { data: all };
+}
+
 async function refreshRevenueData() {
   const withTimeout = (p, ms = 10000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   try {
     const [att, rb] = await Promise.all([
       withTimeout(fetchAttendanceByYear(REVENUE_YEAR), 15000),
-      withTimeout(sb.from('revenue_batches').select('*').order('batch_order', {ascending: true}), 8000)
+      withTimeout(fetchAllRevenueBatches(), 15000)
     ]);
     if (att.data) _attendance = att.data;
     if (rb.data) _revenue_batches = rb.data;
@@ -1215,6 +1231,27 @@ function isSameBatch(a, b) {
 // 幂等：多次执行不会重复插入；会保留已存在但 sales 中找不到的手动批次（如王凯琪），并标注为「年前缴费」。
 async function syncRevenueBatchesFromSales() {
   if (!_students || _students.length === 0 || !sb) return;
+
+  // ═══ 安全护栏（防误删，2026-11-25）═══
+  // 根因教训：曾因 _revenue_batches 缓存未加载/为空，同步时把数据库中已存在的
+  // 手动批次（年前缴费）误判为「销售端没有」而 delete+insert 清空，导致 5 名学员
+  // 原始缴费课时永久丢失、确收金额出错。此处强制：同步前实时全量拉取数据库真实批次
+  // 作为比对基准；拉取失败即整体中止，绝不执行任何删除。
+  let dbBatches;
+  try {
+    const fresh = await Promise.race([
+      fetchAllRevenueBatches(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000))
+    ]);
+    if (fresh.error || !Array.isArray(fresh.data)) {
+      console.warn('syncRevenueBatchesFromSales: 无法读取数据库批次，已中止同步以保护数据', fresh.error);
+      return;
+    }
+    dbBatches = fresh.data;
+  } catch (e) {
+    console.warn('syncRevenueBatchesFromSales: 读取数据库批次超时，已中止同步以保护数据', e.message);
+    return;
+  }
 
   const changes = [];
 
@@ -1282,7 +1319,7 @@ async function syncRevenueBatchesFromSales() {
 
     // 2) 若用户已手动录入/调整过同日期同金额的批次，销售系统的对应记录不再重复生成，
     //    以手动版本为准，避免自动同步破坏用户自定义顺序。
-    const existing = _revenue_batches.filter(b => b.student_id === studentId).sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
+    const existing = dbBatches.filter(b => b.student_id === studentId).sort((a, b) => (a.batch_order || 0) - (b.batch_order || 0));
     // 保留已有手动/自定义 class_id 的记录，后续按原样写回（签名不含 source，销售/手动视为同一笔）
     const classIdBySignature = new Map();
     existing.forEach(eb => {
@@ -1360,10 +1397,29 @@ async function syncRevenueBatchesFromSales() {
         (tb.class_id || null) !== (eb.class_id || null);
     });
 
+    // manual 硬保护：现有批次里每一条「手动录入 / 年前缴费」批次都必须在目标批次中
+    // 原样保留。销售端（customers/renewals）本就推导不出这些历史批次，一旦丢失即无法
+    // 自动恢复。若发现目标批次会漏掉任何一条，跳过该学员，绝不 delete+insert。
+    const isManual = b => !b.source || b.source === 'manual' ||
+      (b.payment_date || '').trim() === '年前缴费';
+    const mustKeep = existing.filter(isManual);
+    const lostManual = mustKeep.filter(mb => !targetBatches.some(tb => isSameBatch(tb, mb)));
+    if (lostManual.length > 0) {
+      console.warn('syncRevenueBatchesFromSales: 学员 ' + name + ' 的同步会导致 ' + lostManual.length +
+        ' 条手动/年前缴费批次丢失，已跳过该学员以保护数据。', lostManual);
+      continue;
+    }
+
     if (changed) changes.push({ studentId, targetBatches });
   }
 
   if (changes.length === 0) return;
+
+  // 备份每个待改学员的原始批次，供插入失败时回滚（防 delete 后 insert 失败导致数据全丢）
+  const backupByStudent = new Map();
+  changes.forEach(ch => {
+    backupByStudent.set(ch.studentId, dbBatches.filter(b => b.student_id === ch.studentId));
+  });
 
   try {
     for (const ch of changes) {
@@ -1376,7 +1432,21 @@ async function syncRevenueBatchesFromSales() {
     }
     _revenue_batches = _revenue_batches.filter(b => !changes.some(ch => ch.studentId === b.student_id)).concat(allNew);
   } catch (e) {
-    console.warn('syncRevenueBatchesFromSales error:', e.message);
+    // 回滚：把被删除学员的原始批次尽量还原（去掉自增 id，让数据库重新生成）
+    console.warn('syncRevenueBatchesFromSales: 写入失败，正在回滚原始数据', e.message);
+    for (const [sid, origRows] of backupByStudent) {
+      try {
+        const clean = origRows.map(b => {
+          const o = { ...b };
+          delete o.id; delete o.created_at; delete o.updated_at;
+          return o;
+        });
+        if (clean.length) await sb.from('revenue_batches').insert(clean);
+      } catch (rb) { console.warn('回滚学员 ' + sid + ' 失败:', rb.message); }
+    }
+    // 回滚后用数据库真实数据刷新缓存
+    const fresh = await fetchAllRevenueBatches().catch(() => ({ data: _revenue_batches }));
+    if (fresh.data) _revenue_batches = fresh.data;
   }
 }
 
