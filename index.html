@@ -1300,7 +1300,8 @@ async function syncRevenueBatchesFromSales() {
         salesBatches.push({
           hours, book_fee: bookFee, total_payment: totalPayment,
           payment_date: ((customer.enrollment_date || '').substring(0, 10)) || '年前缴费',
-          source: 'sales-new'
+          source: 'sales-new',
+          created_at: customer.created_at || ''
         });
       }
     });
@@ -1312,7 +1313,8 @@ async function syncRevenueBatchesFromSales() {
         salesBatches.push({
           hours, book_fee: bookFee, total_payment: totalPayment,
           payment_date: ((r.payment_date || '').substring(0, 10)) || '年前缴费',
-          source: 'sales-renewal'
+          source: 'sales-renewal',
+          created_at: r.created_at || ''
         });
       }
     });
@@ -1337,15 +1339,23 @@ async function syncRevenueBatchesFromSales() {
       if (!eb.source || eb.source === 'manual') return true;
       // 来源为 sales-* 的：只在当前销售数据中仍存在时才保留；销售端已删除的应同步删除
       return salesBatches.some(sb2 => isSameBatch(sb2, eb));
-    }).map(eb => ({
-      hours: parseFloat(eb.hours) || 0,
-      book_fee: parseFloat(eb.book_fee) || 0,
-      total_payment: parseFloat(eb.total_payment) || 0,
-      payment_date: eb.payment_date || '年前缴费',
-      source: eb.source || 'manual',
-      unit_price: eb.unit_price,
-      batch_type: eb.batch_type
-    }));
+    }).map(eb => {
+      const mapped = {
+        hours: parseFloat(eb.hours) || 0,
+        book_fee: parseFloat(eb.book_fee) || 0,
+        total_payment: parseFloat(eb.total_payment) || 0,
+        payment_date: eb.payment_date || '年前缴费',
+        source: eb.source || 'manual',
+        unit_price: eb.unit_price,
+        batch_type: eb.batch_type
+      };
+      // 同日多笔的先后顺序以「销售端原始录入时间」为准，而非数组遍历顺序。
+      // 注意：DB批次的 created_at 会在 delete+insert 时被重置，不能用作排序依据，
+      // 必须从 customers/renewals 原始记录按签名回查拿到稳定的 created_at。
+      const src = salesBatches.find(sb3 => isSameBatch(sb3, eb));
+      mapped.created_at = (src && src.created_at) || eb.created_at || '';
+      return mapped;
+    });
 
     // 3) 合并、排序、去重（使用被手动记录 shadow 后的 salesBatches）
     // 手动记录优先加入，这样用户自定义的顺序和班级绑定会保留；同日期同金额的销售记录被去重
@@ -1357,7 +1367,10 @@ async function syncRevenueBatchesFromSales() {
       if (!combined.some(cb => isSameBatch(cb, sb))) combined.push(sb);
     });
 
-    // 排序：年前缴费 / 空日期在最前，其余按日期升序
+    // 排序：年前缴费 / 空日期在最前，其余按日期升序；
+    // 同日期时按原始录入时间(created_at)升序——先录入的批次先消耗（FIFO）。
+    // 修复：renewals 是 created_at 降序加载的，若仅按日期排会让后录的批次排到前面，
+    // 导致高雪晴(12h/42h)、刘睿怡(29h/51h)这类同日多笔续费顺序颠倒、确收金额出错。
     combined.sort((a, b) => {
       const da = a.payment_date || '';
       const db = b.payment_date || '';
@@ -1365,7 +1378,13 @@ async function syncRevenueBatchesFromSales() {
       const isLegacyB = db === '年前缴费' || !db;
       if (isLegacyA && !isLegacyB) return -1;
       if (!isLegacyA && isLegacyB) return 1;
-      return da.localeCompare(db);
+      const dateCmp = da.localeCompare(db);
+      if (dateCmp !== 0) return dateCmp;
+      // 同一天：按原始录入时间升序，先录先消耗
+      const ca = a.created_at || '';
+      const cb = b.created_at || '';
+      if (ca && cb && ca !== cb) return ca.localeCompare(cb);
+      return 0;
     });
 
     const targetBatches = combined.map((b, idx) => {
