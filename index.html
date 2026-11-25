@@ -3973,7 +3973,8 @@ function buildRevenueData() {
         salesBatches.push({
           hours,
           unit_price: calcPreciseUnitPrice(hours, bookFee, totalPayment, customer.unit_price),
-          date: (customer.enrollment_date || '').substring(0, 10)
+          date: (customer.enrollment_date || '').substring(0, 10),
+          created_at: customer.created_at || ''
         });
       }
     });
@@ -3987,11 +3988,21 @@ function buildRevenueData() {
           salesBatches.push({
             hours,
             unit_price: calcPreciseUnitPrice(hours, bookFee, totalPayment, r.unit_price),
-            date: (r.payment_date || '').substring(0, 10)
+            date: (r.payment_date || '').substring(0, 10),
+            created_at: r.created_at || ''
           });
         }
       });
-    salesBatches.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    // 排序：日期升序；同日期按原始录入时间升序（先录先消耗）。
+    // 修复：_renewals 为 created_at 降序加载，旧版仅按 date 排会让同日多笔续费
+    // （高雪晴12h/42h、刘睿怡29h/51h）在兜底路径下顺序颠倒、确收出错。
+    salesBatches.sort((a, b) => {
+      const dc = (a.date || '').localeCompare(b.date || '');
+      if (dc !== 0) return dc;
+      const ca = a.created_at || '', cb = b.created_at || '';
+      if (ca && cb && ca !== cb) return ca.localeCompare(cb);
+      return 0;
+    });
     return salesBatches;
   }
 
