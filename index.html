@@ -300,6 +300,8 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
   #sec-sales .tbl table{table-layout:auto;width:auto;min-width:1100px}
   #sec-sales .fit-table th,#sec-sales .fit-table td{overflow:visible;text-overflow:clip}
 }
+.renew-addr-cell:hover{background:#f1f5f9;outline:1px dashed #cbd5e1}
+.renew-addr-cell input{outline:none}
 </style>
 <link rel="dns-prefetch" href="https://chasxggorljjqqmficnh.supabase.co">
 <link rel="preconnect" href="https://chasxggorljjqqmficnh.supabase.co">
@@ -2394,14 +2396,83 @@ function exportSales() {
 // ═══════════════════════════════════════
 // 在读续费
 // ═══════════════════════════════════════
+// 家庭住址：优先取续费记录自己录入的 address（列表里点格子即可编辑保存），
+// 为空时再按「姓名+电话」从 customers 关联带出（新招名单里有的学员）。
+// 个别学员在 customers 里没有记录，也能在续费名单里单独补上地址。
+function buildRenewalAddrMap() {
+  const map = {};
+  _customers.forEach(c => { map[(c.name||'') + '|' + (c.phone||'')] = c.address||''; });
+  return map;
+}
+function renewalAddressOf(r, addrMap) {
+  const own = (r.address == null ? '' : String(r.address)).trim();
+  if (own) return own;
+  return (addrMap && addrMap[(r.student_name||'') + '|' + (r.phone||'')]) || '';
+}
+function renewalAddressCell(rid, addr) {
+  const safe = String(addr||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/'/g,'&#39;');
+  const shown = safe || '<span style="color:#b8c2cc">＋ 填写</span>';
+  return '<td style="padding:0;text-align:center">' +
+    '<div class="renew-addr-cell" data-addr="' + safe + '" title="' + (safe ? safe + ' · 点击编辑' : '点击填写家庭住址') + '" ' +
+    'onclick="editRenewalAddr(this,' + rid + ')" ' +
+    'style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto;cursor:pointer;padding:4px 6px;border-radius:6px">' + shown + '</div></td>';
+}
+function editRenewalAddr(el, rid) {
+  if (el.querySelector('input')) return;
+  const prior = el.getAttribute('data-addr') || '';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = prior;
+  input.style.cssText = 'width:100%;min-width:150px;box-sizing:border-box;padding:3px 6px;border:1px solid #4A90D9;border-radius:6px;font-size:12px;text-align:center';
+  el.innerHTML = '';
+  el.style.maxWidth = 'none';
+  el.style.overflow = 'visible';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+  let settled = false;
+  const finish = async function (save) {
+    if (settled) return;
+    settled = true;
+    const v = input.value.trim();
+    if (save && v !== prior) {
+      const ok = await setRenewalAddress(rid, v);
+      if (!ok) { renderRenewals(); return; }
+    }
+    renderRenewals();
+  };
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+  input.addEventListener('blur', function () { finish(true); });
+}
+async function setRenewalAddress(rid, val) {
+  const clean = (val || '').trim();
+  try {
+    const { error } = await sb.from('renewals').update({ address: clean }).eq('id', rid);
+    if (error) throw error;
+    const r = _renewals.find(x => x.id === rid);
+    if (r) r.address = clean;
+    showToast('家庭住址已保存', true);
+    return true;
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : String(e);
+    if (/address/i.test(msg) || /column/i.test(msg) || /schema cache/i.test(msg)) {
+      showToast('保存失败：请先在 Supabase SQL Editor 执行 add_address_to_renewals.sql', false);
+    } else {
+      showToast('保存失败: ' + msg, false);
+    }
+    return false;
+  }
+}
+
 function renderRenewals() {
   updateCounts();
   const gmap = genderMap();
   let list = [..._renewals];
 
-  // 家庭住址：从 customers 表按「姓名+电话」关联取（续费表本身无地址字段）
-  const addrMap = {};
-  _customers.forEach(c => { addrMap[(c.name||'') + '|' + (c.phone||'')] = c.address||''; });
+  const addrMap = buildRenewalAddrMap();
 
   const fCls = document.getElementById('renewalFilterClass').value;
   const fMon = document.getElementById('renewalFilterMonth').value;
@@ -2410,7 +2481,7 @@ function renderRenewals() {
 
   if (fCls !== 'all') list = list.filter(r => r.current_class === fCls);
   if (fMon !== 'all') list = list.filter(r => (r.payment_date||'').startsWith(fMon));
-  if (fQ) list = list.filter(r => (r.student_name||'').toLowerCase().includes(fQ) || (r.phone||'').includes(fQ) || (r.school||'').toLowerCase().includes(fQ) || (r.current_class||'').toLowerCase().includes(fQ));
+  if (fQ) list = list.filter(r => (r.student_name||'').toLowerCase().includes(fQ) || (r.phone||'').includes(fQ) || (r.school||'').toLowerCase().includes(fQ) || (r.current_class||'').toLowerCase().includes(fQ) || renewalAddressOf(r, addrMap).toLowerCase().includes(fQ));
 
   updateGenderFilterOptions('renewalFilterGender', list, function (r) { return r.student_name; }, gmap);
   if (fGender !== 'all') list = list.filter(r => genderFilterMatch(genderOf(r, r.student_name, gmap), fGender));
@@ -2440,8 +2511,7 @@ function renderRenewals() {
       '<td>' + (r.parent_name||'') + '</td>' +
       '<td>' + (r.school||'') + '</td>' +
       (function(){
-        const addr = addrMap[(r.student_name||'') + '|' + (r.phone||'')] || '';
-        return '<td><div style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + addr + '">' + addr + '</div></td>';
+        return renewalAddressCell(r.id, renewalAddressOf(r, addrMap));
       })() +
       '<td>' + (r.current_class||'') + '</td>' +
       '<td>' + (r.payment_type||'') + '</td>' +
@@ -2761,14 +2831,13 @@ async function deleteRenewal(rid) {
 function exportRenewals() {
   const headers = ['序号','缴费日期','姓名','出生日期','年龄','电话','家长姓名','所在学校','家庭住址','所在班级','缴费类型','课时数','书费','合计缴费','课单价','是否领取报名礼物','报名礼物名称'];
   const list = [..._renewals];
-  const addrMap = {};
-  _customers.forEach(c => { addrMap[(c.name||'') + '|' + (c.phone||'')] = c.address||''; });
+  const addrMap = buildRenewalAddrMap();
   list.sort((a, b) => (b.payment_date||'').localeCompare(a.payment_date||''));
   const rows = list.map((r, idx) => [
     idx + 1,
     r.payment_date||'', r.student_name||'', r.birth_date||'', calcAge(r.birth_date)||'',
     r.phone||'', r.parent_name||'', r.school||'',
-    (addrMap[(r.student_name||'') + '|' + (r.phone||'')] || ''),
+    renewalAddressOf(r, addrMap),
     r.current_class||'', r.payment_type||'', r.course_hours||'',
     r.book_fee||'', r.total_payment||'', r.unit_price||'', r.gift_received||'否', r.gift_name||''
   ]);
