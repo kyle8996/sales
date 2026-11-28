@@ -4261,14 +4261,14 @@ function renderRevenue() {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
         classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + (rev.refundFee > 0 ? '<span class="refund-tag">已退费¥' + fmtMoney(rev.refundFee) + '</span>' : '') + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
-          '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValueRaw > 0 ? String(Math.round(rev.remainingValueRaw)) : '0') + '</td>' +
+          '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValueRaw > 0 ? rev.remainingValueRaw.toFixed(1) : '0') + '</td>' +
           '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
     const classRemainingTotal = classRemainingRaw;
     const isClassGrad = cls.status === '已毕业';
-    html += '<tr class="rev-class-row' + (isClassGrad ? ' grad-class-row' : '') + '"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + (isClassGrad ? ' <span style="display:inline-block;margin-left:8px;padding:2px 8px;background:#7c3aed;color:#fff;font-size:11px;border-radius:10px">已毕业</span>' : '') + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classTotal > 0 ? '，<span style="color:#1d4ed8;font-weight:700">本月确收 ¥' + (classMonthRevInt / 10).toFixed(1) + '</span>' : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + String(Math.round(classRemainingTotal)) + '</span>' : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row' + (isClassGrad ? ' grad-class-row' : '') + '"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + (isClassGrad ? ' <span style="display:inline-block;margin-left:8px;padding:2px 8px;background:#7c3aed;color:#fff;font-size:11px;border-radius:10px">已毕业</span>' : '') + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classTotal > 0 ? '，<span style="color:#1d4ed8;font-weight:700">本月确收 ¥' + (classMonthRevInt / 10).toFixed(1) + '</span>' : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
     html += classRows;
   });
 
@@ -4371,7 +4371,7 @@ function exportRevenue() {
       const row = [cls.name, student.name];
       months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
       row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
-      row.push(rev.hasPrice ? String(Math.round(rev.remainingValueRaw || 0)) : '—');
+      row.push(rev.hasPrice ? (rev.remainingValueRaw || 0).toFixed(1) : '—');
       row.push(isGrad ? '毕业' : (rev.hasPrice ? (rev.overflow ? '超批' : '正常') : '无课单价'));
       rows.push(row);
     });
