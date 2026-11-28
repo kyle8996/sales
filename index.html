@@ -1820,6 +1820,7 @@ function _scBarPanel(title, series, opt) {
   series[0].labels.forEach((lb, i) => {
     svg += '<text x="' + (L + groupW * (i + 0.5)) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="14" fill="#64748b">' + lb + '</text>';
   });
+  const labelSlots = []; // 同月各柱标注的占位，按 y 上下错开防止文字重叠
   series.forEach((s, si) => {
     s.data.forEach((v, i) => {
       const gx = L + groupW * i + (groupW - barsW) / 2;
@@ -1827,7 +1828,17 @@ function _scBarPanel(title, series, opt) {
       const h = Math.max(v > 0 ? 2 : 0, T + ih - by);
       svg += '<rect x="' + bx + '" y="' + by + '" width="' + barW + '" height="' + h + '" rx="3" fill="' + s.color + '" fill-opacity="0.88"><title>' + s.labels[i] + ' · ' + s.name + '：' + fmtVal(v) + '</title></rect>';
       if (_scShowValues) {
-        svg += '<text x="' + (bx + barW / 2) + '" y="' + (by - 8) + '" text-anchor="middle" font-size="14" font-weight="700" class="sc-val" fill="' + s.color + '">' + fmtLabel(v) + '</text>';
+        const cx = bx + barW / 2;
+        let ly = by - 8;
+        // 与本月已放的标注比较，重叠就上移一格（最多 4 格，且不越过图表顶部）
+        for (let k = 0; k < 4; k++) {
+          const clash = labelSlots.some(p => p.i === i && Math.abs(p.x - cx) < 46 && Math.abs(p.y - ly) < 15);
+          if (!clash) break;
+          ly -= 17;
+        }
+        ly = Math.max(T + 10, ly);
+        labelSlots.push({ i: i, x: cx, y: ly });
+        svg += '<text x="' + cx + '" y="' + ly + '" text-anchor="middle" font-size="14" font-weight="700" class="sc-val" fill="' + s.color + '">' + fmtLabel(v) + '</text>';
       }
     });
   });
@@ -1875,9 +1886,9 @@ async function renderSalesCharts() {
   const moneyLabel = v => v >= 10000 ? (v / 10000).toFixed(1) + '万' : String(Math.round(v));
   _scChartSpecs = [
     { title: '销售人数趋势（新招 / 续费 / 退费）', type: 'bar', series: series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']]), opt: {} },
+    { title: '营收趋势（新招 / 续费 / 退费金额）', type: 'bar', series: series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), opt: { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt, fmtLabel: moneyLabel } },
     { title: '试听上门与报名', series: series([['试听上门','#06b6d4','trialVisited'],['试听报名','#22c55e','trialSigned']]), opt: {} },
-    { title: '当面转化率（%）', series: series([['当面转化率','#ea580c','rate']]), opt: { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' } },
-    { title: '营收趋势（新招 / 续费 / 退费金额）', series: series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), opt: { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt, fmtLabel: moneyLabel } }
+    { title: '当面转化率（%）', series: series([['当面转化率','#ea580c','rate']]), opt: { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' } }
   ];
   box.innerHTML =
     '<div class="sc-kpis">' + kpis.map(x => '<div class="sc-kpi" style="--accent:' + x.c + '"><div class="k">' + x.k + '</div><div class="v">' + x.v + '</div></div>').join('') + '</div>' +
