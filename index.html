@@ -4143,7 +4143,7 @@ function buildRevenueData() {
     const remainingValueInt = Math.round(remainingValueRaw * 10);
     // 显示用 1 位小数（= 整数角 / 10，与合计口径完全一致，逐学员之和必等于合计）
     const remainingValue = remainingValueInt / 10;
-    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue, remainingValueInt, refundFee: rfFeeFull, refundHours: rfHoursFull };
+    return { hasPrice: true, monthRevenue, monthRevenueRaw, total: Math.round(total * 10) / 10, totalRaw, overflow, remainingValue, remainingValueInt, remainingValueRaw, refundFee: rfFeeFull, refundHours: rfHoursFull };
   }
 
   // 预计算所有 (学员, 班级) 组合的确收（避免筛选前后重复计算）
@@ -4156,18 +4156,18 @@ function buildRevenueData() {
 
   // 全机构合计始终包含毕业学员，保持“金额照算”
   let grandTotal = 0;
-  let remainingTotalInt = 0; // 以“角”(0.1元)为整数累加，避免逐学员1位小数求和时的浮点漂移
+  let remainingTotalRaw = 0; // 全精度累加：中途不做任何取整，与 Excel 全精度 SUM 口径一致（避免逐学员取整累积偏差导致整数差 1）
   const monthlyTotals = {};
   months.forEach(m => monthlyTotals[m] = 0);
   _students.forEach(s => {
     const rev = studentClassRevs.get(s.id + '|' + s.class_id);
     if (rev && rev.hasPrice) {
       grandTotal += rev.totalRaw;
-      remainingTotalInt += rev.remainingValueInt || 0;
+      remainingTotalRaw += rev.remainingValueRaw || 0;
       months.forEach(m => monthlyTotals[m] += rev.monthRevenueRaw[m]);
     }
   });
-  const remainingTotal = remainingTotalInt / 10;
+  const remainingTotal = remainingTotalRaw;
 
   // 仅看毕业学员开关：勾选只显示毕业学员，未勾选只显示在读学员
   const showGradOnly = document.getElementById('showGradRevenue')?.checked || false;
@@ -4230,7 +4230,7 @@ function renderRevenue() {
     sumBar.innerHTML =
       pill('本月确收（' + currentMonth + '月）', (monthlyTotals[currentMonth] || 0).toFixed(1), '#2563eb', '#eff6ff', '#bfdbfe') +
       pill('校区总确收合计', grandTotal.toFixed(1), '#1d4ed8', '#eef2ff', '#c7d2fe') +
-      pill('未消耗课时费用', Math.round(remainingTotal), '#ea580c', '#fff7ed', '#fed7aa');
+      pill('未消耗课时费用', remainingTotal.toFixed(2), '#ea580c', '#fff7ed', '#fed7aa');
   }
 
   let html = '<p style="font-size:12px;color:#64748b;margin:6px 0 12px">确收 = 本月实际出勤课时 × 课单价（按缴费批次先进先出 FIFO 精确匹配，处理课单价前后不同的情况）。统计区间：' + year + '年3月–' + year + '年' + currentMonth + '月。' +
@@ -4242,13 +4242,13 @@ function renderRevenue() {
   classes.forEach(({ cls, students }) => {
     if (students.length === 0) return;
     let classTotal = 0;
-    let classRemainingInt = 0; // 以“角”为整数累加，避免浮点漂移
+    let classRemainingRaw = 0; // 班级小计同样用全精度累加，保证各班之和 == 全机构合计
     let classMonthRevInt = 0; // 本月确收：以“角”为整数累加，避免逐学员舍入误差
     let classRows = '';
     students.forEach(({ student, rev, isGrad }) => {
       if (rev.hasPrice) {
         classTotal += rev.total;
-        classRemainingInt += rev.remainingValueInt || 0;
+        classRemainingRaw += rev.remainingValueRaw || 0;
         const mRev = rev.monthRevenueRaw ? rev.monthRevenueRaw[currentMonth] : rev.monthRevenue[currentMonth];
         classMonthRevInt += Math.round((mRev || 0) * 10);
       }
@@ -4261,14 +4261,14 @@ function renderRevenue() {
         const monthCells = months.map(m => '<td>' + (rev.monthRevenue[m] > 0 ? rev.monthRevenue[m].toFixed(1) : '0') + '</td>').join('');
         classRows += '<tr class="' + (isGrad ? 'grad-row' : '') + '" data-student-id="' + student.id + '" data-class-id="' + cls.id + '"><td style="text-align:left">' + cls.name + '</td><td style="text-align:left;font-weight:600">' + student.name + (rev.refundFee > 0 ? '<span class="refund-tag">已退费¥' + fmtMoney(rev.refundFee) + '</span>' : '') + '</td>' +
           monthCells + '<td><b>' + rev.total.toFixed(1) + '</b></td>' +
-          '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValue > 0 ? rev.remainingValue.toFixed(1) : '0') + '</td>' +
+          '<td style="font-weight:700;color:#ea580c">' + (rev.remainingValueRaw > 0 ? rev.remainingValueRaw.toFixed(2) : '0') + '</td>' +
           '<td>' + (isGrad ? '<span style="color:#7c3aed;font-size:11px">毕业</span>' : (rev.overflow ? '<span style="color:#f59e0b;font-size:11px">超批</span>' : '<span style="color:#16a34a;font-size:11px">正常</span>')) + '</td>' +
           '<td><button class="btn btn-gray btn-xs" onclick="openRevenueBatchModal(' + student.id + ')">编辑</button></td></tr>';
       }
     });
-    const classRemainingTotal = classRemainingInt / 10;
+    const classRemainingTotal = classRemainingRaw;
     const isClassGrad = cls.status === '已毕业';
-    html += '<tr class="rev-class-row' + (isClassGrad ? ' grad-class-row' : '') + '"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + (isClassGrad ? ' <span style="display:inline-block;margin-left:8px;padding:2px 8px;background:#7c3aed;color:#fff;font-size:11px;border-radius:10px">已毕业</span>' : '') + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classTotal > 0 ? '，<span style="color:#1d4ed8;font-weight:700">本月确收 ¥' + (classMonthRevInt / 10).toFixed(1) + '</span>' : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(1) + '</span>' : '') + '）</span></td></tr>';
+    html += '<tr class="rev-class-row' + (isClassGrad ? ' grad-class-row' : '') + '"><td colspan="' + (months.length + 6) + '" style="text-align:left">📚 ' + cls.name + (isClassGrad ? ' <span style="display:inline-block;margin-left:8px;padding:2px 8px;background:#7c3aed;color:#fff;font-size:11px;border-radius:10px">已毕业</span>' : '') + ' <span style="color:#64748b;font-weight:400">（' + students.length + '人' + (classTotal > 0 ? '，确收 ¥' + classTotal.toFixed(1) : '') + (classTotal > 0 ? '，<span style="color:#1d4ed8;font-weight:700">本月确收 ¥' + (classMonthRevInt / 10).toFixed(1) + '</span>' : '') + (classRemainingTotal > 0 ? '，<span style="color:#ea580c;font-weight:600">未消耗 ¥' + classRemainingTotal.toFixed(2) + '</span>' : '') + '）</span></td></tr>';
     html += classRows;
   });
 
@@ -4277,7 +4277,7 @@ function renderRevenue() {
     '<td style="text-align:left" colspan="2">全部学员合计</td>' +
     months.map(m => '<td>' + monthlyTotals[m].toFixed(1) + '</td>').join('') +
     '<td>' + grandTotal.toFixed(1) + '</td>' +
-    '<td style="font-weight:700;color:#ea580c">' + Math.round(remainingTotal) + '</td>' +
+    '<td style="font-weight:700;color:#ea580c">' + remainingTotal.toFixed(2) + '</td>' +
     '<td colspan="2"></td>' +
     '</tr></tfoot></table></div>';
   html += '<div style="margin-top:14px;text-align:right;font-size:16px;font-weight:700;color:#1d4ed8">全机构确收合计：¥' + grandTotal.toFixed(1) + '</div>';
@@ -4371,12 +4371,12 @@ function exportRevenue() {
       const row = [cls.name, student.name];
       months.forEach(m => row.push(rev.hasPrice ? (rev.monthRevenue[m] || 0).toFixed(1) : '—'));
       row.push(rev.hasPrice ? rev.total.toFixed(1) : '—');
-      row.push(rev.hasPrice ? (rev.remainingValue || 0).toFixed(1) : '—');
+      row.push(rev.hasPrice ? (rev.remainingValueRaw || 0).toFixed(2) : '—');
       row.push(isGrad ? '毕业' : (rev.hasPrice ? (rev.overflow ? '超批' : '正常') : '无课单价'));
       rows.push(row);
     });
   });
-  rows.push(['全机构合计', '', ...months.map(() => ''), grandTotal.toFixed(1), Math.round(remainingTotal), '']);
+  rows.push(['全机构合计', '', ...months.map(() => ''), grandTotal.toFixed(1), remainingTotal.toFixed(2), '']);
   exportCSV(headers, rows, 'DK邻里确收表_' + year + '年3月-' + currentMonth + '月_' + new Date().toISOString().substring(0, 10) + '.csv');
 }
 
