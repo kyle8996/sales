@@ -60,6 +60,24 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
   overflow:hidden;
 }
 #sec-sales:not(.active) .card{display:none}
+/* 销售图表（独立区块，sc- 前缀，不影响现有排版） */
+.sc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 18px}
+.sc-kpi{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:10px;padding:12px 14px;border-left:4px solid var(--accent,#1d4ed8);box-shadow:0 2px 6px rgba(15,23,42,.18)}
+.sc-kpi .k{font-size:11px;color:#cbd5e1;margin-bottom:6px}
+.sc-kpi .v{font-size:19px;font-weight:700;color:#fff;line-height:1.2}
+.sc-table-wrap{overflow-x:auto;border:1px solid #eef2f6;border-radius:10px}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+.sc-table th,.sc-table td{border-bottom:1px solid #eef2f6;padding:8px 9px;text-align:center;white-space:nowrap}
+.sc-table thead th{background:#f8fafc;color:#475569;font-weight:600;position:sticky;top:0}
+.sc-table tbody tr:nth-child(even){background:#fbfdff}
+.sc-table tbody tr:hover{background:#f1f5f9}
+.sc-table .tot{background:#fff7ed!important;font-weight:700;color:#ea580c}
+.sc-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px;margin-top:18px}
+.sc-panel{background:#fff;border:1px solid #eef2f6;border-radius:12px;padding:14px 16px;min-width:0}
+.sc-panel h3{margin:0 0 10px;font-size:14px;color:#1e293b;font-weight:700}
+.sc-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;font-size:11px;color:#64748b}
+.sc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.sc-note{font-size:11px;color:#94a3b8;margin:10px 2px 0;line-height:1.6}
 #salesLedger{flex-shrink:0}
 #sec-sales .card h2,
 #calendarCard h2,
@@ -410,6 +428,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button class="active" data-sub="new" onclick="switchSalesSubTab('new')" id="salestab-new">新招学员</button>
           <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab-renewal">在读续费</button>
           <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab-refund">退费学员</button>
+          <button data-sub="chart" onclick="switchSalesSubTab('chart')" id="salestab-chart">销售图表</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
           <div class="msel" id="msel-salesSource"><button type="button" class="msel-btn" id="msel-salesSource-btn" onclick="mselToggle('salesSource', event)"><span id="msel-salesSource-label">一级渠道</span><span style="font-size:10px">▾</span></button><div class="msel-panel" id="msel-salesSource-panel"></div></div>
@@ -458,6 +477,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab2-new">新招学员</button>
           <button class="active" data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab2-renewal">在读续费</button>
           <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab2-refund">退费学员</button>
+          <button data-sub="chart" onclick="switchSalesSubTab('chart')" id="salestab2-chart">销售图表</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="renewalFilterClass" onchange="renderRenewals()"><option value="all">全部班级</option></select>
@@ -500,6 +520,7 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
           <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab3-new">新招学员</button>
           <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab3-renewal">在读续费</button>
           <button class="active" data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab3-refund">退费学员</button>
+          <button data-sub="chart" onclick="switchSalesSubTab('chart')" id="salestab3-chart">销售图表</button>
         </div>
         <div class="toolbar" style="margin-left:auto">
           <select id="refundFilterGender" class="gender-filter" onchange="renderRefunds()"><option value="all">全部性别</option><option value="男">男</option><option value="女">女</option><option value="unset">未填写</option></select>
@@ -526,6 +547,19 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
         <tbody id="refundTbody"></tbody>
         <tfoot id="refundTfoot"></tfoot>
       </table></div>
+    </div>
+    <!-- 销售图表（独立子Tab，排在退费学员之后；不影响前三个列表排版） -->
+    <div class="card" id="sales-chart-card" style="display:none">
+      <h2>销售图表
+        <div class="subtabs">
+          <button data-sub="new" onclick="switchSalesSubTab('new')" id="salestab4-new">新招学员</button>
+          <button data-sub="renewal" onclick="switchSalesSubTab('renewal')" id="salestab4-renewal">在读续费</button>
+          <button data-sub="refund" onclick="switchSalesSubTab('refund')" id="salestab4-refund">退费学员</button>
+          <button class="active" data-sub="chart" onclick="switchSalesSubTab('chart')" id="salestab4-chart">销售图表</button>
+        </div>
+        <span style="margin-left:auto;font-size:12px;color:#64748b;font-weight:400" id="scHint">统计区间：3月–当前月</span>
+      </h2>
+      <div id="salesChartContent"></div>
     </div>
   </div>
 </div>
@@ -1611,21 +1645,161 @@ function renderSalesLedger(ym) {
 
 function switchSalesSubTab(sub) {
   _salesSubTab = sub;
-  // 更新三个卡片中的子tab按钮状态（按 data-sub 匹配）
+  // 更新四个卡片中的子tab按钮状态（按 data-sub 匹配）
   document.querySelectorAll('#sec-sales .subtabs button').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
   document.getElementById('sales-new-card').style.display = sub === 'new' ? '' : 'none';
   document.getElementById('sales-renewal-card').style.display = sub === 'renewal' ? '' : 'none';
   document.getElementById('sales-refund-card').style.display = sub === 'refund' ? '' : 'none';
+  const chartCard = document.getElementById('sales-chart-card');
+  if (chartCard) chartCard.style.display = sub === 'chart' ? '' : 'none';
   // 月度销售台账：卡片是固定定位面板，台账必须位于卡片内才可见。
   // 切换时把台账移进当前激活卡片顶部（原来是h2），三个子tab下都常驻显示。
+  // 「销售图表」页保持独立，不显示台账。
   const ledger = document.getElementById('salesLedger');
-  const targetCard = document.getElementById(sub === 'new' ? 'sales-new-card' : sub === 'renewal' ? 'sales-renewal-card' : 'sales-refund-card');
+  if (ledger) ledger.style.display = sub === 'chart' ? 'none' : '';
+  const targetCard = document.getElementById(sub === 'new' ? 'sales-new-card' : sub === 'renewal' ? 'sales-renewal-card' : sub === 'refund' ? 'sales-refund-card' : 'sales-chart-card');
   if (ledger && targetCard && ledger.parentElement !== targetCard) {
     targetCard.insertBefore(ledger, targetCard.firstChild);
   }
   if (sub === 'new') { renderSales(); updateCounts(); }
   if (sub === 'renewal') renderRenewals();
   if (sub === 'refund') renderRefunds();
+  if (sub === 'chart') renderSalesCharts();
+}
+
+// ═══════════════════════════════════════
+// 销售图表（独立子Tab）：统计口径与「月度销售台账」「试听月历统计」完全一致
+// ═══════════════════════════════════════
+function _scMonths() {
+  const year = REVENUE_YEAR;
+  const now = new Date();
+  const end = (now.getFullYear() === year) ? now.getMonth() + 1 : 12;
+  const out = [];
+  for (let m = 3; m <= Math.max(3, end); m++) {
+    out.push({ key: year + '-' + String(m).padStart(2, '0'), label: m + '月' });
+  }
+  return out;
+}
+function _scNames(rows, key) {
+  return new Set(rows.map(r => String(r[key] || '').trim()).filter(Boolean));
+}
+function buildSalesChartData() {
+  return _scMonths().map(mo => {
+    // 新招：status=已报名 且报名日期在该月，按姓名去重（与 renderSalesLedger 一致）
+    const newC = _customers.filter(c => c.status === '已报名' && String(c.enrollment_date || '').startsWith(mo.key));
+    // 续费：缴费日期在该月，按姓名去重
+    const renC = _renewals.filter(r => String(r.payment_date || '').startsWith(mo.key));
+    // 退费：退费日期在该月，按姓名去重（空姓名用记录 id 兜底）
+    const refC = _refunds.filter(r => String(r.refund_date || '').startsWith(mo.key));
+    // 试听：该月场次下的已预约记录；上门 = attended 或客户状态已上门/已报名；报名 = 客户已报名
+    const sessIds = new Set(_trialSessions.filter(x => String(x.session_date || '').startsWith(mo.key)).map(x => x.id));
+    const visited = new Set(), signed = new Set();
+    _trialSchedule.filter(ts => ts.status === '已预约' && sessIds.has(ts.trial_session_id)).forEach(ts => {
+      const c = _customers.find(x => x.id === ts.customer_id);
+      if (!c) return;
+      if (ts.attended || c.status === '已上门未报名' || c.status === '已报名') visited.add(ts.customer_id);
+      if (c.status === '已报名') signed.add(ts.customer_id);
+    });
+    const newCash = newC.reduce((s, c) => s + (parseFloat(c.total_payment) || 0), 0);
+    const renCash = renC.reduce((s, r) => s + (parseFloat(r.total_payment) || 0), 0);
+    const refCash = refC.reduce((s, r) => s + (parseFloat(r.refund_class_fee) || 0) + (parseFloat(r.refund_book_fee) || 0), 0);
+    return {
+      label: mo.label,
+      newCount: _scNames(newC, 'name').size,
+      renewCount: _scNames(renC, 'student_name').size,
+      refundCount: new Set(refC.map(r => String(r.student_name || '').trim() || ('记录#' + r.id))).size,
+      trialVisited: visited.size,
+      trialSigned: signed.size,
+      rate: visited.size ? Math.round(signed.size / visited.size * 1000) / 10 : 0,
+      newCash: newCash, renCash: renCash, refCash: refCash,
+      net: newCash + renCash - refCash
+    };
+  });
+}
+function _scNiceMax(max) {
+  if (!(max > 0)) return 10;
+  const pow = Math.pow(10, Math.floor(Math.log10(max)));
+  const n = max / pow;
+  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+  return step * pow;
+}
+function _scLinePanel(title, series, opt) {
+  opt = opt || {};
+  const W = 760, H = 250, L = 54, R = 16, T = 16, B = 32;
+  const iw = W - L - R, ih = H - T - B;
+  const n = series[0].data.length;
+  let top = 0;
+  series.forEach(s => s.data.forEach(v => { if (v > top) top = v; }));
+  const max = _scNiceMax(top);
+  const x = i => L + (n <= 1 ? iw / 2 : i * iw / (n - 1));
+  const y = v => T + ih - (v / max) * ih;
+  const fy = opt.fmtY || (v => String(Math.round(v)));
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">';
+  for (let g = 0; g <= 4; g++) {
+    const v = max * g / 4, gy = y(v);
+    svg += '<line x1="' + L + '" y1="' + gy + '" x2="' + (W - R) + '" y2="' + gy + '" stroke="#eef2f6" stroke-width="1"/>';
+    svg += '<text x="' + (L - 8) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="11" fill="#94a3b8">' + fy(v) + '</text>';
+  }
+  series[0].labels.forEach((lb, i) => {
+    svg += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#64748b">' + lb + '</text>';
+  });
+  series.forEach(s => {
+    svg += '<polyline points="' + s.data.map((v, i) => x(i) + ',' + y(v)).join(' ') + '" fill="none" stroke="' + s.color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s.data.forEach((v, i) => {
+      svg += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.6" fill="#fff" stroke="' + s.color + '" stroke-width="2"><title>' + s.labels[i] + ' · ' + s.name + '：' + (opt.fmtVal ? opt.fmtVal(v) : v) + '</title></circle>';
+    });
+  });
+  svg += '</svg>';
+  const legend = series.map(s => '<span><i class="sc-dot" style="background:' + s.color + '"></i>' + s.name + '</span>').join('');
+  return '<div class="sc-panel"><h3>' + title + '</h3>' + svg + '<div class="sc-legend">' + legend + '</div></div>';
+}
+function _scTable(rows) {
+  const money = n => '¥' + Math.round(n).toLocaleString('zh-CN');
+  let h = '<div class="sc-table-wrap"><table class="sc-table"><thead><tr>' +
+    ['月份','新招人数','续费人数','退费人数','试听上门','试听报名','当面转化率','新招金额','续费金额','退费金额','净收入']
+      .map(t => '<th>' + t + '</th>').join('') + '</tr></thead><tbody>';
+  rows.forEach(r => {
+    h += '<tr><td><b>' + r.label + '</b></td><td>' + r.newCount + '</td><td>' + r.renewCount + '</td><td>' + r.refundCount +
+      '</td><td>' + r.trialVisited + '</td><td>' + r.trialSigned + '</td><td>' + r.rate.toFixed(1) + '%</td><td>' + money(r.newCash) +
+      '</td><td>' + money(r.renCash) + '</td><td>' + money(r.refCash) + '</td><td>' + money(r.net) + '</td></tr>';
+  });
+  const sum = k => rows.reduce((s, r) => s + r[k], 0);
+  const nv = sum('trialVisited'), sv = sum('trialSigned');
+  h += '<tr class="tot"><td>合计</td><td>' + sum('newCount') + '</td><td>' + sum('renewCount') + '</td><td>' + sum('refundCount') +
+    '</td><td>' + nv + '</td><td>' + sv + '</td><td>' + (nv ? (sv / nv * 100).toFixed(1) : '0.0') + '%</td><td>' + money(sum('newCash')) +
+    '</td><td>' + money(sum('renCash')) + '</td><td>' + money(sum('refCash')) + '</td><td>' + money(sum('net')) + '</td></tr>';
+  return h + '</tbody></table></div>';
+}
+async function renderSalesCharts() {
+  const box = document.getElementById('salesChartContent');
+  if (!box) return;
+  box.innerHTML = '<div style="padding:36px;text-align:center;color:#94a3b8">图表数据加载中…</div>';
+  await ensureTrialData();
+  const rows = buildSalesChartData();
+  const labels = rows.map(r => r.label);
+  const sum = k => rows.reduce((s, r) => s + r[k], 0);
+  const nv = sum('trialVisited'), sv = sum('trialSigned');
+  const kpis = [
+    { k: '新招人数合计', v: sum('newCount') + ' 人', c: '#3b82f6' },
+    { k: '续费人数合计', v: sum('renewCount') + ' 人', c: '#8b5cf6' },
+    { k: '退费人数合计', v: sum('refundCount') + ' 人', c: '#f43f5e' },
+    { k: '试听上门合计', v: nv + ' 人', c: '#06b6d4' },
+    { k: '整体当面转化率', v: (nv ? (sv / nv * 100).toFixed(1) : '0.0') + '%', c: '#ea580c' },
+    { k: '净收入合计', v: '¥' + Math.round(sum('net')).toLocaleString('zh-CN'), c: '#22c55e' },
+  ];
+  const series = (defs) => defs.map(d => ({ name: d[0], color: d[1], data: rows.map(r => r[d[2]]), labels: labels }));
+  const moneyFmt = v => '¥' + Math.round(v).toLocaleString('zh-CN');
+  box.innerHTML =
+    '<div class="sc-kpis">' + kpis.map(x => '<div class="sc-kpi" style="--accent:' + x.c + '"><div class="k">' + x.k + '</div><div class="v">' + x.v + '</div></div>').join('') + '</div>' +
+    '<div style="font-size:13px;font-weight:700;color:#334155;margin:0 0 8px">月度明细表</div>' +
+    _scTable(rows) +
+    '<div class="sc-charts">' +
+    _scLinePanel('销售人数趋势（新招 / 续费 / 退费）', series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']])) +
+    _scLinePanel('试听上门与报名', series([['试听上门','#06b6d4','trialVisited'],['试听报名','#22c55e','trialSigned']])) +
+    _scLinePanel('当面转化率（%）', series([['当面转化率','#ea580c','rate']]), { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' }) +
+    _scLinePanel('营收趋势（新招 / 续费 / 退费金额）', series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt }) +
+    '</div>' +
+    '<div class="sc-note">口径说明：人数均按姓名去重（与新招/续费/退费月度台账一致）；试听上门 = 当月已预约场次中「已上门」或「已报名」的客户，报名 = 其中已报名客户；当面转化率 = 试听报名 ÷ 试听上门。金额单位为元，图表 Y 轴以万元显示。鼠标悬停数据点可看具体数值。</div>';
 }
 
 function updateCounts() {
