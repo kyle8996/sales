@@ -72,11 +72,16 @@ header .user-info button:hover{background:rgba(255,255,255,.1);color:#fff}
 .sc-table tbody tr:nth-child(even){background:#fbfdff}
 .sc-table tbody tr:hover{background:#f1f5f9}
 .sc-table .tot{background:#fff7ed!important;font-weight:700;color:#ea580c}
-.sc-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:16px;margin-top:18px}
-.sc-panel{background:#fff;border:1px solid #eef2f6;border-radius:12px;padding:14px 16px;min-width:0}
-.sc-panel h3{margin:0 0 10px;font-size:14px;color:#1e293b;font-weight:700}
-.sc-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;font-size:11px;color:#64748b}
+.sc-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:14px}
+@media(max-width:1100px){.sc-charts{grid-template-columns:1fr}}
+.sc-panel{background:#fff;border:1px solid #eef2f6;border-radius:12px;padding:16px 18px;min-width:0}
+.sc-panel h3{margin:0 0 12px;font-size:15px;color:#1e293b;font-weight:700}
+.sc-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-size:12px;color:#64748b}
 .sc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.sc-val{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.sc-chart-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:16px 2px 0;font-size:12px;color:#64748b}
+.sc-toggle{background:#fff;border:1px solid #cbd5e1;color:#334155;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer}
+.sc-toggle:hover{border-color:#ea580c;color:#ea580c}
 .sc-note{font-size:11px;color:#94a3b8;margin:10px 2px 0;line-height:1.6}
 #salesLedger{flex-shrink:0}
 #sec-sales .card h2,
@@ -1723,9 +1728,22 @@ function _scNiceMax(max) {
   const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
   return step * pow;
 }
+// 曲线图数值标注开关（默认显示；切换子Tab后保持）
+let _scShowValues = true;
+let _scChartSpecs = [];
+function _scBuildChartsHTML() {
+  return _scChartSpecs.map(sp => _scLinePanel(sp.title, sp.series, sp.opt)).join('');
+}
+function toggleSalesChartValues() {
+  _scShowValues = !_scShowValues;
+  const btn = document.getElementById('scToggleVals');
+  if (btn) btn.textContent = _scShowValues ? '隐藏数值' : '显示数值';
+  const wrap = document.querySelector('#salesChartContent .sc-charts');
+  if (wrap) wrap.innerHTML = _scBuildChartsHTML();
+}
 function _scLinePanel(title, series, opt) {
   opt = opt || {};
-  const W = 760, H = 250, L = 54, R = 16, T = 16, B = 32;
+  const W = 960, H = 360, L = 68, R = 24, T = 28, B = 46;
   const iw = W - L - R, ih = H - T - B;
   const n = series[0].data.length;
   let top = 0;
@@ -1734,21 +1752,43 @@ function _scLinePanel(title, series, opt) {
   const x = i => L + (n <= 1 ? iw / 2 : i * iw / (n - 1));
   const y = v => T + ih - (v / max) * ih;
   const fy = opt.fmtY || (v => String(Math.round(v)));
+  const fmtVal = opt.fmtVal || (v => String(Math.round(v)));
+  const fmtLabel = opt.fmtLabel || fmtVal;
   let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">';
   for (let g = 0; g <= 4; g++) {
     const v = max * g / 4, gy = y(v);
-    svg += '<line x1="' + L + '" y1="' + gy + '" x2="' + (W - R) + '" y2="' + gy + '" stroke="#eef2f6" stroke-width="1"/>';
-    svg += '<text x="' + (L - 8) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="11" fill="#94a3b8">' + fy(v) + '</text>';
+    svg += '<line x1="' + L + '" y1="' + gy + '" x2="' + (W - R) + '" y2="' + gy + '" stroke="#e8eef4" stroke-width="1"/>';
+    svg += '<text x="' + (L - 10) + '" y="' + (gy + 5) + '" text-anchor="end" font-size="14" fill="#94a3b8">' + fy(v) + '</text>';
   }
   series[0].labels.forEach((lb, i) => {
-    svg += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="#64748b">' + lb + '</text>';
+    svg += '<text x="' + x(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="14" fill="#64748b">' + lb + '</text>';
   });
   series.forEach(s => {
-    svg += '<polyline points="' + s.data.map((v, i) => x(i) + ',' + y(v)).join(' ') + '" fill="none" stroke="' + s.color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    svg += '<polyline points="' + s.data.map((v, i) => x(i) + ',' + y(v)).join(' ') + '" fill="none" stroke="' + s.color + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
     s.data.forEach((v, i) => {
-      svg += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.6" fill="#fff" stroke="' + s.color + '" stroke-width="2"><title>' + s.labels[i] + ' · ' + s.name + '：' + (opt.fmtVal ? opt.fmtVal(v) : v) + '</title></circle>';
+      svg += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="4.4" fill="#fff" stroke="' + s.color + '" stroke-width="2.4"><title>' + s.labels[i] + ' · ' + s.name + '：' + fmtVal(v) + '</title></circle>';
     });
   });
+  if (_scShowValues) {
+    // 每个月各条线的数值直接标在点上；同一月份多个标签按上下错开，避免重叠
+    for (let i = 0; i < n; i++) {
+      const items = series.map((s, si) => ({
+        ly: y(s.data[i]) + ((si % 2 === 0) ? -12 : 20) - Math.floor(si / 2) * 14,
+        text: fmtLabel(s.data[i]), color: s.color
+      }));
+      items.sort((a, b) => a.ly - b.ly);
+      for (let k = 1; k < items.length; k++) {
+        if (items[k].ly - items[k - 1].ly < 16) items[k].ly = items[k - 1].ly + 16;
+      }
+      const over = items[items.length - 1].ly - (T + ih - 6);
+      if (over > 0) items.forEach(it => { it.ly -= over; });
+      const under = T + 10 - items[0].ly;
+      if (under > 0) items.forEach(it => { it.ly += under; });
+      items.forEach(it => {
+        svg += '<text x="' + x(i) + '" y="' + it.ly + '" text-anchor="middle" font-size="15" font-weight="700" class="sc-val" fill="' + it.color + '">' + it.text + '</text>';
+      });
+    }
+  }
   svg += '</svg>';
   const legend = series.map(s => '<span><i class="sc-dot" style="background:' + s.color + '"></i>' + s.name + '</span>').join('');
   return '<div class="sc-panel"><h3>' + title + '</h3>' + svg + '<div class="sc-legend">' + legend + '</div></div>';
@@ -1789,17 +1829,21 @@ async function renderSalesCharts() {
   ];
   const series = (defs) => defs.map(d => ({ name: d[0], color: d[1], data: rows.map(r => r[d[2]]), labels: labels }));
   const moneyFmt = v => '¥' + Math.round(v).toLocaleString('zh-CN');
+  // 图上标注用紧凑格式，避免金额过长压到一起
+  const moneyLabel = v => v >= 10000 ? (v / 10000).toFixed(1) + '万' : String(Math.round(v));
+  _scChartSpecs = [
+    { title: '销售人数趋势（新招 / 续费 / 退费）', series: series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']]), opt: {} },
+    { title: '试听上门与报名', series: series([['试听上门','#06b6d4','trialVisited'],['试听报名','#22c55e','trialSigned']]), opt: {} },
+    { title: '当面转化率（%）', series: series([['当面转化率','#ea580c','rate']]), opt: { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' } },
+    { title: '营收趋势（新招 / 续费 / 退费金额）', series: series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), opt: { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt, fmtLabel: moneyLabel } }
+  ];
   box.innerHTML =
     '<div class="sc-kpis">' + kpis.map(x => '<div class="sc-kpi" style="--accent:' + x.c + '"><div class="k">' + x.k + '</div><div class="v">' + x.v + '</div></div>').join('') + '</div>' +
     '<div style="font-size:13px;font-weight:700;color:#334155;margin:0 0 8px">月度明细表</div>' +
     _scTable(rows) +
-    '<div class="sc-charts">' +
-    _scLinePanel('销售人数趋势（新招 / 续费 / 退费）', series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']])) +
-    _scLinePanel('试听上门与报名', series([['试听上门','#06b6d4','trialVisited'],['试听报名','#22c55e','trialSigned']])) +
-    _scLinePanel('当面转化率（%）', series([['当面转化率','#ea580c','rate']]), { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' }) +
-    _scLinePanel('营收趋势（新招 / 续费 / 退费金额）', series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt }) +
-    '</div>' +
-    '<div class="sc-note">口径说明：人数均按姓名去重（与新招/续费/退费月度台账一致）；试听上门 = 当月已预约场次中「已上门」或「已报名」的客户，报名 = 其中已报名客户；当面转化率 = 试听报名 ÷ 试听上门。金额单位为元，图表 Y 轴以万元显示。鼠标悬停数据点可看具体数值。</div>';
+    '<div class="sc-chart-toolbar"><span>曲线图数值标注</span><button type="button" id="scToggleVals" class="sc-toggle" onclick="toggleSalesChartValues()">' + (_scShowValues ? '隐藏数值' : '显示数值') + '</button></div>' +
+    '<div class="sc-charts">' + _scBuildChartsHTML() + '</div>' +
+    '<div class="sc-note">口径说明：人数均按姓名去重（与新招/续费/退费月度台账一致）；试听上门 = 当月已预约场次中「已上门」或「已报名」的客户，报名 = 其中已报名客户；当面转化率 = 试听报名 ÷ 试听上门。金额单位为元，图表 Y 轴以万元显示。每个数据点已直接标注当月数值（金额以万为单位简写），可用上方按钮隐藏/显示；鼠标悬停数据点可看完整数值。</div>';
 }
 
 function updateCounts() {
