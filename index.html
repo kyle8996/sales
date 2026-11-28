@@ -1733,7 +1733,7 @@ function _scNiceMax(max) {
 let _scShowValues = true;
 let _scChartSpecs = [];
 function _scBuildChartsHTML() {
-  return _scChartSpecs.map(sp => _scLinePanel(sp.title, sp.series, sp.opt)).join('');
+  return _scChartSpecs.map(sp => (sp.type === 'bar' ? _scBarPanel : _scLinePanel)(sp.title, sp.series, sp.opt)).join('');
 }
 function toggleSalesChartValues() {
   _scShowValues = !_scShowValues;
@@ -1794,6 +1794,47 @@ function _scLinePanel(title, series, opt) {
   const legend = series.map(s => '<span><i class="sc-dot" style="background:' + s.color + '"></i>' + s.name + '</span>').join('');
   return '<div class="sc-panel"><h3>' + title + '</h3>' + svg + '<div class="sc-legend">' + legend + '</div></div>';
 }
+// 分组柱状图（用于「销售人数趋势」：每个月新招/续费/退费三根柱并排）
+function _scBarPanel(title, series, opt) {
+  opt = opt || {};
+  const W = 960, H = 360, L = 68, R = 24, T = 28, B = 46;
+  const iw = W - L - R, ih = H - T - B;
+  const n = series[0].data.length;
+  let top = 0;
+  series.forEach(s => s.data.forEach(v => { if (v > top) top = v; }));
+  const max = _scNiceMax(top);
+  const y = v => T + ih - (v / max) * ih;
+  const fy = opt.fmtY || (v => String(Math.round(v)));
+  const fmtVal = opt.fmtVal || (v => String(Math.round(v)));
+  const fmtLabel = opt.fmtLabel || fmtVal;
+  const groupW = iw / n, barCount = series.length;
+  const barW = Math.max(10, Math.min(22, (groupW - 24) / barCount - 4));
+  const gap = 4;
+  const barsW = barCount * barW + (barCount - 1) * gap;
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">';
+  for (let g = 0; g <= 4; g++) {
+    const v = max * g / 4, gy = y(v);
+    svg += '<line x1="' + L + '" y1="' + gy + '" x2="' + (W - R) + '" y2="' + gy + '" stroke="#e8eef4" stroke-width="1"/>';
+    svg += '<text x="' + (L - 10) + '" y="' + (gy + 5) + '" text-anchor="end" font-size="14" fill="#94a3b8">' + fy(v) + '</text>';
+  }
+  series[0].labels.forEach((lb, i) => {
+    svg += '<text x="' + (L + groupW * (i + 0.5)) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="14" fill="#64748b">' + lb + '</text>';
+  });
+  series.forEach((s, si) => {
+    s.data.forEach((v, i) => {
+      const gx = L + groupW * i + (groupW - barsW) / 2;
+      const bx = gx + si * (barW + gap), by = y(v);
+      const h = Math.max(v > 0 ? 2 : 0, T + ih - by);
+      svg += '<rect x="' + bx + '" y="' + by + '" width="' + barW + '" height="' + h + '" rx="3" fill="' + s.color + '" fill-opacity="0.88"><title>' + s.labels[i] + ' · ' + s.name + '：' + fmtVal(v) + '</title></rect>';
+      if (_scShowValues) {
+        svg += '<text x="' + (bx + barW / 2) + '" y="' + (by - 8) + '" text-anchor="middle" font-size="14" font-weight="700" class="sc-val" fill="' + s.color + '">' + fmtLabel(v) + '</text>';
+      }
+    });
+  });
+  svg += '</svg>';
+  const legend = series.map(s => '<span><i class="sc-dot" style="background:' + s.color + '"></i>' + s.name + '</span>').join('');
+  return '<div class="sc-panel"><h3>' + title + '</h3>' + svg + '<div class="sc-legend">' + legend + '</div></div>';
+}
 function _scTable(rows) {
   const money = n => '¥' + Math.round(n).toLocaleString('zh-CN');
   let h = '<div class="sc-table-wrap"><table class="sc-table"><thead><tr>' +
@@ -1833,7 +1874,7 @@ async function renderSalesCharts() {
   // 图上标注用紧凑格式，避免金额过长压到一起
   const moneyLabel = v => v >= 10000 ? (v / 10000).toFixed(1) + '万' : String(Math.round(v));
   _scChartSpecs = [
-    { title: '销售人数趋势（新招 / 续费 / 退费）', series: series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']]), opt: {} },
+    { title: '销售人数趋势（新招 / 续费 / 退费）', type: 'bar', series: series([['新招人数','#3b82f6','newCount'],['续费人数','#8b5cf6','renewCount'],['退费人数','#f43f5e','refundCount']]), opt: {} },
     { title: '试听上门与报名', series: series([['试听上门','#06b6d4','trialVisited'],['试听报名','#22c55e','trialSigned']]), opt: {} },
     { title: '当面转化率（%）', series: series([['当面转化率','#ea580c','rate']]), opt: { fmtY: v => v.toFixed(0) + '%', fmtVal: v => v.toFixed(1) + '%' } },
     { title: '营收趋势（新招 / 续费 / 退费金额）', series: series([['新招金额','#3b82f6','newCash'],['续费金额','#8b5cf6','renCash'],['退费金额','#f43f5e','refCash']]), opt: { fmtY: v => '¥' + Math.round(v / 10000) + '万', fmtVal: moneyFmt, fmtLabel: moneyLabel } }
